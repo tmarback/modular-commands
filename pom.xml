@@ -82,6 +82,11 @@
                     <artifactId>maven-help-plugin</artifactId>
                     <version>3.2.0</version>
                 </plugin>
+
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.0.0-M5</version>
+                </plugin>
             
                 <!-- clean lifecycle -->
                 <plugin>
@@ -191,6 +196,14 @@
             </plugins>
         </pluginManagement>
         <plugins>
+
+            <!-- Release management -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
 
             <!-- Unit tests -->
             <plugin>

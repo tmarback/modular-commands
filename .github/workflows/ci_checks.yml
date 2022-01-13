@@ -1,13 +1,13 @@
-# Workflow for checking all new commits to main for style
+# Workflow for checking all new commits to main
 
-name: Style
+name: CI Checks
 
 on:
   push:
     branches: # Trigger on commits to main
       - main
 
-concurrency: ci-style
+concurrency: ci-checks
 jobs:
   style:
     name: Style
