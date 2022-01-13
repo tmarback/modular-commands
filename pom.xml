@@ -6,12 +6,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>dev.sympho</groupId>
-    <artifactId>CHANGEME</artifactId>
+    <artifactId>modular-commands</artifactId>
     <version>0.1.0-SNAPSHOT</version>
 
-    <name>CHANGEME</name>
-    <description>CHANGEME.</description>
-    <url>https://CHANGEME.sympho.dev</url>
+    <name>Modular Commands</name>
+    <description>Framework for creating and managing chat commands for Discord bots that use Discord4J.</description>
+    <url>https://modular-commands.sympho.dev</url>
 
     <licenses>
         <license>
@@ -36,15 +36,15 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/tmarback/CHANGEME.git</connection>
-        <developerConnection>scm:git:ssh://github.com/tmarback/CHANGEME.git</developerConnection>
+        <connection>scm:git:git://github.com/tmarback/modular-commands.git</connection>
+        <developerConnection>scm:git:ssh://github.com/tmarback/modular-commands.git</developerConnection>
         <tag>HEAD</tag>
-        <url>https://github.com/tmarback/CHANGEME/tree/main</url>
+        <url>https://github.com/tmarback/modular-commands/tree/main</url>
     </scm>
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/tmarback/CHANGEME/issues</url>
+        <url>https://github.com/tmarback/modular-commands/issues</url>
     </issueManagement>
 
     <properties>
@@ -333,7 +333,7 @@
                                 </goals>
                                 <configuration>
                                     <!-- GPG key used for signing -->
-                                    <keyname>CHANGEME</keyname>
+                                    <keyname>CHANGE-ME</keyname>
                                     <!-- Prevent `gpg` from using pinentry programs -->
                                     <gpgArguments>
                                         <arg>--pinentry-mode</arg>
@@ -389,12 +389,12 @@
                 <snapshotRepository>
                     <id>github</id>
                     <name>GitHub Packages</name>
-                    <url>https://maven.pkg.github.com/tmarback/CHANGEME</url>
+                    <url>https://maven.pkg.github.com/tmarback/modular-commands</url>
                 </snapshotRepository>
                 <repository>
                     <id>github</id>
                     <name>GitHub Packages</name>
-                    <url>https://maven.pkg.github.com/tmarback/CHANGEME</url>
+                    <url>https://maven.pkg.github.com/tmarback/modular-commands</url>
                 </repository>
             </distributionManagement>
         </profile>

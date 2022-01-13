@@ -352,7 +352,7 @@
             letters and numbers. The root package name may not contain numbers.
           -->
         <module name="PackageName">
-            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9_]*)*$"/>
         </module>
         <!-- 
             Type names must start with an upper case letter, and only 

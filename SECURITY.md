@@ -9,4 +9,4 @@
 
 ## Reporting a Vulnerability
 
-If a vulnerability is found, send an email detailing it to [CHANGEME@sympho.dev](mailto:CHANGEME@sympho.dev). It will be addressed as soon as possible, and you may be contacted for further details if necessary.
+If a vulnerability is found, send an email detailing it to [modular-commands@sympho.dev](mailto:modular-commands@sympho.dev). It will be addressed as soon as possible, and you may be contacted for further details if necessary.
