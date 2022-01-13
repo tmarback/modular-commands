@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.version }}
-      type: ${{ steps.get-tag.outputs.type }}
+      type: ${{ steps.get-type.outputs.type }}
     steps:
       - name: Check out main Git repository
         uses: actions/checkout@v2
