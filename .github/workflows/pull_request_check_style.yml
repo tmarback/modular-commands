@@ -1,0 +1,28 @@
+# Workflow for testing that the code of incoming pull requests follows style guidelines
+
+name: Style Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+concurrency: pr-style-${{ github.ref }}
+jobs:
+  tests:
+    name: Run Style Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pull request
+        uses: actions/checkout@v2
+      - name: Set up Java and Maven
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+      - name: Run style checker
+        run: mvn validate -B -P style,strict

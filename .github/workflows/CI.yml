@@ -1,0 +1,139 @@
+# Build and release workflow
+
+name: CI
+
+on:
+  push:
+    branches: # Trigger on commits to main
+      - main
+
+jobs:
+  prepare:
+    name: Prepare Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      tag: ${{ steps.get-tag.outputs.tag }}
+    steps:
+      - name: Check out main Git repository
+        uses: actions/checkout@v2
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v2
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+
+      - name: Determine version
+        id: get-version
+        run: echo "::set-output name=version::$( mvn help:evaluate '-Dexpression=project.version' -q -DforceStdout )"
+      - name: Determine tag
+        id: get-tag
+        run: |
+          if [[ "${{ steps.get-version.outputs.version }}" == *-SNAPSHOT ]]; then
+            echo "::set-output name=tag::snapshot"
+          else
+            echo "::set-output name=tag::v${{ steps.get-version.outputs.version }}"
+          fi
+
+  deploy:
+    name: Deploy Version
+    needs: prepare
+    runs-on: ubuntu-latest
+    concurrency: ci-deploy-${{ needs.deploy.outputs.tag }}
+    steps:
+      - name: Check out main Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v2
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: NEXUS_USERNAME # env variable for username in deploy
+          server-password: NEXUS_PASSWORD # env variable for token in deploy
+          gpg-private-key: ${{ secrets.gpg_private_key }} # Value of the GPG private key to import
+          gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
+      - name: Build and test with Maven
+        run: mvn clean verify -B -P lint,strict
+      - name: Publish to OSSRH
+        run: mvn deploy -B -P deploy,ossrh -Dmaven.test.skip=true
+        env:
+          NEXUS_USERNAME: ${{ secrets.nexus_username }}
+          NEXUS_PASSWORD: ${{ secrets.nexus_password }}
+          GPG_PASSPHRASE: ${{ secrets.gpg_passphrase }}
+
+      - name: Set up Github Packages
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
+      - name: Publish to GitHub Packages
+        run: mvn deploy -B -P deploy,github -Dmaven.test.skip=true
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }} 
+          GPG_PASSPHRASE: ${{ secrets.gpg_passphrase }}
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: |
+            target/*.jar
+            target/*.jar.asc
+
+      - name: Build project site
+        run: mvn site -B
+      - name: Tarball project site
+        run: tar -czf site.tar.gz -C target/site .
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: site
+          path: site.tar.gz
+
+  site:
+    name: Update Site
+    needs: [ prepare, deploy ]
+    runs-on: ubuntu-latest
+    if: needs.prepare.outputs.version != 'snapshot' # Don't publish site for snapshot versions
+    steps:
+      - name: Check out GH Pages branch
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages # Github Pages branch
+
+      - name: Delete existing site files except CNAME
+        run: rm -r !("CNAME")
+      - name: Download site artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: site
+      - name: Unpack the artifact
+        run: tar -xzf site.tar.gz
+      - name: Delete the (local) artifact
+        run: rm site.tar.gz
+
+      - name: Configure git commiter identity
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -a ${{ needs.prepare.outputs.tag }}-site -m "Site for release version ${{ needs.prepare.outputs.version }}"
+      - name: Commit new files
+        run: |
+          git add -A
+          git commit -m "Updated project site to ${{ github.ref }}"
+      - name: Push changes
+        run: |
+          git push origin gh-pages
+          git push origin ${{ needs.prepare.outputs.tag }}-site
+
+      - name: Delete the artifact
+        if: always()
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: site
