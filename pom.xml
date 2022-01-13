@@ -346,7 +346,7 @@
                                 </goals>
                                 <configuration>
                                     <!-- GPG key used for signing -->
-                                    <keyname>CHANGE-ME</keyname>
+                                    <keyname>CAF93664E576F33646135DE9AB2C8F135157B5A0</keyname>
                                     <!-- Prevent `gpg` from using pinentry programs -->
                                     <gpgArguments>
                                         <arg>--pinentry-mode</arg>
