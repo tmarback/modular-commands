@@ -73,7 +73,9 @@
     <module name="TreeWalker">
     
         <!-- Annotations should be between the javadoc header and the element -->
-        <module name="AnnotationLocation"/>
+        <module name="AnnotationLocation">
+            <property name="allowSamelineMultipleAnnotations" value="true"/>
+        </module>
         <!-- 
             Keep annotation as compact as possible (e.g. no array when it's a single 
             value, etc)
@@ -215,7 +217,9 @@
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
         <!-- Avoid redundant parenthesis in expressions -->
-        <module name="UnnecessaryParentheses"/>
+        <module name="UnnecessaryParentheses">
+            <property name="severity" value="info"/>
+        </module>
         <!-- Avoid redundant semicolon in constant-only enums -->
         <module name="UnnecessarySemicolonInEnumeration"/>
         <!-- Avoid redundant semicolon in last resource -->
