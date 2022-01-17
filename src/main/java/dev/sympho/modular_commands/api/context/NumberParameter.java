@@ -42,7 +42,7 @@ public sealed interface NumberParameter<T extends @NonNull Number & Comparable<T
     default T parseValue( String raw ) throws InvalidArgumentException {
 
         try {
-            T value = parseNumber( raw );
+            final T value = parseNumber( raw );
             if ( minimum().compareTo( value ) <= 0 && maximum().compareTo( value ) >= 0 ) {
                 return value;
             } else {
