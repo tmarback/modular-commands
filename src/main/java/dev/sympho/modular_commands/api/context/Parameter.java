@@ -17,15 +17,16 @@ import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 public sealed interface Parameter<T extends @NonNull Object> extends Serializable
         permits ChoicesParameter {
 
+    // BEGIN LONG LINES
     /**
      * The name of the parameter.
      *
      * @return The name.
-     * @apiNote The name must be valid as per the <a href=
-                "https://discord.com/developers/docs/interactions/application-commands
-                #application-command-object-application-command-naming">
-                Discord API specification</a>.
+     * @apiNote The name must be valid as per the 
+     *          <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-naming">
+     *          Discord API specification</a>.
      */
+    // END LONG LINES
     String name();
 
     /**
@@ -39,14 +40,14 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
     /**
      * Whether the parameter must be specified to invoke the command.
      *
-     * @return <tt>true</tt> if the parameter is required, <tt>false</tt> otherwise.
+     * @return {@code true} if the parameter is required, {@code false} otherwise.
      */
     boolean required();
 
     /**
      * The default value for the parameter.
      *
-     * @return The default value, or <tt>null</tt> if no default.
+     * @return The default value, or {@code null} if no default.
      * @apiNote If the parameter is {@link #required() required}, then this
      *          value has no effect.
      */

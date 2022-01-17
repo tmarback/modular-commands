@@ -33,7 +33,7 @@ public class CommandException extends RuntimeException {
      *
      * @param message The detail message.
      * @param cause The cause.
-     * @inherit RuntimeException#RuntimeException(String, Throwable)
+     * @see RuntimeException#RuntimeException(String, Throwable)
      */
     public CommandException( final String message, final Throwable cause ) {
         super( message, cause );

@@ -67,7 +67,7 @@ public interface CommandContext {
      * Retrieves the ID of the guild that the command was invoked in, if there
      * is one.
      *
-     * @return The invoking guild's ID, or <tt>null</tt> if the command was
+     * @return The invoking guild's ID, or {@code null} if the command was
      *         invoked in a private channel.
      */
     @Nullable Snowflake getGuildId();
@@ -78,12 +78,12 @@ public interface CommandContext {
      * @param <T> The type of the argument.
      * @param name The name of the corresponding parameter.
      * @param parameterType The type of correspoding parameter.
-     * @return The argument value, or <tt>null</tt> if the argument was not given by
+     * @return The argument value, or {@code null} if the argument was not given by
      *         the caller and does not have a default value.
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given parameter type does not match the type of the
      *                            parameter with the given name.
-     * @apiNote This method will never return <tt>null</tt> if the parameter is marked
+     * @apiNote This method will never return {@code null} if the parameter is marked
      *          as required or provides a default value.
      */
     <T> @Nullable T getArgument( String name, Class<? extends Parameter<T>> parameterType )
@@ -95,12 +95,12 @@ public interface CommandContext {
      *
      * @param key The object key.
      * @param obj The object to store.
-     * @param replace If <tt>true</tt>, the object will be placed unconditionally, replacing
+     * @param replace If {@code true}, the object will be placed unconditionally, replacing
      *                any existing value in that key. Otherwise, it will only be placed if there
      *                are no values with the given key.
-     * @return <tt>true</tt> if the given object was placed in the context. If <tt>replace</tt>
-     *         is <tt>false</tt> and there is already an object at the given key, returns
-     *         <tt>false</tt>.
+     * @return {@code true} if the given object was placed in the context. If {@code replace}
+     *         is {@code false} and there is already an object at the given key, returns
+     *         {@code false}.
      * @apiNote This method is <i>not</i> thread-safe.
      */
     boolean setContext( String key, @Nullable Object obj, boolean replace );
