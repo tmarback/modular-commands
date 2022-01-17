@@ -451,6 +451,7 @@
                                 </goals>
                                 <configuration>
                                     <showWarnings>false</showWarnings>
+                                    <failOnWarning>false</failOnWarning>
                                 </configuration>
                             </execution>
                             <execution>
