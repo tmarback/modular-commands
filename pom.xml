@@ -56,6 +56,12 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.discord4j</groupId>
+            <artifactId>discord4j-core</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.checkerframework</groupId>
             <artifactId>checker-qual</artifactId>
             <version>${checker.version}</version>
