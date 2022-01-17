@@ -152,6 +152,29 @@
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.3.1</version>
+                    <configuration>
+                        <tags>
+                            <!-- Enable unofficial specification tags -->
+                            <tag>
+                                <name>apiNote</name>
+                                <placement>a</placement>
+                                <head>API Note:</head>
+                            </tag>
+
+                            <tag>
+                                <name>implSpec</name>
+                                <placement>a</placement>
+                                <head>Implementation Requirements:</head>
+                            </tag>
+
+                            <tag>
+                                <name>implNote</name>
+                                <placement>a</placement>
+                                <head>Implementation Note:</head>
+                            </tag>
+
+                        </tags>
+                    </configuration>
                 </plugin>
 
                 <plugin>
@@ -330,29 +353,6 @@
                     <!-- Javadoc plugin -->
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <configuration>
-                            <tags>
-                                <!-- Enable unofficial specification tags -->
-                                <tag>
-                                    <name>apiNote</name>
-                                    <placement>a</placement>
-                                    <head>API Note:</head>
-                                </tag>
-
-                                <tag>
-                                    <name>implSpec</name>
-                                    <placement>a</placement>
-                                    <head>Implementation Requirements:</head>
-                                </tag>
-
-                                <tag>
-                                    <name>implNote</name>
-                                    <placement>a</placement>
-                                    <head>Implementation Note:</head>
-                                </tag>
-
-                            </tags>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
