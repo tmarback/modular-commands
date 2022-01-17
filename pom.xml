@@ -117,6 +117,21 @@
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.9.0</version>
+                    <configuration>
+                        <!-- Without showWarnings and verbose, maven-compiler-plugin may not show output. -->
+                        <showWarnings>true</showWarnings>
+                        <!-- <verbose>true</verbose> -->
+                    </configuration>
+                    <!-- Discord4J Stores dependency on https://github.com/austinv11/Servicer causes a 
+                         warning if using annotation processing with default discovery -->
+                    <executions>
+                        <execution>
+                            <id>default-testCompile</id>
+                            <configuration>
+                                <proc>none</proc>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>
@@ -470,9 +485,6 @@
                                         <Xmaxerrs>10000</Xmaxerrs>
                                         <Xmaxwarns>10000</Xmaxwarns>
                                     </compilerArguments>
-                                    <!-- Without showWarnings and verbose, maven-compiler-plugin may not show output. -->
-                                    <showWarnings>true</showWarnings>
-                                    <!-- <verbose>true</verbose> -->
                                     <annotationProcessorPaths>
         
                                         <path>
