@@ -1,7 +1,5 @@
 package dev.sympho.modular_commands.api.context;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -30,19 +28,27 @@ public record StringParameter(
      * @param description The description of the parameter.
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
-     * @param choices The possible choices for the parameter value.
+     * @param choices The possible choices for the parameter value. If {@code null},
+     *                the value is not restricted to a set.
+     * @throws IllegalArgumentException if a set of choices is proved but is empty,
+     *                                  or one of the choices or names is an empty
+     *                                  string.
      */
     public StringParameter( 
             final String name, final String description, 
             final boolean required, final @Nullable String defaultValue, 
-            final Map<String, String> choices
+            final @Nullable Map<String, String> choices
     ) {
 
         this.name = name;
         this.description = description;
         this.required = required;
         this.defaultValue = defaultValue;
-        this.choices = Collections.unmodifiableMap( new HashMap<>( choices ) );
+        this.choices = ContextUtils.validateChoices( choices );
+
+        if ( this.choices.values().stream().anyMatch( String::isEmpty ) ) {
+            throw new IllegalArgumentException( "A choice cannot be empty." );
+        }
 
     }
 
@@ -58,7 +64,7 @@ public record StringParameter(
             final String name, final String description, 
             final boolean required, final @Nullable String defaultValue
     ) {
-        this( name, description, required, defaultValue, Collections.emptyMap() );
+        this( name, description, required, defaultValue, null );
     }
 
     @Override

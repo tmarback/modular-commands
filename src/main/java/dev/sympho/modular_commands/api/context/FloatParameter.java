@@ -1,13 +1,14 @@
 package dev.sympho.modular_commands.api.context;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Specification for an floating-point parameter.
+ * 
+ * <p>Note that NaN is not allowed in any part of the specification.
  *
  * @param name The name of the parameter.
  * @param description The description of the parameter.
@@ -28,33 +29,49 @@ public record FloatParameter(
 
     /**
      * Creates a new instance.
-     *
-     * <p>Use of this constructor for direct instantiation should be avoided due 
-     * to parameter redundancy and lack of parameter checking. Use one of the other 
-     * constructors instead.
+     * 
+     * <p>While specifying both a set of choices and a valid range is allowed, it
+     * is discouraged due to being a redundant condition while opening the possiblity
+     * of issues if one of the conditions is updated without updating the other.
      *
      * @param name The name of the parameter.
      * @param description The description of the parameter.
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
-     * @param choices The possible choices for the parameter value.
-     * @param minimum The minimum acceptable value (inclusive).
-     * @param maximum The maximum acceptable value (inclusive).
+     * @param choices The possible choices for the parameter value. If {@code null},
+     *                the value is not restricted to a set.
+     * @param minimum The minimum acceptable value (inclusive). If {@code null},
+     *                there is no minimum.
+     * @param maximum The maximum acceptable value (inclusive). If {@code null},
+     *                there is no maximum.
+     * @throws IllegalArgumentException if {@link Double#NaN} is used for any value, if
+     *         the provided range is empty (minimum > maximum), or if a set of choices
+     *         is provided but is empty.
+     * @apiNote Use of this constructor for direct instantiation should be avoided due 
+     *          to parameter redundancy.
      */
     public FloatParameter( 
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue, 
-            final Map<String, Double> choices, 
-            final Double minimum, final Double maximum
+            final @Nullable Map<String, Double> choices, 
+            final @Nullable Double minimum, final @Nullable Double maximum
     ) {
 
-        this.name = name;
-        this.description = description;
+        this.name = Objects.requireNonNull( name, "Name cannot be null." );
+        this.description = Objects.requireNonNull( description, "Description cannot be null." );
         this.required = required;
         this.defaultValue = defaultValue;
-        this.choices = Collections.unmodifiableMap( new HashMap<>( choices ) );
-        this.minimum = minimum;
-        this.maximum = maximum;
+        this.choices = ContextUtils.validateChoices( choices );
+        this.minimum = Objects.requireNonNullElse( minimum, Double.NEGATIVE_INFINITY );
+        this.maximum = Objects.requireNonNullElse( maximum, Double.POSITIVE_INFINITY );
+
+        if ( this.minimum.isNaN() || this.maximum.isNaN() 
+                || this.choices.values().stream().anyMatch( c -> c.isNaN() ) ) {
+            throw new IllegalArgumentException( "NaN is not a valid parameter value." );
+        }
+        if ( this.minimum.doubleValue() > this.maximum.doubleValue() ) {
+            throw new IllegalArgumentException( "Empty numeric range" );
+        }
 
     }
 
@@ -70,8 +87,7 @@ public record FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue
     ) {
-        this( name, description, required, defaultValue, 
-                Collections.emptyMap(), Double.MIN_VALUE, Double.MAX_VALUE );
+        this( name, description, required, defaultValue, null, null, null );
     }
 
     /**
@@ -82,18 +98,15 @@ public record FloatParameter(
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
      * @param choices The possible choices for the parameter value.
-     * @throws IllegalArgumentException if the given set of choices is empty.
+     * @throws IllegalArgumentException if the given set of choices is empty or contains
+     *                                  {@link Double#NaN}.
      */
     public FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue,
             final Map<String, Double> choices
     ) throws IllegalArgumentException {
-        this( name, description, required, defaultValue, 
-                choices, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY );
-        if ( choices.isEmpty() ) {
-            throw new IllegalArgumentException( "Choices may not be empty" );
-        }
+        this( name, description, required, defaultValue, choices, null, null );
     }
 
     /**
@@ -105,18 +118,15 @@ public record FloatParameter(
      * @param defaultValue The default value for the parameter.
      * @param minimum The minimum acceptable value (inclusive).
      * @param maximum The maximum acceptable value (inclusive).
-     * @throws IllegalArgumentException if the range is empty (minimum > maximum).
+     * @throws IllegalArgumentException if {@link Double#NaN} is used for any value or
+     *                                  if the range is empty (minimum > maximum).
      */
     public FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue,
             final double minimum, final double maximum
     ) throws IllegalArgumentException {
-        this( name, description, required, defaultValue, 
-                Collections.emptyMap(), minimum, maximum );
-        if ( minimum > maximum ) {
-            throw new IllegalArgumentException( "Empty numeric range" );
-        }
+        this( name, description, required, defaultValue, null, minimum, maximum );
     }
 
     @Override

@@ -7,26 +7,27 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 
+// BEGIN LONG LINES
 /**
  * Specification for a parameter received for a command.
  *
  * @param <T> The type of parameter that is received.
  * @version 1.0
  * @since 1.0
+ * @apiNote If being used for an interaction-compatible command, all
+ *          values must be compatible with the
+ *          <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
+ *          Discord API specification</a>.
  */
+// END LONG LINES
 public sealed interface Parameter<T extends @NonNull Object> extends Serializable
         permits ChoicesParameter {
 
-    // BEGIN LONG LINES
     /**
      * The name of the parameter.
      *
      * @return The name.
-     * @apiNote The name must be valid as per the 
-     *          <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-naming">
-     *          Discord API specification</a>.
      */
-    // END LONG LINES
     String name();
 
     /**
