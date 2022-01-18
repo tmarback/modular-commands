@@ -508,7 +508,7 @@
                                         <annotationProcessor>org.checkerframework.checker.optional.OptionalChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
                                         <!-- <annotationProcessor>org.checkerframework.checker.lock.LockChecker</annotationProcessor> --> <!-- Not currently compatible with Streams (https://github.com/typetools/checker-framework/issues/5012) -->
-                                        <annotationProcessor>org.checkerframework.checker.index.IndexChecker</annotationProcessor>
+                                        <!-- <annotationProcessor>org.checkerframework.checker.index.IndexChecker</annotationProcessor> --> <!-- Crashes with pattern matching (https://github.com/typetools/checker-framework/issues/5013) -->
                                         <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.tainting.TaintingChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.regex.RegexChecker</annotationProcessor>
@@ -516,6 +516,7 @@
                                         <annotationProcessor>org.checkerframework.checker.signedness.SignednessChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.common.initializedfields.InitializedFieldsChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.resourceleak.ResourceLeakChecker</annotationProcessor>
+                                        
                                     </annotationProcessors>
                                     <compilerArgs>
                                         <arg>-Xlint:all,-processing,-requires-transitive-automatic,-requires-automatic</arg>
