@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.api.context;
+package dev.sympho.modular_commands.api.command.context;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 

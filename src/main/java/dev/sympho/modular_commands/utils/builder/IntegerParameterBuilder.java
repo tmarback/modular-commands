@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.utils.builder;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.context.IntegerParameter;
+import dev.sympho.modular_commands.api.command.parameter.IntegerParameter;
 
 /**
  * Builder for an integer parameter.

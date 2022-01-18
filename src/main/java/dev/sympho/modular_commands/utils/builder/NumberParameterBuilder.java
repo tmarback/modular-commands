@@ -9,7 +9,7 @@ import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.context.NumberParameter;
+import dev.sympho.modular_commands.api.command.parameter.NumberParameter;
 
 /**
  * Base for a number parameter builder.
@@ -23,7 +23,7 @@ import dev.sympho.modular_commands.api.context.NumberParameter;
  */
 @SuppressWarnings( "HiddenField" )
 abstract sealed class NumberParameterBuilder<T extends @NonNull Number & Comparable<T>, 
-        P extends @NonNull NumberParameter<T>,
+        P extends dev.sympho.modular_commands.api.command.parameter.NumberParameter<T>,
         SELF extends @NonNull NumberParameterBuilder<T, P, SELF>>
         extends ChoicesParameterBuilder<T, P, SELF>
         permits IntegerParameterBuilder, FloatParameterBuilder {

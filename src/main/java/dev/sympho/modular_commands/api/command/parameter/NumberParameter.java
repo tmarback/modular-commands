@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.api.context;
+package dev.sympho.modular_commands.api.command.parameter;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;

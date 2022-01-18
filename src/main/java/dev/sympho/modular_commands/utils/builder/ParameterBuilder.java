@@ -8,7 +8,7 @@ import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.context.Parameter;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
 /**
  * Base for a parameter builder.
@@ -22,7 +22,7 @@ import dev.sympho.modular_commands.api.context.Parameter;
  */
 @SuppressWarnings( "HiddenField" )
 abstract sealed class ParameterBuilder<T extends @NonNull Object, 
-        P extends @NonNull Parameter<T>,
+        P extends dev.sympho.modular_commands.api.command.parameter.Parameter<T>,
         SELF extends @NonNull ParameterBuilder<T, P, SELF>>
         permits ChoicesParameterBuilder {
 

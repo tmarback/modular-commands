@@ -1,7 +1,8 @@
-package dev.sympho.modular_commands.api.context;
+package dev.sympho.modular_commands.api.command.context;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;

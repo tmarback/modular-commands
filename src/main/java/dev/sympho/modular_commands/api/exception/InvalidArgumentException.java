@@ -1,6 +1,6 @@
 package dev.sympho.modular_commands.api.exception;
 
-import dev.sympho.modular_commands.api.context.Parameter;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
 /**
  * Exception type for errors caused due to invalid arguments being passed

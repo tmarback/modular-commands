@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.utils.builder;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.context.FloatParameter;
+import dev.sympho.modular_commands.api.command.parameter.FloatParameter;
 
 /**
  * Builder for a floating-point parameter.

@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.utils.builder;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.context.StringParameter;
+import dev.sympho.modular_commands.api.command.parameter.StringParameter;
 
 /**
  * Builder for a string parameter.
