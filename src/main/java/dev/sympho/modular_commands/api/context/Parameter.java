@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 
@@ -28,6 +30,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      *
      * @return The name.
      */
+    @Pure
     String name();
 
     /**
@@ -36,6 +39,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * @return The description.
      * @apiNote The description must have between 1 and 100 characters.
      */
+    @Pure
     String description();
 
     /**
@@ -43,6 +47,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      *
      * @return {@code true} if the parameter is required, {@code false} otherwise.
      */
+    @Pure
     boolean required();
 
     /**
@@ -52,6 +57,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * @apiNote If the parameter is {@link #required() required}, then this
      *          value has no effect.
      */
+    @SideEffectFree
     @Nullable T defaultValue();
 
     /**
@@ -61,6 +67,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * @return The value specified by the argument.
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
+    @SideEffectFree
     T parse( String raw ) throws InvalidArgumentException;
     
 }

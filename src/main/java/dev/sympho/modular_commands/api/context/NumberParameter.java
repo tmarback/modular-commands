@@ -1,6 +1,8 @@
 package dev.sympho.modular_commands.api.context;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 
@@ -20,6 +22,7 @@ public sealed interface NumberParameter<T extends @NonNull Number & Comparable<T
      *
      * @return The minimum value.
      */
+    @Pure
     T minimum();
     
     /**
@@ -27,6 +30,7 @@ public sealed interface NumberParameter<T extends @NonNull Number & Comparable<T
      *
      * @return The maximum value.
      */
+    @Pure
     T maximum();
 
     /**
@@ -36,6 +40,7 @@ public sealed interface NumberParameter<T extends @NonNull Number & Comparable<T
      * @return The value specified by the argument.
      * @throws NumberFormatException if the given string is not a valid number.
      */
+    @SideEffectFree
     T parseNumber( String raw ) throws NumberFormatException;
 
     @Override

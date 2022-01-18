@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Specification for an floating-point parameter.
@@ -50,6 +51,7 @@ public record FloatParameter(
      * @apiNote Use of this constructor for direct instantiation should be avoided due 
      *          to parameter redundancy.
      */
+    @SideEffectFree
     public FloatParameter( 
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue, 
@@ -83,6 +85,7 @@ public record FloatParameter(
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
      */
+    @SideEffectFree
     public FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue
@@ -101,6 +104,7 @@ public record FloatParameter(
      * @throws IllegalArgumentException if the given set of choices is empty or contains
      *                                  {@link Double#NaN}.
      */
+    @SideEffectFree
     public FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue,
@@ -121,6 +125,7 @@ public record FloatParameter(
      * @throws IllegalArgumentException if {@link Double#NaN} is used for any value or
      *                                  if the range is empty (minimum > maximum).
      */
+    @SideEffectFree
     public FloatParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Double defaultValue,

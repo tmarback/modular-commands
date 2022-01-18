@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Specification for an integer parameter.
@@ -48,6 +49,7 @@ public record IntegerParameter(
      * @apiNote Use of this constructor for direct instantiation should be avoided due 
      *          to parameter redundancy.
      */
+    @SideEffectFree
     public IntegerParameter( 
             final String name, final String description, 
             final boolean required, final @Nullable Long defaultValue, 
@@ -77,6 +79,7 @@ public record IntegerParameter(
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
      */
+    @SideEffectFree
     public IntegerParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Long defaultValue
@@ -94,6 +97,7 @@ public record IntegerParameter(
      * @param choices The possible choices for the parameter value.
      * @throws IllegalArgumentException if the given set of choices is empty.
      */
+    @SideEffectFree
     public IntegerParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Long defaultValue,
@@ -113,6 +117,7 @@ public record IntegerParameter(
      * @param maximum The maximum acceptable value (inclusive).
      * @throws IllegalArgumentException if the range is empty (minimum > maximum).
      */
+    @SideEffectFree
     public IntegerParameter(
             final String name, final String description, 
             final boolean required, final @Nullable Long defaultValue,

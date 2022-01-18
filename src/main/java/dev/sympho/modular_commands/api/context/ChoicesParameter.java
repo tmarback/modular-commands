@@ -3,6 +3,8 @@ package dev.sympho.modular_commands.api.context;
 import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 
@@ -25,6 +27,7 @@ public sealed interface ChoicesParameter<T extends @NonNull Object> extends Para
      *
      * @return The choices.
      */
+    @Pure
     Map<String, T> choices();
 
     /**
@@ -34,6 +37,7 @@ public sealed interface ChoicesParameter<T extends @NonNull Object> extends Para
      * @return The value specified by the argument.
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
+    @SideEffectFree
     T parseValue( String raw ) throws InvalidArgumentException;
 
     @Override

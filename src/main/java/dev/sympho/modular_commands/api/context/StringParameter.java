@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.context;
 import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Specification for a string parameter.
@@ -34,6 +35,7 @@ public record StringParameter(
      *                                  or one of the choices or names is an empty
      *                                  string.
      */
+    @SideEffectFree
     public StringParameter( 
             final String name, final String description, 
             final boolean required, final @Nullable String defaultValue, 
@@ -60,6 +62,7 @@ public record StringParameter(
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
      */
+    @SideEffectFree
     public StringParameter(
             final String name, final String description, 
             final boolean required, final @Nullable String defaultValue
