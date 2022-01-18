@@ -29,9 +29,10 @@ final class ContextUtils {
      * @return The choices, or an empty map if no restriction on value is to be used.
      * @throws IllegalArgumentException if the given map is empty or contains an empty
      *                                  choice name.
+     * @throws NullPointerException if the choices contain {@code null}.
      */
     public static <T extends @NonNull Object> 
-            Map<String, T> validateChoices( @Nullable Map<String, T> choices )
+            Map<String, T> validateChoices( final @Nullable Map<String, T> choices )
             throws IllegalArgumentException {
 
         if ( choices == null ) {
