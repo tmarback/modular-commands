@@ -141,6 +141,8 @@
         <module name="JavadocType">
             <!-- <property name="authorFormat" value="\S(.*\S)?"/> -->
             <property name="versionFormat" value="[1-9]\d*\.\d+"/> <!-- At least 1.0 -->
+            <!-- Unfortunately we cannot add implNote, implSpec, apiNote and apiSpec to checkstyle -->
+            <property name="allowUnknownTags" value="true"/>
         </module>
         <!-- @since may have a placeholder instead of a version (for pending releases) -->
         <module name="WriteTag">
