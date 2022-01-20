@@ -51,6 +51,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <checker.version>3.21.1</checker.version> <!-- Version of the Checker framework used -->
+        <d4j.version>3.2.1</d4j.version> <!-- Version of Discord4J used -->
     </properties>
 
     <dependencies>
@@ -58,7 +59,7 @@
         <dependency>
             <groupId>com.discord4j</groupId>
             <artifactId>discord4j-core</artifactId>
-            <version>3.2.1</version>
+            <version>${d4j.version}</version>
         </dependency>
 
         <dependency>
@@ -180,6 +181,12 @@
                             </tag>
 
                         </tags>
+                        <links>
+                            <link>https://checkerframework.org/api/</link>
+                            <link>https://projectreactor.io/docs/core/release/api/</link>
+                            <link>https://javadoc.io/doc/com.discord4j/discord4j-core/${d4j.version}/</link>
+                            <link>https://javadoc.io/doc/com.discord4j/discord4j-common/${d4j.version}/</link>
+                        </links>
                     </configuration>
                 </plugin>
 
