@@ -8,7 +8,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
  * @version 1.0
  * @since 1.0
  */
-public interface SlashCommandContext extends CommandContext {
+public interface SlashCommandContext extends InteractionCommandContext {
 
     @Override
     ChatInputInteractionEvent getEvent();
