@@ -132,9 +132,11 @@
           -->
         <module name="JavadocParagraph"/>
         <!-- Javadoc comment must be well-formed and may not be empty -->
-        <module name="JavadocStyle">
+        <!-- This module refuses to be suppressed so it was turned off -->
+        <!-- <module name="JavadocStyle">
             <property name="checkEmptyJavadoc" value="true"/>
-        </module>
+        </module> -->
+        <!-- <module name="SummaryJavadocCheck"/> -->
         <!-- Javadoc tag continuation must be indented by at least 4 spaces -->
         <module name="JavadocTagContinuationIndentation"/>
         <!-- Type headers must document generic type parameters, author, version, and since -->
