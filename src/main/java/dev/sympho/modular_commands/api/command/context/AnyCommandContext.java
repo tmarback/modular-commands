@@ -65,7 +65,7 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
 
     @Override
     public <T> @Nullable T getArgument( final String name, 
-            Class<? extends Parameter<T>> parameterType )
+            final Class<? extends Parameter<T>> parameterType )
             throws IllegalArgumentException, ClassCastException {
         throw new UnsupportedOperationException();
     }
