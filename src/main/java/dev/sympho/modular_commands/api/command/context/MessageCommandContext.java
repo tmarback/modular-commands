@@ -1,5 +1,8 @@
 package dev.sympho.modular_commands.api.command.context;
 
+import org.checkerframework.dataflow.qual.Pure;
+
+import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 
 /**
@@ -8,9 +11,20 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
  * @version 1.0
  * @since 1.0
  */
-public interface MessageCommandContext extends CommandContext {
+public non-sealed interface MessageCommandContext extends CommandContext {
+
+    /**
+     * Same as {@link #getEvent()}. This method only exists because
+     * {@link AnyCommandContext} needs to exist.
+     *
+     * @return The trigger event.
+     */
+    @Pure
+    MessageCreateEvent getMessageEvent();
 
     @Override
-    MessageCreateEvent getEvent();
+    default Event getEvent() {
+        return getMessageEvent();
+    }
     
 }

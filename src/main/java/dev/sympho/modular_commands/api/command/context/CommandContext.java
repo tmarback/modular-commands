@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.api.command.context;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import discord4j.common.util.Snowflake;
@@ -17,13 +18,14 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public interface CommandContext {
+public sealed interface CommandContext permits MessageCommandContext, InteractionCommandContext {
 
     /**
      * Retrieves the event that triggered the command.
      *
      * @return The trigger event.
      */
+    @Pure
     Event getEvent();
 
     /**
@@ -31,6 +33,7 @@ public interface CommandContext {
      *
      * @return The calling user.
      */
+    @Pure
     User getCaller();
 
     /**
@@ -40,6 +43,7 @@ public interface CommandContext {
      *
      * @return The calling user as a guild member, or 
      */
+    @Pure
     @Nullable Member getCallerMember();
 
     /**
@@ -54,6 +58,7 @@ public interface CommandContext {
      *
      * @return The invoking channel's ID.
      */
+    @Pure
     Snowflake getChannelId();
 
     /**
@@ -71,6 +76,7 @@ public interface CommandContext {
      * @return The invoking guild's ID, or {@code null} if the command was
      *         invoked in a private channel.
      */
+    @Pure
     @Nullable Snowflake getGuildId();
 
     /**
@@ -87,6 +93,7 @@ public interface CommandContext {
      * @apiNote This method will never return {@code null} if the parameter is marked
      *          as required or provides a default value.
      */
+    @Pure
     <T> @Nullable T getArgument( String name, Class<? extends Parameter<T>> parameterType )
             throws IllegalArgumentException, ClassCastException;
 
@@ -130,6 +137,7 @@ public interface CommandContext {
      * @throws ClassCastException If the context object with the given key is not compatible
      *                            with the given type (not the same or a subtype).
      */
+    @Pure
     <T> @Nullable T getContext( String key, Class<T> type )
             throws IllegalArgumentException, ClassCastException;
     
