@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.utils.builder.parameter;
 
 import java.util.Objects;
 
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Deterministic;
@@ -23,16 +24,19 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract sealed class ParameterBuilder<
             T extends @NonNull Object, 
-            P extends Parameter<T>,
-            SELF extends ParameterBuilder<T, P, SELF>
+            P extends @NonNull Parameter<T>,
+            SELF extends @NonNull ParameterBuilder<T, P, SELF>
         > permits ChoicesParameterBuilder {
 
     /** The parameter name. */
-    protected @Nullable String name;
+    protected @MonotonicNonNull String name;
+    
     /** The parameter description. */
-    protected @Nullable String description;
+    protected @MonotonicNonNull String description;
+
     /** Whether the parameter is required. */
     protected boolean required;
+    
     /** The default parameter value. */
     protected @Nullable T defaultValue;
 

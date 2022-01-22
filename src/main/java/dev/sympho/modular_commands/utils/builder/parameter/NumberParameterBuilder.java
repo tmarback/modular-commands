@@ -24,8 +24,8 @@ import dev.sympho.modular_commands.api.command.parameter.NumberParameter;
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract sealed class NumberParameterBuilder<
             T extends @NonNull Number & Comparable<T>, 
-            P extends NumberParameter<T>,
-            SELF extends NumberParameterBuilder<T, P, SELF>
+            P extends @NonNull NumberParameter<T>,
+            SELF extends @NonNull NumberParameterBuilder<T, P, SELF>
         > extends ChoicesParameterBuilder<T, P, SELF>
         permits IntegerParameterBuilder, FloatParameterBuilder {
 

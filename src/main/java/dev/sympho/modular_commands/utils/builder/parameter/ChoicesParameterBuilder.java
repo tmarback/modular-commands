@@ -25,8 +25,8 @@ import dev.sympho.modular_commands.api.command.parameter.ChoicesParameter;
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract sealed class ChoicesParameterBuilder<
             T extends @NonNull Object, 
-            P extends ChoicesParameter<T>,
-            SELF extends ChoicesParameterBuilder<T, P, SELF>
+            P extends @NonNull ChoicesParameter<T>,
+            SELF extends @NonNull ChoicesParameterBuilder<T, P, SELF>
         > extends ParameterBuilder<T, P, SELF>
         permits NumberParameterBuilder, StringParameterBuilder {
 
