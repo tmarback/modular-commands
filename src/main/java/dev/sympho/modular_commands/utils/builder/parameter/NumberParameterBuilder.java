@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.utils.builder;
+package dev.sympho.modular_commands.utils.builder.parameter;
 
 import java.util.Map;
 import java.util.Objects;
@@ -21,11 +21,12 @@ import dev.sympho.modular_commands.api.command.parameter.NumberParameter;
  * @version 1.0
  * @since 1.0
  */
-@SuppressWarnings( "HiddenField" )
-abstract sealed class NumberParameterBuilder<T extends @NonNull Number & Comparable<T>, 
-        P extends dev.sympho.modular_commands.api.command.parameter.NumberParameter<T>,
-        SELF extends @NonNull NumberParameterBuilder<T, P, SELF>>
-        extends ChoicesParameterBuilder<T, P, SELF>
+@SuppressWarnings( "checkstyle:hiddenfield" )
+abstract sealed class NumberParameterBuilder<
+            T extends @NonNull Number & Comparable<T>, 
+            P extends NumberParameter<T>,
+            SELF extends NumberParameterBuilder<T, P, SELF>
+        > extends ChoicesParameterBuilder<T, P, SELF>
         permits IntegerParameterBuilder, FloatParameterBuilder {
 
     /** The minimum acceptable value, inclusive. */

@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.utils.builder;
+package dev.sympho.modular_commands.utils.builder.parameter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,11 +22,12 @@ import dev.sympho.modular_commands.api.command.parameter.ChoicesParameter;
  * @version 1.0
  * @since 1.0
  */
-@SuppressWarnings( "HiddenField" )
-abstract sealed class ChoicesParameterBuilder<T extends @NonNull Object, 
-        P extends dev.sympho.modular_commands.api.command.parameter.ChoicesParameter<T>,
-        SELF extends @NonNull ChoicesParameterBuilder<T, P, SELF>>
-        extends ParameterBuilder<T, P, SELF>
+@SuppressWarnings( "checkstyle:hiddenfield" )
+abstract sealed class ChoicesParameterBuilder<
+            T extends @NonNull Object, 
+            P extends ChoicesParameter<T>,
+            SELF extends ChoicesParameterBuilder<T, P, SELF>
+        > extends ParameterBuilder<T, P, SELF>
         permits NumberParameterBuilder, StringParameterBuilder {
 
     /** The valid user choices. */

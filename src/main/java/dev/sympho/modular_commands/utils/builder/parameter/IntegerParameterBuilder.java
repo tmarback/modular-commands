@@ -1,25 +1,25 @@
-package dev.sympho.modular_commands.utils.builder;
+package dev.sympho.modular_commands.utils.builder.parameter;
 
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.FloatParameter;
+import dev.sympho.modular_commands.api.command.parameter.IntegerParameter;
 
 /**
- * Builder for a floating-point parameter.
+ * Builder for an integer parameter.
  *
- * @see FloatParameter
+ * @see IntegerParameter
  * @version 1.0
  * @since 1.0
  */
-public final class FloatParameterBuilder 
-        extends NumberParameterBuilder<Double, FloatParameter, FloatParameterBuilder> {
+public final class IntegerParameterBuilder 
+        extends NumberParameterBuilder<Long, IntegerParameter, IntegerParameterBuilder> {
 
     /**
      * Constructs a new builder with default values.
      */
     @Pure
-    protected FloatParameterBuilder() {}
+    protected IntegerParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -27,7 +27,7 @@ public final class FloatParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected FloatParameterBuilder( final FloatParameterBuilder base ) {
+    protected IntegerParameterBuilder( final IntegerParameterBuilder base ) {
 
         super( base );
 
@@ -40,17 +40,17 @@ public final class FloatParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected FloatParameterBuilder( final FloatParameter base ) {
+    protected IntegerParameterBuilder( final IntegerParameter base ) {
 
         super( base );
 
     }
 
     @Override
-    public FloatParameter build() throws IllegalStateException {
+    public IntegerParameter build() throws IllegalStateException {
 
         try {
-            return new FloatParameter( 
+            return new IntegerParameter( 
                     buildName(),
                     buildDescription(),
                     this.required, this.defaultValue,

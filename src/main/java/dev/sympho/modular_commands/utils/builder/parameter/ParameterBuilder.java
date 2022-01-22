@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.utils.builder;
+package dev.sympho.modular_commands.utils.builder.parameter;
 
 import java.util.Objects;
 
@@ -20,11 +20,12 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
  * @version 1.0
  * @since 1.0
  */
-@SuppressWarnings( "HiddenField" )
-abstract sealed class ParameterBuilder<T extends @NonNull Object, 
-        P extends dev.sympho.modular_commands.api.command.parameter.Parameter<T>,
-        SELF extends @NonNull ParameterBuilder<T, P, SELF>>
-        permits ChoicesParameterBuilder {
+@SuppressWarnings( "checkstyle:hiddenfield" )
+abstract sealed class ParameterBuilder<
+            T extends @NonNull Object, 
+            P extends Parameter<T>,
+            SELF extends ParameterBuilder<T, P, SELF>
+        > permits ChoicesParameterBuilder {
 
     /** The parameter name. */
     protected @Nullable String name;

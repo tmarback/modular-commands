@@ -1,25 +1,25 @@
-package dev.sympho.modular_commands.utils.builder;
+package dev.sympho.modular_commands.utils.builder.parameter;
 
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.StringParameter;
+import dev.sympho.modular_commands.api.command.parameter.FloatParameter;
 
 /**
- * Builder for a string parameter.
+ * Builder for a floating-point parameter.
  *
- * @see StringParameter
+ * @see FloatParameter
  * @version 1.0
  * @since 1.0
  */
-public final class StringParameterBuilder 
-        extends ChoicesParameterBuilder<String, StringParameter, StringParameterBuilder> {
+public final class FloatParameterBuilder 
+        extends NumberParameterBuilder<Double, FloatParameter, FloatParameterBuilder> {
 
     /**
      * Constructs a new builder with default values.
      */
     @Pure
-    protected StringParameterBuilder() {}
+    protected FloatParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -27,7 +27,7 @@ public final class StringParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected StringParameterBuilder( final StringParameterBuilder base ) {
+    protected FloatParameterBuilder( final FloatParameterBuilder base ) {
 
         super( base );
 
@@ -40,21 +40,21 @@ public final class StringParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected StringParameterBuilder( final StringParameter base ) {
+    protected FloatParameterBuilder( final FloatParameter base ) {
 
         super( base );
 
     }
 
     @Override
-    public StringParameter build() throws IllegalStateException {
+    public FloatParameter build() throws IllegalStateException {
 
         try {
-            return new StringParameter( 
+            return new FloatParameter( 
                     buildName(),
                     buildDescription(),
                     this.required, this.defaultValue,
-                    this.choices );
+                    this.choices, this.minimum, this.maximum );
         } catch ( final IllegalArgumentException e ) {
             throw new IllegalStateException( "Invalid parameter configuration.", e );
         }
