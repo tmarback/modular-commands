@@ -533,8 +533,6 @@
                                     </annotationProcessors>
                                     <compilerArgs>
                                         <arg>-Xlint:all,-processing,-requires-transitive-automatic,-requires-automatic</arg>
-                                        <arg>-Alint=all</arg>
-                                        <arg>-ANullnessChecker_lint=-redundantNullComparison</arg>
                                         <arg>-AreportEvalWarns</arg>
                                         <!-- Manually open JDK packages until checker supports modules -->
                                         <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
