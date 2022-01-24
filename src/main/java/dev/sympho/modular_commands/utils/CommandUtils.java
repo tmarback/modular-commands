@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.utils.builder.command;
+package dev.sympho.modular_commands.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;

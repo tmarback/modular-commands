@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.api.command.parameter;
+package dev.sympho.modular_commands.utils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,8 +10,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.StaticallyExecutable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
-
-import dev.sympho.modular_commands.utils.builder.command.CommandUtils;
 
 /**
  * Utility functions for Parameter interfaces.

@@ -10,7 +10,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import dev.sympho.modular_commands.api.command.parameter.ParameterUtils;
+import dev.sympho.modular_commands.utils.ParameterUtils;
 
 /**
  * Base for a parameter builder.

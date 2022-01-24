@@ -5,6 +5,8 @@ import java.util.Map;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.utils.ParameterUtils;
+
 /**
  * Specification for a string parameter.
  *
