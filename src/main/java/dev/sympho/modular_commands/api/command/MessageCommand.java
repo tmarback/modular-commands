@@ -22,6 +22,8 @@ public non-sealed interface MessageCommand extends Command {
      * 
      * <p>These aliases are only relevant to handling invocations. They may not be
      * used to specify the command as a parent.
+     * 
+     * <p>Aliases must satisfy the same restrictions as the {@link #name() name}.
      *
      * @return The command aliases.
      */
