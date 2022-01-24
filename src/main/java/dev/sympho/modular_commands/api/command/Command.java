@@ -10,13 +10,21 @@ import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import discord4j.rest.util.PermissionSet;
 
+// BEGIN LONG LINES
 /**
  * A command that can be invoked by a user.
+ * 
+ * <p>Irrespective of whether the command it is used with is compatible with interactions
+ * or not, all values must be compatible with the
+ * <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
+ * Discord API specification</a> for command parameters.
  *
  * @version 1.0
  * @since 1.0
  */
-public sealed interface Command permits MessageCommand, SlashCommand {
+// END LONG LINES
+public sealed interface Command 
+        permits MessageCommand, SlashCommand {
 
     /**
      * The parent of the command.
@@ -32,6 +40,11 @@ public sealed interface Command permits MessageCommand, SlashCommand {
 
     /**
      * The name of the command.
+     * 
+     * <p>This is the name used to match the command internally and for accessing
+     * text-based commands (slash and text commands). It is provided to the Discord
+     * API for slash commands, but <i>not</i> for user and message commands (for
+     * that, see {@link #displayName()}).
      *
      * @return The name of the command.
      */
@@ -53,6 +66,18 @@ public sealed interface Command permits MessageCommand, SlashCommand {
     }
 
     /**
+     * The display name of the command.
+     * 
+     * <p>This is displayed to the user in documentation-related functionality.
+     * For user and message commands, this is also the value provided to the
+     * Discord API as the command name instead of {@link #name()}.
+     *
+     * @return The display name of the command.
+     */
+    @Pure
+    String displayName();
+
+    /**
      * The description of the command.
      *
      * @return The description of the command.
@@ -63,8 +88,15 @@ public sealed interface Command permits MessageCommand, SlashCommand {
     /**
      * The command parameters, in the order that they should be provided
      * by the user.
+     * 
+     * <p>All parameters that are marked as {@link Parameter#required() required}
+     * <i>must</i> come <i>before</i> all parameters that aren't (optional parameters).
      *
      * @return The command parameters.
+     * @apiNote The restriction in parameter order is due to the fact that it would
+     *          not make any sense to have an optional parameter before a required one.
+     *          Since all parameters must be provided in sequence, that would effectively
+     *          make the optional parameter required.
      */
     @Pure
     List<Parameter<?>> parameters();
