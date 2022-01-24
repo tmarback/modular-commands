@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.ListUtils;
 import org.checkerframework.dataflow.qual.Pure;
@@ -26,6 +27,8 @@ public record Invocation( List<String> chain ) {
     @Pure
     public Invocation( final List<String> chain ) {
 
+        chain.forEach( c -> Objects.requireNonNull( c, 
+                "Invocation chain cannot contain null." ) );
         this.chain = Collections.unmodifiableList( new ArrayList<>( chain ) );
 
     }
@@ -40,7 +43,9 @@ public record Invocation( List<String> chain ) {
     @Pure
     public Invocation child( final String command ) {
 
-        return new Invocation( ListUtils.union( chain, List.of( command ) ) );
+        final List<String> childChain = List.of( 
+                Objects.requireNonNull( command, "Command cannot be null." ) );
+        return new Invocation( ListUtils.union( chain, childChain ) );
 
     }
 

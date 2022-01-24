@@ -9,6 +9,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.StaticallyExecutable;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.utils.builder.command.CommandUtils;
 
@@ -66,7 +67,7 @@ public final class ParameterUtils {
      *                                  choice name.
      * @throws NullPointerException if the choices contain {@code null}.
      */
-    @Pure
+    @SideEffectFree
     public static <T extends @NonNull Object> 
             Map<String, T> validateChoices( final @Nullable Map<String, T> choices )
             throws IllegalArgumentException {
