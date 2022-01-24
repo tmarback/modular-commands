@@ -57,11 +57,11 @@ public record IntegerParameter(
             final @Nullable Long minimum, final @Nullable Long maximum
     ) {
 
-        this.name = Objects.requireNonNull( name, "Name cannot be null." );
-        this.description = Objects.requireNonNull( description, "Description cannot be null." );
+        this.name = ParameterUtils.validateName( name );
+        this.description = ParameterUtils.validateDescription( description );
         this.required = required;
         this.defaultValue = defaultValue;
-        this.choices = ContextUtils.validateChoices( choices );
+        this.choices = ParameterUtils.validateChoices( choices );
         this.minimum = Objects.requireNonNullElse( minimum, Long.MIN_VALUE );
         this.maximum = Objects.requireNonNullElse( maximum, Long.MAX_VALUE );
 

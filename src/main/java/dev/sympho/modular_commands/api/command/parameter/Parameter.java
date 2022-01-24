@@ -12,14 +12,15 @@ import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 // BEGIN LONG LINES
 /**
  * Specification for a parameter received for a command.
+ * 
+ * <p>Irrespective of whether the command it is used with is compatible with interactions
+ * or not, all values must be compatible with the
+ * <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
+ * Discord API specification</a> for command parameters.
  *
  * @param <T> The type of parameter that is received.
  * @version 1.0
  * @since 1.0
- * @apiNote If being used for an interaction-compatible command, all
- *          values must be compatible with the
- *          <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
- *          Discord API specification</a>.
  */
 // END LONG LINES
 public sealed interface Parameter<T extends @NonNull Object> extends Serializable

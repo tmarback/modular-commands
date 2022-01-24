@@ -42,11 +42,11 @@ public record StringParameter(
             final @Nullable Map<String, String> choices
     ) {
 
-        this.name = name;
-        this.description = description;
+        this.name = ParameterUtils.validateName( name );
+        this.description = ParameterUtils.validateDescription( description );
         this.required = required;
         this.defaultValue = defaultValue;
-        this.choices = ContextUtils.validateChoices( choices );
+        this.choices = ParameterUtils.validateChoices( choices );
 
         if ( this.choices.values().stream().anyMatch( String::isEmpty ) ) {
             throw new IllegalArgumentException( "A choice cannot be empty." );

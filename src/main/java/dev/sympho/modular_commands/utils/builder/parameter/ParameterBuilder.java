@@ -10,6 +10,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.parameter.ParameterUtils;
 
 /**
  * Base for a parameter builder.
@@ -103,12 +104,13 @@ abstract sealed class ParameterBuilder<
      *
      * @param name The parameter name.
      * @return This builder.
+     * @throws IllegalArgumentException if the given name is invalid.
      * @see Parameter#name()
      */
     @Deterministic
-    public SELF withName( final String name ) {
+    public SELF withName( final String name ) throws IllegalArgumentException {
 
-        this.name = Objects.requireNonNull( name, "Name cannot be null." );
+        this.name = ParameterUtils.validateName( name );
         return self();
 
     }
@@ -118,12 +120,13 @@ abstract sealed class ParameterBuilder<
      *
      * @param description The parameter description.
      * @return This builder.
+     * @throws IllegalArgumentException if the given name is invalid.
      * @see Parameter#description()
      */
     @Deterministic
-    public SELF withDescription( final String description ) {
+    public SELF withDescription( final String description ) throws IllegalArgumentException {
 
-        this.description = Objects.requireNonNull( description, "Description cannot be null." );
+        this.description = ParameterUtils.validateDescription( description );
         return self();
 
     }
