@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.checkerframework.dataflow.qual.Pure;
 
@@ -29,6 +30,23 @@ public non-sealed interface MessageCommand extends Command {
      */
     @Pure
     Set<String> aliases();
+
+    /**
+     * The alias invocations that may also invoke the command.
+     *
+     * @return The command aliases as invocations.
+     * @see #aliases()
+     * @implSpec The invocation is determined by appending each alias to the 
+     *           {@link #parent() parent}.
+     */
+    @Pure
+    default Set<Invocation> aliasInvocations() {
+
+        return aliases().stream()
+                .map( this.parent()::child )
+                .collect( Collectors.toUnmodifiableSet() );
+
+    }
 
     @Override
     MessageInvocationHandler invocationHandler();
