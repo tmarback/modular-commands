@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 @FunctionalInterface
-public non-sealed interface MessageCommandHandler extends CommandHandler {
+public non-sealed interface MessageInvocationHandler extends InvocationHandler {
 
     /**
      * @see #handle(AnyCommandContext)

@@ -6,7 +6,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.SlashCommand;
-import dev.sympho.modular_commands.api.command.handler.SlashCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.SlashInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.SlashResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -50,7 +50,7 @@ public record SlashCommandImpl(
         boolean serverOwnerOnly,
         boolean privateReply,
         boolean inheritSettings,
-        SlashCommandHandler invocationHandler,
+        SlashInvocationHandler invocationHandler,
         List<? extends SlashResultHandler> resultHandlers
 ) implements SlashCommand {
 
@@ -92,7 +92,7 @@ public record SlashCommandImpl(
             final boolean serverOwnerOnly,
             final boolean privateReply,
             final boolean inheritSettings,
-            final SlashCommandHandler invocationHandler,
+            final SlashInvocationHandler invocationHandler,
             final List<? extends SlashResultHandler> resultHandlers
     ) {
 

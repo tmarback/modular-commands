@@ -13,7 +13,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.handler.CommandHandler;
+import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -24,7 +24,7 @@ import discord4j.rest.util.PermissionSet;
  * Base for a command builder.
  *
  * @param <C> The command type.
- * @param <CH> The command handler type.
+ * @param <IH> The command handler type.
  * @param <RH> The result handler type.
  * @param <SELF> The self type.
  * @see Command
@@ -34,9 +34,9 @@ import discord4j.rest.util.PermissionSet;
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract class CommandBuilder<
             C extends @NonNull Command,
-            CH extends @NonNull CommandHandler,
+            IH extends @NonNull InvocationHandler,
             RH extends @NonNull ResultHandler,
-            SELF extends @NonNull CommandBuilder<C, CH, RH, SELF>
+            SELF extends @NonNull CommandBuilder<C, IH, RH, SELF>
         > implements Builder<SELF> {
 
     /** The command parent. */
@@ -76,7 +76,7 @@ abstract class CommandBuilder<
     protected boolean inheritSettings;
 
     /** The handler to process invocations with. */
-    protected @MonotonicNonNull CH invocationHandler;
+    protected @MonotonicNonNull IH invocationHandler;
 
     /** The handlers to process results with. */
     protected List<RH> resultHandlers;
@@ -109,7 +109,7 @@ abstract class CommandBuilder<
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected CommandBuilder( final CommandBuilder<?, ? extends CH, ? extends RH, ?> base ) {
+    protected CommandBuilder( final CommandBuilder<?, ? extends IH, ? extends RH, ?> base ) {
 
         this.parent = base.parent;
         this.name = base.name;
@@ -151,7 +151,7 @@ abstract class CommandBuilder<
         this.serverOwnerOnly = base.serverOwnerOnly();
         this.privateReply = base.privateReply();
         this.inheritSettings = base.inheritSettings();
-        this.invocationHandler = ( CH ) base.invocationHandler();
+        this.invocationHandler = ( IH ) base.invocationHandler();
         this.resultHandlers = new LinkedList<>( ( List<? extends RH> ) base.resultHandlers() );
 
     }
@@ -416,7 +416,7 @@ abstract class CommandBuilder<
      * @see Command#invocationHandler()
      */
     @Deterministic
-    public SELF withInvocationHandler( final CH handler ) {
+    public SELF withInvocationHandler( final IH handler ) {
 
         this.invocationHandler = CommandUtils.validateInvocationHandler( handler );
         return self();
@@ -531,7 +531,7 @@ abstract class CommandBuilder<
      * @return The invocation handler to build with.
      * @throws IllegalStateException if {@link #invocationHandler} was not set.
      */
-    protected CH buildInvocationHandler() throws IllegalStateException {
+    protected IH buildInvocationHandler() throws IllegalStateException {
     
         if ( this.invocationHandler == null ) {
             throw new IllegalStateException( 

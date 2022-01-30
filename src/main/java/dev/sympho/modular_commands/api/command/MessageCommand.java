@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.checkerframework.dataflow.qual.Pure;
 
-import dev.sympho.modular_commands.api.command.handler.MessageCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.MessageInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.MessageResultHandler;
 
 /**
@@ -31,7 +31,7 @@ public non-sealed interface MessageCommand extends Command {
     Set<String> aliases();
 
     @Override
-    MessageCommandHandler invocationHandler();
+    MessageInvocationHandler invocationHandler();
 
     @Override
     default List<? extends MessageResultHandler> resultHandlers() {

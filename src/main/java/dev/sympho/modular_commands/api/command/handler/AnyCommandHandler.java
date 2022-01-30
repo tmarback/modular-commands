@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 @FunctionalInterface
-public interface AnyCommandHandler extends MessageCommandHandler, InteractionCommandHandler {
+public interface AnyCommandHandler extends MessageInvocationHandler, InteractionInvocationHandler {
 
     /**
      * @see #handle(AnyCommandContext)

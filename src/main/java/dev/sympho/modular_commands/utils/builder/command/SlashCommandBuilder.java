@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.utils.builder.command;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.SlashCommand;
-import dev.sympho.modular_commands.api.command.handler.SlashCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.SlashInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.SlashResultHandler;
 import dev.sympho.modular_commands.impl.command.SlashCommandImpl;
 
@@ -13,7 +13,7 @@ import dev.sympho.modular_commands.impl.command.SlashCommandImpl;
  * @version 1.0
  * @since 1.0
  */
-public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, SlashCommandHandler, 
+public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, SlashInvocationHandler, 
         SlashResultHandler, SlashCommandBuilder> {
 
     /**

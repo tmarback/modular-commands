@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command;
 import java.util.Collections;
 import java.util.List;
 
-import dev.sympho.modular_commands.api.command.handler.SlashCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.SlashInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.SlashResultHandler;
 
 /**
@@ -15,7 +15,7 @@ import dev.sympho.modular_commands.api.command.handler.SlashResultHandler;
 public non-sealed interface SlashCommand extends Command {
 
     @Override
-    SlashCommandHandler invocationHandler();
+    SlashInvocationHandler invocationHandler();
 
     @Override
     default List<? extends SlashResultHandler> resultHandlers() {

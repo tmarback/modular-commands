@@ -17,7 +17,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.MessageCommand;
-import dev.sympho.modular_commands.api.command.handler.CommandHandler;
+import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import discord4j.rest.util.PermissionSet;
@@ -210,7 +210,7 @@ public final class CommandUtils {
      * @return The validated handler.
      */
     @Pure
-    public static <H extends CommandHandler> H validateInvocationHandler( final H handler ) {
+    public static <H extends InvocationHandler> H validateInvocationHandler( final H handler ) {
 
         return Objects.requireNonNull( handler, "Invocation handler cannot be null." );
 

@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command;
 import java.util.Collections;
 import java.util.List;
 
-import dev.sympho.modular_commands.api.command.handler.InteractionCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.InteractionInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.InteractionResultHandler;
 
 /**
@@ -15,7 +15,7 @@ import dev.sympho.modular_commands.api.command.handler.InteractionResultHandler;
 public interface InteractionCommand extends SlashCommand {
 
     @Override
-    InteractionCommandHandler invocationHandler();
+    InteractionInvocationHandler invocationHandler();
 
     @Override
     default List<? extends InteractionResultHandler> resultHandlers() {

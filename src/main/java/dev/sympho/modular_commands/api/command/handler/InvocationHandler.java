@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface CommandHandler 
-        permits MessageCommandHandler, SlashCommandHandler {
+public sealed interface InvocationHandler 
+        permits MessageInvocationHandler, SlashInvocationHandler {
 
     /**
      * Handles an invocation of the command.

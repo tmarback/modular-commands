@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.checkerframework.dataflow.qual.Pure;
 
-import dev.sympho.modular_commands.api.command.handler.CommandHandler;
+import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import discord4j.rest.util.PermissionSet;
@@ -193,7 +193,7 @@ public sealed interface Command
      *          sealed classes don't work across packages without using modules. So yeah.
      */
     @Pure
-    CommandHandler invocationHandler();
+    InvocationHandler invocationHandler();
 
     /**
      * The handlers to use for processing the result, in order.

@@ -6,7 +6,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.InteractionCommand;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.handler.InteractionCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.InteractionInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.InteractionResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -50,7 +50,7 @@ public record InteractionCommandImpl(
         boolean serverOwnerOnly,
         boolean privateReply,
         boolean inheritSettings,
-        InteractionCommandHandler invocationHandler,
+        InteractionInvocationHandler invocationHandler,
         List<? extends InteractionResultHandler> resultHandlers
 ) implements InteractionCommand {
 
@@ -92,7 +92,7 @@ public record InteractionCommandImpl(
             final boolean serverOwnerOnly,
             final boolean privateReply,
             final boolean inheritSettings,
-            final InteractionCommandHandler invocationHandler,
+            final InteractionInvocationHandler invocationHandler,
             final List<? extends InteractionResultHandler> resultHandlers
     ) {
 

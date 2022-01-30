@@ -7,7 +7,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.MessageCommand;
-import dev.sympho.modular_commands.api.command.handler.MessageCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.MessageInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.MessageResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -53,7 +53,7 @@ public record MessageCommandImpl(
         boolean serverOwnerOnly,
         boolean privateReply,
         boolean inheritSettings,
-        MessageCommandHandler invocationHandler,
+        MessageInvocationHandler invocationHandler,
         List<? extends MessageResultHandler> resultHandlers
 ) implements MessageCommand {
 
@@ -97,7 +97,7 @@ public record MessageCommandImpl(
             final boolean serverOwnerOnly,
             final boolean privateReply,
             final boolean inheritSettings,
-            final MessageCommandHandler invocationHandler,
+            final MessageInvocationHandler invocationHandler,
             final List<? extends MessageResultHandler> resultHandlers
     ) {
 
