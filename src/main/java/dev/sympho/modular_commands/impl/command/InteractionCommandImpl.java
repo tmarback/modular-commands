@@ -13,7 +13,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
 import discord4j.rest.util.PermissionSet;
 
 /**
- * Default implementation of a slash command.
+ * Default implementation of an interaction-based command.
  *
  * @param parent The parent of the command.
  * @param name The name of the command.

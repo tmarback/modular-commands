@@ -7,12 +7,13 @@ import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 
 /**
- * A command that may be invoked through any supported form.
+ * A command that is invoked through any form of text (as opposed to a GUI element
+ * like a button).
  *
  * @version 1.0
  * @since 1.0
  */
-public interface AnyCommand extends MessageCommand, SlashCommand {
+public interface TextCommand extends MessageCommand, SlashCommand {
 
     @Override
     AnyCommandHandler invocationHandler();

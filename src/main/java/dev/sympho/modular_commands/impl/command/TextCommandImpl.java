@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.AnyCommand;
+import dev.sympho.modular_commands.api.command.TextCommand;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
@@ -14,7 +14,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
 import discord4j.rest.util.PermissionSet;
 
 /**
- * Default implementation of a slash command.
+ * Default implementation of a flexible command.
  *
  * @param parent The parent of the command.
  * @param name The name of the command.
@@ -39,7 +39,7 @@ import discord4j.rest.util.PermissionSet;
  * @version 1.0
  * @since 1.0
  */
-public record AnyCommandImpl(
+public record TextCommandImpl(
         Invocation parent,
         String name,
         String displayName,
@@ -55,7 +55,7 @@ public record AnyCommandImpl(
         boolean inheritSettings,
         AnyCommandHandler invocationHandler,
         List<? extends AnyResultHandler> resultHandlers
-) implements AnyCommand {
+) implements TextCommand {
 
     /**
      * Initializes a new instance.
@@ -83,7 +83,7 @@ public record AnyCommandImpl(
      */
     @SideEffectFree
     @SuppressWarnings( "checkstyle:parameternumber" )
-    public AnyCommandImpl(
+    public TextCommandImpl(
             final Invocation parent,
             final String name,
             final String displayName,
