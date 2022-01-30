@@ -11,6 +11,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.ParameterUtils;
+import dev.sympho.modular_commands.utils.builder.Builder;
 
 /**
  * Base for a parameter builder.
@@ -27,7 +28,7 @@ abstract sealed class ParameterBuilder<
             T extends @NonNull Object, 
             P extends @NonNull Parameter<T>,
             SELF extends @NonNull ParameterBuilder<T, P, SELF>
-        > permits ChoicesParameterBuilder {
+        > implements Builder<SELF> permits ChoicesParameterBuilder {
 
     /** The parameter name. */
     protected @MonotonicNonNull String name;
@@ -82,20 +83,6 @@ abstract sealed class ParameterBuilder<
         this.description = base.description();
         this.required = base.required();
         this.defaultValue = base.defaultValue();
-
-    }
-
-    /**
-     * Retrieves {@code this} cast to the self type.
-     *
-     * @return {@code this}.
-     */
-    @Deterministic
-    protected SELF self() {
-
-        @SuppressWarnings( "unchecked" )
-        final SELF self = ( SELF ) this;
-        return self;
 
     }
 
