@@ -32,6 +32,11 @@ public sealed interface Command
      * <p>If the invocation returned by this is empty, this command has
      * no parent, and is therefore a main command. Otherwise, it is a
      * subcommand.
+     * 
+     * <p>Note that a parent can only be specified by its {@link #name() name}, not
+     * any aliases it may have (when supported). This implies that any command that
+     * may match the Invocation returned by this method through an alias is <i>not</i>
+     * considered a parent of this command.
      *
      * @return The parent of the command.
      */
