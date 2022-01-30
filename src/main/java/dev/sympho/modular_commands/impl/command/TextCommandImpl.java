@@ -5,8 +5,8 @@ import java.util.Set;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.TextCommand;
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.TextCommand;
 import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -106,7 +106,7 @@ public record TextCommandImpl(
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.aliases = CommandUtils.validateAliases( aliases );
         this.description = CommandUtils.validateDescription( description );
-        this.parameters = CommandUtils.validateParameters( parameters, true );
+        this.parameters = CommandUtils.validateParameters( parameters );
         this.requiredDiscordPermissions = CommandUtils.validateDiscordPermissions( 
                 requiredDiscordPermissions );
         this.requireParentPermissions = requireParentPermissions;

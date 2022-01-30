@@ -106,7 +106,7 @@ public record MessageCommandImpl(
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.aliases = CommandUtils.validateAliases( aliases );
         this.description = CommandUtils.validateDescription( description );
-        this.parameters = CommandUtils.validateParameters( parameters, false );
+        this.parameters = CommandUtils.validateParameters( parameters );
         this.requiredDiscordPermissions = CommandUtils.validateDiscordPermissions( 
                 requiredDiscordPermissions );
         this.requireParentPermissions = requireParentPermissions;

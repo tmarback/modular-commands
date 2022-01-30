@@ -100,7 +100,7 @@ public record InteractionCommandImpl(
         this.name = CommandUtils.validateName( name );
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.description = CommandUtils.validateDescription( description );
-        this.parameters = CommandUtils.validateParameters( parameters, true );
+        this.parameters = CommandUtils.validateParameters( parameters );
         this.requiredDiscordPermissions = CommandUtils.validateDiscordPermissions( 
                 requiredDiscordPermissions );
         this.requireParentPermissions = requireParentPermissions;

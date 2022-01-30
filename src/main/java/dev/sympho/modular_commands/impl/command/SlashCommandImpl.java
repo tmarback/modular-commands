@@ -100,7 +100,7 @@ public record SlashCommandImpl(
         this.name = CommandUtils.validateName( name );
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.description = CommandUtils.validateDescription( description );
-        this.parameters = CommandUtils.validateParameters( parameters, false );
+        this.parameters = CommandUtils.validateParameters( parameters );
         this.requiredDiscordPermissions = CommandUtils.validateDiscordPermissions( 
                 requiredDiscordPermissions );
         this.requireParentPermissions = requireParentPermissions;
