@@ -41,9 +41,21 @@ public final class Results {
      * @apiNote Would have been named {@code continue()} but that's a reserved
      *          keyword.
      */
-    public static Mono<CommandContinue> cont() {
+    public static CommandContinue cont() {
 
-        return Mono.just( CONTINUE );
+        return CONTINUE;
+
+    }
+
+    /**
+     * Generates a result indicating execution should continue along the chain.
+     *
+     * @return A Mono that issues the generated result.
+     * @see #cont()
+     */
+    public static Mono<CommandResult> contMono() {
+
+        return Mono.just( cont() );
 
     }
 
@@ -52,9 +64,21 @@ public final class Results {
      *
      * @return The generated result.
      */
-    public static Mono<CommandSuccess> ok() {
+    public static CommandSuccess ok() {
 
-        return Mono.just( OK );
+        return OK;
+
+    }
+
+    /**
+     * Generates a result indicating the command executed successfully with no further context.
+     *
+     * @return A Mono that issues the generated result.
+     * @see #ok()
+     */
+    public static Mono<CommandResult> okMono() {
+
+        return Mono.just( ok() );
 
     }
 
@@ -63,9 +87,21 @@ public final class Results {
      *
      * @return The generated result.
      */
-    public static Mono<CommandFailure> fail() {
+    public static CommandFailure fail() {
 
-        return Mono.just( FAIL );
+        return FAIL;
+
+    }
+
+    /**
+     * Generates a result indicating the command failed with no further context.
+     *
+     * @return A Mono that issues the generated result.
+     * @see #fail()
+     */
+    public static Mono<CommandResult> failMono() {
+
+        return Mono.just( fail() );
 
     }
 
@@ -76,9 +112,23 @@ public final class Results {
      * @param message The message to the user.
      * @return The generated result.
      */
-    public static Mono<CommandSuccessMessage> success( final String message ) {
+    public static CommandSuccessMessage success( final String message ) {
 
-        return Mono.just( new ResultSuccessMessage( message ) );
+        return new ResultSuccessMessage( message );
+
+    }
+
+    /**
+     * Generates a result indicating the command executed successfully with a message
+     * to the user.
+     *
+     * @param message The message to the user.
+     * @return A Mono that issues the generated result.
+     * @see #success(String)
+     */
+    public static Mono<CommandResult> successMono( final String message ) {
+
+        return Mono.just( success( message ) );
 
     }
 
@@ -88,9 +138,22 @@ public final class Results {
      * @param message The message to the user.
      * @return The generated result.
      */
-    public static Mono<CommandFailureMessage> failure( final String message ) {
+    public static CommandFailureMessage failure( final String message ) {
 
-        return Mono.just( new ResultFailureMessage( message ) );
+        return new ResultFailureMessage( message );
+
+    }
+
+    /**
+     * Generates a result indicating the command failed with a message to the user.
+     *
+     * @param message The message to the user.
+     * @return A Mono that issues the generated result.
+     * @see #failure(String)
+     */
+    public static Mono<CommandResult> failureMono( final String message ) {
+
+        return Mono.just( failure( message ) );
 
     }
 
@@ -100,9 +163,22 @@ public final class Results {
      * @param message The error message.
      * @return The generated result.
      */
-    public static Mono<CommandError> error( final String message ) {
+    public static CommandError error( final String message ) {
 
-        return Mono.just( new ResultError( message ) );
+        return new ResultError( message );
+
+    }
+
+    /**
+     * Generates a result indicating the command encountered an error.
+     *
+     * @param message The error message.
+     * @return A Mono that issues the generated result.
+     * @see #error(String)
+     */
+    public static Mono<CommandResult> errorMono( final String message ) {
+
+        return Mono.just( error( message ) );
 
     }
 
@@ -115,9 +191,22 @@ public final class Results {
      *          error result. As such, allowing the exception to propagate up is preferrable
      *          to explicitly generating the error.
      */
-    public static Mono<CommandErrorException> exception( final Throwable cause ) {
+    public static CommandErrorException exception( final Throwable cause ) {
 
-        return Mono.just( new ResultException( cause ) );
+        return new ResultException( cause );
+
+    }
+
+    /**
+     * Generates a result indicating the command encountered an error due to an exception.
+     *
+     * @param cause The exception that caused the error.
+     * @return A Mono that issues the generated result.
+     * @see #exception(Throwable)
+     */
+    public static Mono<CommandResult> exceptionMono( final Throwable cause ) {
+
+        return Mono.just( exception( cause ) );
 
     }
 
