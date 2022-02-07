@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands.execute;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -39,9 +40,13 @@ public class MessageCommandExecutor extends CommandExecutor {
      *
      * @param client The client to receive events from.
      * @param registry The registry to use to look up commands.
+     * @param prefixProvider The provider to get prefixes from.
      */
-    public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry ) {
-        super( client, registry, new Builder() );
+    public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
+            PrefixProvider prefixProvider ) {
+
+        super( client, registry, new Builder( prefixProvider ) );
+
     }
 
     /**
@@ -53,8 +58,19 @@ public class MessageCommandExecutor extends CommandExecutor {
     private static class Builder extends PipelineBuilder<MessageCreateEvent, 
             MessageCommand, MessageContextImpl, MessageInvocationHandler, MessageResultHandler> {
 
-        /** Creates a new instance. */
-        Builder() {}
+        /** Provides the prefixes that commands should have. */
+        private final PrefixProvider prefixProvider;
+
+        /** 
+         * Creates a new instance. 
+         *
+         * @param prefixProvider Provides the prefixes that commands should have.
+         */
+        Builder( final PrefixProvider prefixProvider ) {
+
+            this.prefixProvider = prefixProvider;
+
+        }
 
         @Override
         protected Class<MessageCreateEvent> eventType() {
@@ -170,6 +186,14 @@ public class MessageCommandExecutor extends CommandExecutor {
         protected List<String> parse( final MessageCreateEvent event ) {
 
             String message = event.getMessage().getContent().trim();
+
+            final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
+            if ( message.startsWith( prefix ) ) {
+                message = message.substring( prefix.length() );
+            } else {
+                return Collections.emptyList();
+            }
+
             final List<String> args = new LinkedList<>();
 
             while ( !message.isEmpty() ) {

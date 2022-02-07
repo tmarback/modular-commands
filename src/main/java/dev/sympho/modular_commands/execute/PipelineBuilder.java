@@ -199,7 +199,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * and subcommands, as well as any additional args, {@link #fullMatch() if allowed}.
      *
      * @param event The event to parse args from.
-     * @return The parsed args.
+     * @return The parsed args. The list may be empty if the message should not be handled
+     *         as a command.
      */
     @SideEffectFree
     protected abstract List<String> parse( E event );
