@@ -2,7 +2,7 @@ package dev.sympho.modular_commands.api.command.context;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.Invocation;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
@@ -32,6 +32,11 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
 
     /** Do not instantiate. */
     private AnyCommandContext() {}
+
+    @Override
+    public Invocation getInvocation() {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public User getCaller() {
@@ -65,7 +70,7 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
 
     @Override
     public <T> @Nullable T getArgument( final String name, 
-            final Class<? extends Parameter<T>> parameterType )
+            final Class<? extends T> parameterType )
             throws IllegalArgumentException, ClassCastException {
         throw new UnsupportedOperationException();
     }
@@ -77,7 +82,7 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
     }
 
     @Override
-    public <T> @Nullable T getContext( final String key, final Class<T> type )
+    public <T> @Nullable T getContext( final String key, final Class<? extends T> type )
             throws IllegalArgumentException, ClassCastException {
         throw new UnsupportedOperationException();
     }

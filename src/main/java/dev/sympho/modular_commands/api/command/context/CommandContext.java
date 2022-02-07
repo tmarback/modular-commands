@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command.context;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 
-import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.Invocation;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
@@ -18,7 +18,8 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface CommandContext permits MessageCommandContext, InteractionCommandContext {
+public sealed interface CommandContext permits LazyContext, 
+        MessageCommandContext, InteractionCommandContext {
 
     /**
      * Retrieves the event that triggered the command.
@@ -27,6 +28,17 @@ public sealed interface CommandContext permits MessageCommandContext, Interactio
      */
     @Pure
     Event getEvent();
+
+    /**
+     * Retrieves the invocation that triggered the command.
+     * 
+     * <p>This may be different from the command's declared {@link Command#invocation()}
+     * if it was invoked using an alias (when supported).
+     *
+     * @return The trigger invocation.
+     */
+    @Pure
+    Invocation getInvocation();
 
     /**
      * Retrieves the user that called the command.
@@ -84,17 +96,17 @@ public sealed interface CommandContext permits MessageCommandContext, Interactio
      *
      * @param <T> The type of the argument.
      * @param name The name of the corresponding parameter.
-     * @param parameterType The type of correspoding parameter.
+     * @param argumentType The type of the argument.
      * @return The argument value, or {@code null} if the argument was not given by
      *         the caller and does not have a default value.
      * @throws IllegalArgumentException if there is no parameter with the given name.
-     * @throws ClassCastException if the given parameter type does not match the type of the
-     *                            parameter with the given name.
+     * @throws ClassCastException if the given argument type does not match the type of the
+     *                            argument with the given name.
      * @apiNote This method will never return {@code null} if the parameter is marked
      *          as required or provides a default value.
      */
     @Pure
-    <T> @Nullable T getArgument( String name, Class<? extends Parameter<T>> parameterType )
+    <T> @Nullable T getArgument( String name, Class<? extends T> argumentType )
             throws IllegalArgumentException, ClassCastException;
 
     /**
@@ -138,7 +150,7 @@ public sealed interface CommandContext permits MessageCommandContext, Interactio
      *                            with the given type (not the same or a subtype).
      */
     @Pure
-    <T> @Nullable T getContext( String key, Class<T> type )
+    <T> @Nullable T getContext( String key, Class<? extends T> type )
             throws IllegalArgumentException, ClassCastException;
     
 }
