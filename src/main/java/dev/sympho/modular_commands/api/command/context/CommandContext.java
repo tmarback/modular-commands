@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.context;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 
+import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
