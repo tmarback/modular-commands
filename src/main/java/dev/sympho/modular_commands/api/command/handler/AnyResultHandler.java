@@ -5,6 +5,7 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.context.InteractionCommandContext;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import reactor.core.publisher.Mono;
 
 /**
  * A function that handles the result of any command type.
@@ -19,20 +20,20 @@ public interface AnyResultHandler extends MessageResultHandler, InteractionResul
      * @see #handle(AnyCommandContext, CommandResult)
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
-    boolean handle( CommandContext context, CommandResult result );
+    Mono<Boolean> handle( CommandContext context, CommandResult result );
 
     @Override
-    default boolean handle( MessageCommandContext context, CommandResult result ) {
+    default Mono<Boolean> handle( MessageCommandContext context, CommandResult result ) {
         return handle( ( CommandContext ) context, result );
     }
 
     @Override
-    default boolean handle( InteractionCommandContext context, CommandResult result ) {
+    default Mono<Boolean> handle( InteractionCommandContext context, CommandResult result ) {
         return handle( ( CommandContext ) context, result );
     }
 
     @Override
-    default boolean handle( AnyCommandContext context, CommandResult result ) {
+    default Mono<Boolean> handle( AnyCommandContext context, CommandResult result ) {
         return handle( ( CommandContext ) context, result );
     }
     

@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.handler;
 import dev.sympho.modular_commands.api.command.context.InteractionCommandContext;
 import dev.sympho.modular_commands.api.command.context.SlashCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import reactor.core.publisher.Mono;
 
 /**
  * A function that handles the result of an interaction command.
@@ -17,10 +18,10 @@ public interface InteractionResultHandler extends SlashResultHandler {
      * @see #handle(AnyCommandContext, CommandResult)
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
-    boolean handle( InteractionCommandContext context, CommandResult result );
+    Mono<Boolean> handle( InteractionCommandContext context, CommandResult result );
 
     @Override
-    default boolean handle( SlashCommandContext context, CommandResult result ) {
+    default Mono<Boolean> handle( SlashCommandContext context, CommandResult result ) {
         return handle( ( InteractionCommandContext ) context, result );
     }
 
