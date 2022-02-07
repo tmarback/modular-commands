@@ -7,6 +7,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import reactor.core.publisher.Mono;
 
 /**
  * Specification for a parameter whose value may optionally be restricted
@@ -41,11 +42,11 @@ public sealed interface ChoicesParameter<T extends @NonNull Object> extends Para
     T parseValue( String raw ) throws InvalidArgumentException;
 
     @Override
-    default T parse( String raw ) throws InvalidArgumentException {
+    default Mono<T> parse( String raw ) throws InvalidArgumentException {
 
         final T value = parseValue( raw );
         if ( choices().isEmpty() || choices().containsValue( value ) ) {
-            return value;
+            return Mono.just( value );
         } else {
             throw new InvalidArgumentException( this, 
                     String.format( "Value '%s' is not a valid choice.", raw ) );

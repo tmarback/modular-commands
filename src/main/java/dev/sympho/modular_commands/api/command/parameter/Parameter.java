@@ -8,6 +8,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import reactor.core.publisher.Mono;
 
 // BEGIN LONG LINES
 /**
@@ -69,6 +70,6 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
     @SideEffectFree
-    T parse( String raw ) throws InvalidArgumentException;
+    Mono<T> parse( String raw ) throws InvalidArgumentException;
     
 }
