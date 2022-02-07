@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.api.exception;
 
+import org.checkerframework.checker.nullness.util.NullnessUtil;
+
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
 /**
@@ -53,6 +55,12 @@ public class InvalidArgumentException extends CommandException {
 
         return parameter;
 
+    }
+
+    // Just to narrow the return to NonNull.
+    @Override
+    public String getMessage() {
+        return NullnessUtil.castNonNull( super.getMessage() );
     }
 
 }

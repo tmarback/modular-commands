@@ -17,7 +17,9 @@ import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.LazyContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
+import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
+import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import dev.sympho.modular_commands.execute.ResultException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -72,9 +74,12 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      *
      * @param parameter The parameter specification.
      * @param raw The raw argument.
-     * @return The parsed argument.
+     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may 
+     *         fail with a {@link InvalidArgumentException}.
+     * @throws InvalidArgumentException if the raw value was invalid.
      */
-    protected abstract Mono<Object> parseArgument( Parameter<?> parameter, A raw );
+    protected abstract Mono<Object> parseArgument( Parameter<?> parameter, A raw ) 
+            throws InvalidArgumentException;
 
     /**
      * Converts a raw argument into a string.
@@ -86,6 +91,46 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      */
     protected String rawToString( final A raw ) {
         return Objects.toString( raw );
+    }
+
+    /**
+     * Wraps the error for an invalid parameter into a result.
+     *
+     * @param parameter The parameter.
+     * @param raw The offending value.
+     * @param exception The exeception that was caused.
+     * @return The wrapped result.
+     */
+    private ResultException wrapInvalidParam( final Parameter<?> parameter, final A raw, 
+            final InvalidArgumentException exception ) {
+
+        final var arg = rawToString( raw );
+        final var error = exception.getMessage();
+        final var result = new CommandFailureArgumentInvalid( arg, parameter, error );
+        return new ResultException( result );
+
+    }
+    
+    /**
+     * Parses an argument, wrapping errors into a result (both in the method itself and
+     * in the resulting Mono).
+     *
+     * @param parameter The parameter specification.
+     * @param raw The raw argument.
+     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may 
+     *         fail with a {@link ResultException}.
+     * @throws ResultException if the raw value was invalid.
+     */
+    private Mono<Object> parseArgumentWrapped( final Parameter<?> parameter, final A raw ) 
+            throws ResultException {
+
+        try {
+            return parseArgument( parameter, raw ).onErrorMap( InvalidArgumentException.class, 
+                    e -> wrapInvalidParam( parameter, raw, e ) );
+        } catch ( final InvalidArgumentException e ) {
+            throw wrapInvalidParam( parameter, raw, e );
+        }
+        
     }
 
     /**
@@ -165,7 +210,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         }
 
         final var parsed = Streams.zip( parameterOrder.stream(), rawArguments.stream(),
-                this::parseArgument );
+                this::parseArgumentWrapped );
         final var missing = parameterOrder.stream()
                 .skip( arguments.size() )
                 .map( ContextImpl::missingArgument );

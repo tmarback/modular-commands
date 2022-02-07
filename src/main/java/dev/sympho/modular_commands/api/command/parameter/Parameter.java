@@ -66,7 +66,8 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * Parses the given raw argument from the user into the corresponding value.
      *
      * @param raw The raw argument received from the user.
-     * @return The value specified by the argument.
+     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may
+     *         fail with a {@link InvalidArgumentException}.
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
     @SideEffectFree

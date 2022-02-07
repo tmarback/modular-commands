@@ -9,6 +9,7 @@ import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.StringParameter;
+import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
@@ -75,7 +76,8 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    protected Mono<Object> parseArgument( final Parameter<?> parameter, final String raw ) {
+    protected Mono<Object> parseArgument( final Parameter<?> parameter, final String raw ) 
+            throws InvalidArgumentException {
 
         return parameter.parse( raw ).map( a -> a );
 
