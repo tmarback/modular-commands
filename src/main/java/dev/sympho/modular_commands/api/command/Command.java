@@ -27,6 +27,49 @@ public sealed interface Command
         permits MessageCommand, SlashCommand {
 
     /**
+     * The scopes that a command may be defined in.
+     *
+     * @version 1.0
+     * @since 1.0
+     */
+    enum Scope { 
+
+        /**
+         * A command that can be invoked in either guild channels or private channels.
+         */
+        GLOBAL, 
+
+        /**
+         * A command that can only be invoked in guild channels.
+         */
+        GUILD 
+
+    }
+
+    /**
+     * The scope that the command is defined in.
+     *
+     * @return The command scope.
+     */
+    @Pure
+    Scope scope();
+
+    /**
+     * Whether this command can be invoked by a user.
+     * 
+     * <p>A non-callable command is usually used as a parent for other commands that should
+     * not be itself invoked.
+     * 
+     * <p>Do note that slash commands cannot be invoked if they have children commands, and
+     * so in that case this parameter has no effect. This is a limitation from Discord itself.
+     *
+     * @return {@code true} if the command may be directly called by users. 
+     *         {@code false} otherwise.
+     */
+    @Pure
+    boolean callable();
+
+    /**
      * The parent of the command.
      * 
      * <p>If the invocation returned by this is empty, this command has
@@ -111,6 +154,9 @@ public sealed interface Command
     /**
      * The built-in permissions that a user should have in order to execute the
      * command.
+     * 
+     * <p>If the invoking channel is a private channel and the {@link #scope() scope}
+     * of the command allows being invoked there, this requirement is ignored.
      *
      * @return The built-in permissions required to run the command.
      */
@@ -130,6 +176,12 @@ public sealed interface Command
 
     /**
      * Whether this command can only be invoked in a NSFW channel.
+     * 
+     * <p>A private channel (if the {@link #scope() scope}) of the command allows invocation
+     * in one) always satisfies this condition.
+     * 
+     * <p>Conversely, a guild channel that cannot be marked as NSFW (such as an announcement
+     * channel) never satisfies this condition.
      *
      * @return Whether this command can only be invoked in a NSFW channel.
      */
@@ -146,6 +198,9 @@ public sealed interface Command
 
     /**
      * Whether this command can only be invoked by the owner of the server.
+     * 
+     * <p>If the invoking channel is a private channel and the {@link #scope() scope}
+     * of the command allows being invoked there, this requirement is ignored.
      *
      * @return Whether this command can only be invoked by the owner of the server.
      */
@@ -184,6 +239,40 @@ public sealed interface Command
      */
     @Pure
     boolean inheritSettings();
+
+    /**
+     * Whether the parent command should be invoked before this command is invoked.
+     * 
+     * <p>If the parent command may also define that its parent must be executed, and
+     * so on. Execution will start at the closest ancestor that sets this to false or
+     * does not have a parent (including itself).
+     * 
+     * <p>The parent(s) will be invoked with the same context object, which means that a
+     * parent may pass objects to a child through the context. It also means that the
+     * parameters to this command must be <i>compatible</i> with all executed ancestors,
+     * which means that
+     * 
+     * <ul>
+     *  <li>Any parameter that is defined in both this command and an executed parent (that
+     *      is, has the same name) must be of the same type.
+     *  <li>Any parameter that is <i>required</i> in an executed parent must be defined
+     *      in this command, and it must either be also required or have a default value.</li>
+     *  <li>The <i>order</i> of shared parameters does <i>not</i> need to be the same or 
+     *      similar in any way.</li>
+     * </ul>
+     * 
+     * <p>If the parameters of this command are not compatible with those of any executed
+     * parent as defined above, an error will be triggered at execution time.
+     * 
+     * <p>There are no compatibility requirements for ancestors that would not be executed
+     * as part of an execution of this command.
+     * 
+     * <p>Naturally, this flag has no effect on a command with no parent.
+     *
+     * @return Whether this command's parent should be executed as part of an invocation.
+     */
+    @Pure
+    boolean invokeParent();
 
     /**
      * The handler to use for processing an invocation of the command.

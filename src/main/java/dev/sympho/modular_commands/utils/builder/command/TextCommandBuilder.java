@@ -98,10 +98,12 @@ public final class TextCommandBuilder extends CommandBuilder<TextCommand,
 
         try {
             return new TextCommandImpl( 
-                parent, buildName(), buildDisplayName(), aliases, buildDescription(), parameters,
+                scope, callable, parent, buildName(), buildDisplayName(), aliases,
+                buildDescription(), parameters,
                 requiredDiscordPermissions, requireParentPermissions, 
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, 
-                inheritSettings, buildInvocationHandler(), resultHandlers );
+                inheritSettings, invokeParent,
+                buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {
             throw new IllegalStateException( "Invalid parameter configuration.", e );
         }

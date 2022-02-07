@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.impl.command;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -16,6 +17,8 @@ import discord4j.rest.util.PermissionSet;
 /**
  * Default implementation of a message-based command.
  *
+ * @param scope The scope that the command is defined in.
+ * @param callable If the command may be directly invoked by users.
  * @param parent The parent of the command.
  * @param name The name of the command.
  * @param displayName The display name of the command.
@@ -34,12 +37,15 @@ import discord4j.rest.util.PermissionSet;
  *                     invoking user can see.
  * @param inheritSettings Whether the command settings should be inherited from the parent 
  *                        command (ignoring the values provided by this command).
+ * @param invokeParent Whether to invoke the parent as part of normal execution.
  * @param invocationHandler The handler to use for processing an invocation of the command.
  * @param resultHandlers The handlers to use for processing the result, in order.
  * @version 1.0
  * @since 1.0
  */
 public record MessageCommandImpl(
+        Scope scope,
+        boolean callable,
         Invocation parent,
         String name,
         String displayName,
@@ -53,6 +59,7 @@ public record MessageCommandImpl(
         boolean serverOwnerOnly,
         boolean privateReply,
         boolean inheritSettings,
+        boolean invokeParent,
         MessageInvocationHandler invocationHandler,
         List<? extends MessageResultHandler> resultHandlers
 ) implements MessageCommand {
@@ -60,6 +67,8 @@ public record MessageCommandImpl(
     /**
      * Initializes a new instance.
      *
+     * @param scope The scope that the command is defined in.
+     * @param callable If the command may be directly invoked by users.
      * @param parent The parent of the command.
      * @param name The name of the command.
      * @param displayName The display name of the command.
@@ -78,12 +87,15 @@ public record MessageCommandImpl(
      *                     invoking user can see.
      * @param inheritSettings Whether the command settings should be inherited from the parent 
      *                        command (ignoring the values provided by this command).
+     * @param invokeParent Whether to invoke the parent as part of normal execution.
      * @param invocationHandler The handler to use for processing an invocation of the command.
      * @param resultHandlers The handlers to use for processing the result, in order.
      */
     @SideEffectFree
     @SuppressWarnings( "checkstyle:parameternumber" )
     public MessageCommandImpl(
+            final Scope scope,
+            final boolean callable,
             final Invocation parent,
             final String name,
             final String displayName,
@@ -97,10 +109,13 @@ public record MessageCommandImpl(
             final boolean serverOwnerOnly,
             final boolean privateReply,
             final boolean inheritSettings,
+            final boolean invokeParent,
             final MessageInvocationHandler invocationHandler,
             final List<? extends MessageResultHandler> resultHandlers
     ) {
 
+        this.scope = Objects.requireNonNull( scope );
+        this.callable = callable;
         this.parent = CommandUtils.validateParent( parent );
         this.name = CommandUtils.validateName( name );
         this.displayName = CommandUtils.validateDisplayName( displayName );
@@ -115,6 +130,7 @@ public record MessageCommandImpl(
         this.serverOwnerOnly = serverOwnerOnly;
         this.privateReply = privateReply;
         this.inheritSettings = inheritSettings;
+        this.invokeParent = invokeParent;
         this.invocationHandler = CommandUtils.validateInvocationHandler( invocationHandler );
         this.resultHandlers = CommandUtils.validateResultHandlers( resultHandlers );
 

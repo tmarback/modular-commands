@@ -12,6 +12,7 @@ import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
+import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
@@ -38,6 +39,12 @@ abstract class CommandBuilder<
             RH extends @NonNull ResultHandler,
             SELF extends @NonNull CommandBuilder<C, IH, RH, SELF>
         > implements Builder<SELF> {
+
+    /** The command scope. */
+    protected Scope scope;
+
+    /** Whether the command can be invoked directly. */
+    protected boolean callable;
 
     /** The command parent. */
     protected Invocation parent;
@@ -75,6 +82,9 @@ abstract class CommandBuilder<
     /** Whether to inherit settings from parent. */
     protected boolean inheritSettings;
 
+    /** Whether to execute the parent. */
+    protected boolean invokeParent;
+
     /** The handler to process invocations with. */
     protected @MonotonicNonNull IH invocationHandler;
 
@@ -87,6 +97,8 @@ abstract class CommandBuilder<
     @SideEffectFree
     protected CommandBuilder() {
 
+        this.scope = Scope.GLOBAL;
+        this.callable = true;
         this.parent = Invocation.of();
         this.name = null;
         this.displayName = null;
@@ -98,6 +110,7 @@ abstract class CommandBuilder<
         this.serverOwnerOnly = false;
         this.privateReply = true;
         this.inheritSettings = false;
+        this.invokeParent = false;
         this.invocationHandler = null;
         this.resultHandlers = new LinkedList<>();
 
@@ -111,6 +124,8 @@ abstract class CommandBuilder<
     @SideEffectFree
     protected CommandBuilder( final CommandBuilder<?, ? extends IH, ? extends RH, ?> base ) {
 
+        this.scope = base.scope;
+        this.callable = base.callable;
         this.parent = base.parent;
         this.name = base.name;
         this.displayName = base.displayName;
@@ -122,6 +137,7 @@ abstract class CommandBuilder<
         this.serverOwnerOnly = base.serverOwnerOnly;
         this.privateReply = base.privateReply;
         this.inheritSettings = base.inheritSettings;
+        this.invokeParent = base.invokeParent;
         this.invocationHandler = base.invocationHandler;
         this.resultHandlers = new LinkedList<>( base.resultHandlers );
 
@@ -140,6 +156,8 @@ abstract class CommandBuilder<
 
         CommandUtils.validateCommand( base );
 
+        this.scope = base.scope();
+        this.callable = base.callable();
         this.parent = base.parent();
         this.name = base.name();
         this.displayName = base.displayName();
@@ -151,8 +169,43 @@ abstract class CommandBuilder<
         this.serverOwnerOnly = base.serverOwnerOnly();
         this.privateReply = base.privateReply();
         this.inheritSettings = base.inheritSettings();
+        this.invokeParent = base.invokeParent();
         this.invocationHandler = ( IH ) base.invocationHandler();
         this.resultHandlers = new LinkedList<>( ( List<? extends RH> ) base.resultHandlers() );
+
+    }
+
+    /**
+     * Sets the command scope.
+     * 
+     * <p>The default value is {@link Scope#GLOBAL}.
+     *
+     * @param scope The command scope. If {@code null}, restores the default value.
+     * @return This builder.
+     * @see Command#scope()
+     */
+    @Deterministic
+    public SELF withScope( final @Nullable Scope scope ) {
+
+        this.scope = Objects.requireNonNullElse( scope, Scope.GLOBAL );
+        return self();
+
+    }
+
+    /**
+     * Sets whether the command can be invoked directly.
+     * 
+     * <p>The default value is {@code true}.
+     *
+     * @param callable Whether a user can invoke the command directly.
+     * @return This builder.
+     * @see Command#callable()
+     */
+    @Deterministic
+    public SELF withCallable( final boolean callable ) {
+
+        this.callable = callable;
+        return self();
 
     }
 
@@ -400,6 +453,23 @@ abstract class CommandBuilder<
     public SELF setInheritSettings( final boolean inheritSettings ) {
 
         this.inheritSettings = inheritSettings;
+        return self();
+
+    }
+
+    /**
+     * Sets whether the command should also invoke the parent's handler.
+     * 
+     * <p>The default value is {@code false}.
+     *
+     * @param invokeParent Whether the command should invoke the parent's handler.
+     * @return This builder.
+     * @see Command#invokeParent()
+     */
+    @Deterministic
+    public SELF setInvokeParent( final boolean invokeParent ) {
+
+        this.invokeParent = invokeParent;
         return self();
 
     }

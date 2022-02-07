@@ -49,10 +49,12 @@ public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, Slas
 
         try {
             return new SlashCommandImpl( 
-                parent, buildName(), buildDisplayName(), buildDescription(), parameters,
+                scope, callable, parent, buildName(), buildDisplayName(), 
+                buildDescription(), parameters,
                 requiredDiscordPermissions, requireParentPermissions, 
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, 
-                inheritSettings, buildInvocationHandler(), resultHandlers );
+                inheritSettings, invokeParent,
+                buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {
             throw new IllegalStateException( "Invalid parameter configuration.", e );
         }
