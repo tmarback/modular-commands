@@ -3,8 +3,7 @@ package dev.sympho.modular_commands.api.exception;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
 /**
- * Exception type for errors caused due to invalid arguments being passed
- * to a command.
+ * Exception thrown when an argument cannot be parsed due to being invalid.
  *
  * @version 1.0
  * @since 1.0
