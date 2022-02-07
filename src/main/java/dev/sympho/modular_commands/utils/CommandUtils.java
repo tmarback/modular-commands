@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMultiset;
+
 import org.apache.commons.lang3.Range;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.checkerframework.common.value.qual.StaticallyExecutable;
@@ -176,6 +178,7 @@ public final class CommandUtils {
         Objects.requireNonNull( parameters, "Parameter list cannot be null." );
         boolean optional = false;
         for ( final Parameter<?> p : parameters ) {
+
             Objects.requireNonNull( p, "Parameter specification cannot be null." );
             if ( !p.required() ) {
                 optional = true;
@@ -183,6 +186,18 @@ public final class CommandUtils {
                 throw new IllegalArgumentException( 
                         "Required parameters must be before optional parameters." );
             }
+
+        }
+
+        final var nameStream = parameters.stream().map( Parameter::name );
+        final var names = ImmutableMultiset.copyOf( nameStream.iterator() );
+        for ( final var entry : names.entrySet() ) {
+
+            if ( entry.getCount() > 1 ) {
+                throw new IllegalArgumentException( String.format( "Duplicate argument: %s",
+                        entry.getElement() ) );
+            }
+
         }
 
         return Collections.unmodifiableList( new ArrayList<>( parameters ) );
