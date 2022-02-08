@@ -37,7 +37,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/tmarback/modular-commands.git</connection>
-        <developerConnection>scm:git:ssh://github.com/tmarback/modular-commands.git</developerConnection>
+        <developerConnection>scm:git:ssh://git@github.com/tmarback/modular-commands.git</developerConnection>
         <tag>HEAD</tag>
         <url>https://github.com/tmarback/modular-commands/tree/main</url>
     </scm>
