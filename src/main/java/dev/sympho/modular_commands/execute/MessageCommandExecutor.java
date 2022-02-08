@@ -43,7 +43,7 @@ public class MessageCommandExecutor extends CommandExecutor {
      * @param prefixProvider The provider to get prefixes from.
      */
     public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            PrefixProvider prefixProvider ) {
+            final PrefixProvider prefixProvider ) {
 
         super( client, registry, new Builder( prefixProvider ) );
 

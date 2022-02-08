@@ -98,7 +98,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
                     if ( result instanceof CommandErrorException r ) {
                         final var cause = r.cause();
-                        LOGGER.error( String.format( "Exception while executing command {}", 
+                        LOGGER.error( String.format( "Exception while executing command %s", 
                                 context.getInvocation() ), cause );
                     } else if ( result instanceof CommandError r ) {
                         LOGGER.error( "Error while executing command {}: {}", 
