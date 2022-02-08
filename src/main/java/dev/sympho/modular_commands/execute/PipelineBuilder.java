@@ -98,16 +98,16 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
                     if ( result instanceof CommandErrorException r ) {
                         final var cause = r.cause();
-                        LOGGER.error( String.format( "Exception while executing command %s", 
+                        LOGGER.error( String.format( "Exception while executing command {}", 
                                 context.getInvocation() ), cause );
                     } else if ( result instanceof CommandError r ) {
-                        LOGGER.error( "Error while executing command %s: %s", 
+                        LOGGER.error( "Error while executing command {}: {}", 
                                 context.getInvocation(), r.message() );
                     }
                 } )
                 .flatMap( this::handleResult )
                 .doOnNext( c -> {
-                    LOGGER.warn( "Handling of result of command %s not complete", 
+                    LOGGER.warn( "Handling of result of command {} not complete", 
                             c.getInvocation() );
                 } )
                 .onErrorContinue( ( e, o ) -> {
