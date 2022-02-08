@@ -113,7 +113,9 @@ jobs:
           ref: gh-pages # Github Pages branch
 
       - name: Delete existing site files except CNAME
-        run: rm -r !("CNAME")
+        run: |
+          find . ! -path './.git/*' ! -path './.git' ! -path . -type d -exec rm -rf {} +
+          find . ! -path './.git/*' ! -path './CNAME' -type f -exec rm -f {} +
       - name: Download site artifact
         uses: actions/download-artifact@v2
         with:
@@ -127,11 +129,11 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git tag -a ${{ github.ref_name }}-site -m "Site for release version ${{ needs.prepare.outputs.version }}"
       - name: Commit new files
         run: |
           git add -A
           git commit -m "Updated project site to release version ${{ needs.prepare.outputs.version }}"
+          git tag -a ${{ github.ref_name }}-site -m "Site for release version ${{ needs.prepare.outputs.version }}"
       - name: Push changes
         run: |
           git push origin gh-pages
