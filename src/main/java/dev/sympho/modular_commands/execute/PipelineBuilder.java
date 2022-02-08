@@ -103,6 +103,9 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                     } else if ( result instanceof CommandError r ) {
                         LOGGER.error( "Error while executing command {}: {}", 
                                 context.getInvocation(), r.message() );
+                    } else {
+                        LOGGER.debug( "Finished command execution {} with result {}", 
+                                context.getInvocation(), result.getClass().getSimpleName() );
                     }
                 } )
                 .flatMap( this::handleResult )
