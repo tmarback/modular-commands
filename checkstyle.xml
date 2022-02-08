@@ -32,6 +32,15 @@
         <property name="files" value="test.*"/>
         <property name="checks" value="MissingCtor"/>
     </module>
+    <module name="SuppressionSingleFilter">
+        <property name="files" value="test.*"/>
+        <property name="checks" value="HideUtilityClassConstructor"/>
+    </module>
+    <!-- Allow unrestricted string literals in test classes -->
+    <module name="SuppressionSingleFilter">
+        <property name="files" value="test.*"/>
+        <property name="checks" value="MultipleStringLiterals"/>
+    </module>
     <!-- required till https://bugs.openjdk.java.net/browse/JDK-8160601 -->
     <module name="SuppressionSingleFilter">
         <property name="checks" value="MissingDeprecatedCheck"/>
@@ -668,6 +677,7 @@
         <!-- Flag classes with a main() method -->
         <module name="UncommentedMain">
             <property name="severity" value="warning"/>
+            <property name="excludedClasses" value="\.TestBot$"/> <!-- Allow test bot -->
         </module>
         <!-- Use upper case L for long int literals -->
         <module name="UpperEll"/>
