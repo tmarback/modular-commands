@@ -19,7 +19,7 @@ public final class StringParameterBuilder
      * Constructs a new builder with default values.
      */
     @Pure
-    protected StringParameterBuilder() {}
+    public StringParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -27,7 +27,7 @@ public final class StringParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected StringParameterBuilder( final StringParameterBuilder base ) {
+    public StringParameterBuilder( final StringParameterBuilder base ) {
 
         super( base );
 
@@ -40,7 +40,7 @@ public final class StringParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected StringParameterBuilder( final StringParameter base ) {
+    public StringParameterBuilder( final StringParameter base ) {
 
         super( base );
 

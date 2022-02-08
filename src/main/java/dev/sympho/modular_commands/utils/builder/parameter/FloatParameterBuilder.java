@@ -19,7 +19,7 @@ public final class FloatParameterBuilder
      * Constructs a new builder with default values.
      */
     @Pure
-    protected FloatParameterBuilder() {}
+    public FloatParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -27,7 +27,7 @@ public final class FloatParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected FloatParameterBuilder( final FloatParameterBuilder base ) {
+    public FloatParameterBuilder( final FloatParameterBuilder base ) {
 
         super( base );
 
@@ -40,7 +40,7 @@ public final class FloatParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected FloatParameterBuilder( final FloatParameter base ) {
+    public FloatParameterBuilder( final FloatParameter base ) {
 
         super( base );
 

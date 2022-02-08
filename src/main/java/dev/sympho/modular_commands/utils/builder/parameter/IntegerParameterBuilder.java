@@ -19,7 +19,7 @@ public final class IntegerParameterBuilder
      * Constructs a new builder with default values.
      */
     @Pure
-    protected IntegerParameterBuilder() {}
+    public IntegerParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -27,7 +27,7 @@ public final class IntegerParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected IntegerParameterBuilder( final IntegerParameterBuilder base ) {
+    public IntegerParameterBuilder( final IntegerParameterBuilder base ) {
 
         super( base );
 
@@ -40,7 +40,7 @@ public final class IntegerParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected IntegerParameterBuilder( final IntegerParameter base ) {
+    public IntegerParameterBuilder( final IntegerParameter base ) {
 
         super( base );
 
