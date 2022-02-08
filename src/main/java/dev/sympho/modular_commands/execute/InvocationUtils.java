@@ -134,7 +134,9 @@ public final class InvocationUtils {
 
         final List<IH> handlers = new LinkedList<>();
         final var it = chain.listIterator( chain.size() );
+
         C source = it.previous();
+        handlers.add( getter.apply( source ) );
 
         final C target = source;
         final Set<String> satisfiedParameters = source.parameters().stream()
