@@ -83,6 +83,7 @@ public final class SimpleRegistry implements Registry {
             return false;
         }
 
+        commands.put( id, command );
         invocations.put( invocation, command );
         for ( final Invocation alias : aliases ) {
             aliasInvocations.put( alias, command );
