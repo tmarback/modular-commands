@@ -15,3 +15,6 @@ buildNumber.properties
 .settings/
 .classpath
 .project
+
+# VS Code files
+.vscode/
