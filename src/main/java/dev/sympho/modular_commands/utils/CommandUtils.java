@@ -156,7 +156,7 @@ public final class CommandUtils {
             throws IllegalArgumentException {
 
         Objects.requireNonNull( description, "Description cannot be null." );
-        if ( DESCRIPTION_RANGE.contains( description.length() ) ) {
+        if ( !DESCRIPTION_RANGE.contains( description.length() ) ) {
             throw new IllegalArgumentException( 
                     "Description must be between 1 and 100 characters." );
         }
