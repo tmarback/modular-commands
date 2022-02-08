@@ -419,15 +419,21 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      */
     private Mono<CommandResult> invokeCommand( final List<C> chain, final CTX context ) {
 
+        final var invocation = InvocationUtils.getInvokedCommand( chain ).invocation();
+        LOGGER.debug( "Invoking command {}", invocation );
+
         final List<IH> handlers = InvocationUtils.accumulateHandlers(
                 chain, this::getInvocationHandler );
+        LOGGER.trace( "Handlers for {}: {}", invocation, handlers );
 
         var state = Results.contMono();
         for ( final var handler : handlers ) {
             state = state.flatMap( r -> {
                 if ( r instanceof CommandContinue ) {
+                    LOGGER.trace( "Invoking command handler for {}", invocation );
                     return invokeWrap( handler, context );
                 } else {
+                    LOGGER.trace( "Skipping command handler for {}", invocation );
                     return Mono.just( r );
                 }
             } );
