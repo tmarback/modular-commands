@@ -12,6 +12,8 @@ import com.google.common.collect.Streams;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.LazyContext;
@@ -33,6 +35,9 @@ import reactor.util.function.Tuples;
  * @since 1.0
  */
 abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
+
+    /** The logger. */
+    private static final Logger LOGGER = LoggerFactory.getLogger( ContextImpl.class );
 
     /** The command parameters in the order that they should be received. */
     private final List<Parameter<?>> parameterOrder;
@@ -199,6 +204,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     @Override
     public Mono<Void> load() throws ResultException {
 
+        LOGGER.trace( "Parsing arguments {} for parameters {}", rawArguments, parameterOrder );
+
         final var received = rawArguments.size();
         final var expected = parameterOrder.size();
         if ( received > expected ) {
@@ -212,7 +219,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         final var parsed = Streams.zip( parameterOrder.stream(), rawArguments.stream(),
                 this::parseArgumentWrapped );
         final var missing = parameterOrder.stream()
-                .skip( arguments.size() )
+                .skip( received )
                 .map( ContextImpl::missingArgument );
 
         return Flux.concat( parsed.toList() )
