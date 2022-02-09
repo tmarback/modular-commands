@@ -43,7 +43,7 @@ jobs:
         run: mvn compile -B -P lint,strict
 
   style:
-    name: Run Style Checker
+    name: Style
     runs-on: ubuntu-latest
     steps:
       - name: Check out pull request
