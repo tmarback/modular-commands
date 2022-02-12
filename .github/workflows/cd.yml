@@ -1,15 +1,15 @@
 # Build and release workflow
 
-name: CI Build
+name: CD
 
 on:
   push:
     branches: # Trigger on commits to main
       - main
     tags:
-      - v*
+      - v* # Also version tags to avoid skipping releases
 
-concurrency: ci-build-${{ github.ref }}
+concurrency: cd-${{ github.ref }}
 jobs:
   prepare:
     name: Prepare Metadata
@@ -17,7 +17,19 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
       type: ${{ steps.get-type.outputs.type }}
+      site: ${{ steps.get-site.outputs.version }}
     steps:
+      - name: Check out GH Pages branch
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages # Github Pages branch
+      - name: Get latest site version
+        id: get-site-version
+        run: |
+          git fetch --update-shallow --tags --depth=3
+          VER="$( git describe --tags --abbrev=0 --match 'v*.*.*-site' | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' || echo '0.0.0' )"
+          echo "::set-output name=version::${VER}"
+      
       - name: Check out main Git repository
         uses: actions/checkout@v2
       - name: Set up Apache Maven Central
@@ -38,12 +50,42 @@ jobs:
           else
             echo "::set-output name=type::release"
           fi
+      
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+      - name: Determine site tag
+        id: get-site
+        run: |
+          PREV_SITE_VER="${{ steps.get-site-version.outputs.version }}"
+          NEW_VER="${{ steps.get-version.outputs.version }}"
+          RELEASE_TYPE="${{ steps.get-type.outputs.type }}"
+          DIFF="$( python .github/scripts/compare_semver.py $NEW_VER $PREV_SITE_VER )"
+          if [ "$RELEASE_TYPE" = "release" ] && [ "$DIFF" -gt 0 ]; then
+            echo "::set-output name=version::v${NEW_VER}-site"
+          else
+            echo "::set-output name=version::none"
+          fi
+      
+      - name: Wait for tests to succeed
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'Test'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Wait for static checks to succeed
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'Lint'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Deploy Version
     needs: prepare
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' || needs.prepare.outputs.type == 'snapshot'
+    concurrency: cd-deploy-${{ needs.prepare.outputs.version }}
     steps:
       - name: Check out main Git repository
         uses: actions/checkout@v2
@@ -59,8 +101,6 @@ jobs:
           server-password: NEXUS_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.gpg_private_key }} # Value of the GPG private key to import
           gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
-      - name: Build and test with Maven
-        run: mvn clean verify -B -P lint,strict
       - name: Publish to OSSRH
         run: mvn deploy -B -P deploy,ossrh -Dmaven.test.skip=true
         env:
@@ -105,7 +145,8 @@ jobs:
     name: Update Site
     needs: [ prepare, deploy ]
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag' # Only publish site on releases
+    if: needs.prepare.outputs.site != 'none'
+    concurrency: cd-site-${{ needs.prepare.outputs.version }}
     steps:
       - name: Check out GH Pages branch
         uses: actions/checkout@v2
@@ -133,14 +174,8 @@ jobs:
         run: |
           git add -A
           git commit -m "Updated project site to release version ${{ needs.prepare.outputs.version }}"
-          git tag -a ${{ github.ref_name }}-site -m "Site for release version ${{ needs.prepare.outputs.version }}"
+          git tag -a ${{ needs.prepare.outputs.site }} -m "Site for release version ${{ needs.prepare.outputs.version }}"
       - name: Push changes
         run: |
           git push origin gh-pages
-          git push origin ${{ github.ref_name }}-site
-
-      - name: Delete the artifact
-        if: always()
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: site
+          git push origin ${{ needs.prepare.outputs.site }}
