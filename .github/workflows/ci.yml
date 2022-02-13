@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out main Git repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
       - name: Set up Apache Maven Central
         uses: actions/setup-java@v2
         with:
@@ -35,6 +37,8 @@ jobs:
     steps:
       - name: Check out main Git repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
       - name: Set up Apache Maven Central
         uses: actions/setup-java@v2
         with:

@@ -18,7 +18,7 @@ jobs:
       - name: Wait for checks to succeed
         uses: lewagon/wait-on-check-action@v1.1.1
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
           running-workflow-name: 'Wait for Checks'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -43,6 +43,8 @@ jobs:
       
       - name: Check out main Git repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
       - name: Set up Apache Maven Central
         uses: actions/setup-java@v2
         with: # running setup-java again overwrites the settings.xml
@@ -83,10 +85,12 @@ jobs:
     name: Deploy Version
     needs: [ wait, prepare ]
     runs-on: ubuntu-latest
-    concurrency: cd-deploy-${{ needs.prepare.outputs.version }}
+    if: github.ref_type == 'tag' || needs.prepare.outputs.type == 'snapshot'
     steps:
       - name: Check out main Git repository
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
 
       - name: Set up Apache Maven Central
         uses: actions/setup-java@v2
@@ -129,6 +133,23 @@ jobs:
             target/*.jar
             target/*.jar.asc
 
+  site-build:
+    name: Build Site
+    needs: wait
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main Git repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+      - name: Run tests # If it got this far, it *should* be guaranteed to pass, but needed for the report
+        run: mvn clean verify -B
       - name: Build project site
         run: mvn site -B
       - name: Tarball project site
@@ -139,9 +160,9 @@ jobs:
           name: site
           path: site.tar.gz
 
-  site:
-    name: Update Site
-    needs: [ prepare, deploy ]
+  site-deploy:
+    name: Deploy Site
+    needs: [ prepare, deploy, site-build ]
     runs-on: ubuntu-latest
     if: needs.prepare.outputs.site != 'none'
     concurrency: cd-site-${{ needs.prepare.outputs.version }}
