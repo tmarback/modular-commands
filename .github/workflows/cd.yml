@@ -11,6 +11,17 @@ on:
 
 concurrency: cd-${{ github.ref }}
 jobs:
+  wait:
+    name: Wait for Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for checks to succeed
+        uses: lewagon/wait-on-check-action@v1.1.1
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: 'Wait for Checks'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
   prepare:
     name: Prepare Metadata
     runs-on: ubuntu-latest
@@ -67,23 +78,10 @@ jobs:
           else
             echo "::set-output name=version::none"
           fi
-      
-      - name: Wait for tests to succeed
-        uses: lewagon/wait-on-check-action@v1.1.1
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'Test'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Wait for static checks to succeed
-        uses: lewagon/wait-on-check-action@v1.1.1
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'Lint'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     name: Deploy Version
-    needs: prepare
+    needs: [ wait, prepare ]
     runs-on: ubuntu-latest
     concurrency: cd-deploy-${{ needs.prepare.outputs.version }}
     steps:
