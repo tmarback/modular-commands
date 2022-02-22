@@ -75,7 +75,10 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
         final Flux<E> source = client.on( eventType() )
                 .onErrorStop() // Don't let error handling leak, just in case
-                .filter( this::eventFilter );
+                .filter( this::eventFilter )
+                .doOnNext( e -> {
+                    LOGGER.trace( "Received message event: {}", e );
+                } );
         return buildPipeline( source, registry );
 
     }
@@ -350,6 +353,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                     final E event = ctx.getT1();
                     final List<String> args = ctx.getT2();
 
+                    LOGGER.trace( "Parsed args {}", args );
+
                     final List<C> chain = InvocationUtils.makeChain( 
                             registry, args, commandType() );
 
@@ -362,6 +367,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                             + " was leftover from " + args.toString()
                         );
                     }
+
+                    LOGGER.trace( "Matched invocation {}", invocation );
 
                     return Tuples.of( event, chain, invocation, remainder );
                 } )
