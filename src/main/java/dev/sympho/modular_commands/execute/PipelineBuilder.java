@@ -74,12 +74,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     public Mono<Void> buildPipeline( final GatewayDiscordClient client, final Registry registry ) {
 
         final Flux<E> source = client.on( eventType() )
-                .onErrorStop() // Don't let error handling leak, just in case
                 .filter( this::eventFilter )
                 .doOnNext( e -> {
-                    LOGGER.trace( "Received message event: {}", e );
+                    LOGGER.trace( "Received event: {}", e );
                 } );
-        return buildPipeline( source, registry );
+        return buildPipeline( source, registry ).retry();
 
     }
 
@@ -93,7 +92,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     @SideEffectFree
     private Mono<Void> buildPipeline( final Flux<E> source, final Registry registry ) {
 
-        return parsingPipeline( source, registry )
+        return source.flatMap( event -> parseEvent( event, registry )
                 .flatMap( this::executeCommand )
                 .doOnNext( ctx -> {
                     final CTX context = ctx.getT2();
@@ -116,10 +115,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                     LOGGER.warn( "Handling of result of command {} not complete", 
                             c.getInvocation() );
                 } )
-                .onErrorContinue( ( e, o ) -> {
+                .onErrorResume( e -> {
                     LOGGER.error( "Exception thrown within processing pipeline", e );
+                    return Mono.empty();
                 } )
-                .then();
+        ).then();
 
     }
 
@@ -333,24 +333,24 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     }
 
     /**
-     * Creates the parsing pipeline, that extracts invocations from raw events.
+     * Parses an invocation from an event.
      * 
      * <p>Invocations of a command in an incompatible scope or of a command that cannot
-     * be invoked by itself are pre-filtered and will never be issued by the returned Flux.
+     * be invoked by itself are pre-filtered and will return an empty Mono.
      *
-     * @param source The source of events.
+     * @param event The event.
      * @param registry The registry to use for command lookups.
-     * @return A Flux that issues command invocations.
+     * @return A Mono that issues the parsed command, if any. 
      */
     @SideEffectFree
-    private Flux<Tuple4<E, List<C>, Invocation, List<String>>> parsingPipeline( 
-            final Flux<E> source, final Registry registry ) {
+    private Mono<Tuple4<E, List<C>, Invocation, List<String>>> parseEvent( 
+            final E event, final Registry registry ) {
 
-        return source
+        return Mono.just( event )
                 .map( e -> Tuples.of( e, parse( e ) ) )
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .mapNotNull( ctx -> {
-                    final E event = ctx.getT1();
+                    final E e = ctx.getT1();
                     final List<String> args = ctx.getT2();
 
                     LOGGER.trace( "Parsed args {}", args );
@@ -370,7 +370,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
                     LOGGER.trace( "Matched invocation {}", invocation );
 
-                    return Tuples.of( event, chain, invocation, remainder );
+                    return Tuples.of( e, chain, invocation, remainder );
                 } )
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .filter( this::checkScope )
