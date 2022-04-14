@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.api.command.context;
 
+import java.util.Objects;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 
@@ -111,6 +113,32 @@ public sealed interface CommandContext permits LazyContext,
             throws IllegalArgumentException, ClassCastException;
 
     /**
+     * Retrieves one of the arguments to the command, assuming it is non-null
+     * (so either required or with a default value).
+     *
+     * @param <T> The type of the argument.
+     * @param name The name of the corresponding parameter.
+     * @param argumentType The type of the argument.
+     * @return The argument value, or {@code null} if the argument was not given by
+     *         the caller and does not have a default value.
+     * @throws IllegalArgumentException if there is no parameter with the given name.
+     * @throws ClassCastException if the given argument type does not match the type of the
+     *                            argument with the given name.
+     * @throws NullPointerException if the argument was not received and does not have a
+     *                              default value.
+     * @apiNote An NPE thrown by this method indicates a mismatched configuration 
+     *          (code expects the parameter to be required or default but it was not
+     *          configured as such).
+     */
+    @Pure
+    default <T> T requireArgument( String name, Class<? extends T> argumentType )
+            throws IllegalArgumentException, ClassCastException, NullPointerException {
+
+        return Objects.requireNonNull( getArgument( name, argumentType ) );
+
+    }
+
+    /**
      * Places a context object for subsequent handlers, optionally replacing any existing
      * values under the same key.
      *
@@ -146,12 +174,32 @@ public sealed interface CommandContext permits LazyContext,
      * @param key The object key.
      * @param type The object class.
      * @return The context object.
-     * @throws IllegalArgumentException If there is no context object with the given key.
-     * @throws ClassCastException If the context object with the given key is not compatible
+     * @throws IllegalArgumentException if there is no context object with the given key.
+     * @throws ClassCastException if the context object with the given key is not compatible
      *                            with the given type (not the same or a subtype).
      */
     @Pure
     <T> @Nullable T getContext( String key, Class<? extends T> type )
             throws IllegalArgumentException, ClassCastException;
+
+    /**
+     * Retrieves a non-null context object set by {@link #setContext(String, Object, boolean)}.
+     *
+     * @param <T> The type of the object.
+     * @param key The object key.
+     * @param type The object class.
+     * @return The context object.
+     * @throws IllegalArgumentException If there is no context object with the given key.
+     * @throws ClassCastException if the context object with the given key is not compatible
+     *                            with the given type (not the same or a subtype).
+     * @throws NullPointerException if the context object was {@code null}.
+     */
+    @Pure
+    default <T> T requireContext( String key, Class<? extends T> type )
+            throws IllegalArgumentException, ClassCastException, NullPointerException {
+
+        return Objects.requireNonNull( getContext( key, type ) );
+
+    }
     
 }
