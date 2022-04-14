@@ -7,6 +7,7 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
 import reactor.core.publisher.Mono;
 
@@ -62,6 +63,18 @@ public record RoleParameter(
         }
 
         return mention.substring( 2 );
+
+    }
+
+    @Override
+    public Mono<Role> parse( final CommandContext context, final String raw )
+            throws InvalidArgumentException {
+
+        if ( "@everyone".equals( raw ) || "@here".equals( raw ) ) {
+            return context.getGuild().flatMap( Guild::getEveryoneRole );
+        } else {
+            return MentionParameter.super.parse( context, raw );
+        }
 
     }
     
