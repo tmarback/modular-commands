@@ -20,7 +20,8 @@ abstract sealed class MentionableParameterBuilder<
             T extends Entity, 
             P extends MentionableParameter<T>,
             SELF extends EntityParameterBuilder<T, P, SELF>
-        > extends EntityParameterBuilder<T, P, SELF> permits ChannelParameterBuilder {
+        > extends EntityParameterBuilder<T, P, SELF> 
+        permits ChannelParameterBuilder, RoleParameterBuilder, UserParameterBuilder {
 
     /**
      * Constructs a new builder with default values.

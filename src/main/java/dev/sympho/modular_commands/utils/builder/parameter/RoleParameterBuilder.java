@@ -3,24 +3,24 @@ package dev.sympho.modular_commands.utils.builder.parameter;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.ChannelParameter;
-import discord4j.core.object.entity.channel.Channel;
+import dev.sympho.modular_commands.api.command.parameter.RoleParameter;
+import discord4j.core.object.entity.Role;
 
 /**
- * Builder for a channel parameter.
+ * Builder for a role parameter.
  *
- * @see ChannelParameter
+ * @see RoleParameter
  * @version 1.0
  * @since 1.0
  */
-public final class ChannelParameterBuilder 
-        extends MentionableParameterBuilder<Channel, ChannelParameter, ChannelParameterBuilder> {
+public final class RoleParameterBuilder 
+        extends MentionableParameterBuilder<Role, RoleParameter, RoleParameterBuilder> {
 
     /**
      * Constructs a new builder with default values.
      */
     @Pure
-    public ChannelParameterBuilder() {}
+    public RoleParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -28,7 +28,7 @@ public final class ChannelParameterBuilder
      * @param base The builder to copy.
      */
     @SideEffectFree
-    public ChannelParameterBuilder( final ChannelParameterBuilder base ) {
+    public RoleParameterBuilder( final RoleParameterBuilder base ) {
 
         super( base );
 
@@ -41,17 +41,17 @@ public final class ChannelParameterBuilder
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    public ChannelParameterBuilder( final ChannelParameter base ) {
+    public RoleParameterBuilder( final RoleParameter base ) {
 
         super( base );
 
     }
 
     @Override
-    public ChannelParameter build() throws IllegalStateException {
+    public RoleParameter build() throws IllegalStateException {
 
         try {
-            return new ChannelParameter( 
+            return new RoleParameter( 
                     buildName(),
                     buildDescription(),
                     this.required, this.defaultValue );
