@@ -5,7 +5,7 @@
 
     <groupId>dev.sympho</groupId>
     <artifactId>modular-commands</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
 
     <name>Modular Commands</name>
     <description>Framework for creating and managing chat commands for Discord bots that use Discord4J.</description>
@@ -36,7 +36,7 @@
     <scm>
         <connection>scm:git:git://github.com/tmarback/modular-commands.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/tmarback/modular-commands.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.2.0</tag>
         <url>https://github.com/tmarback/modular-commands/tree/main</url>
     </scm>
 
