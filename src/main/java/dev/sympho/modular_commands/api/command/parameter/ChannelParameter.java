@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.parameter;
 import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
@@ -28,8 +29,9 @@ public record ChannelParameter(
         boolean required, @Nullable Channel defaultValue
 ) implements MentionableParameter<Channel> {
 
+    /** Link URL pattern. */
     private static final Pattern LINK_PATTERN = Pattern.compile(
-        "https://discord.com/channels/\\d+/(\\d+)"
+            "https://discord.com/channels/\\d+/(\\d+)"
     );
 
     /**
@@ -62,7 +64,9 @@ public record ChannelParameter(
             throw new InvalidArgumentException( this, "Invalid channel URL: %s".formatted( url ) );
         }
 
-        final Snowflake channelId = Snowflake.of( matcher.group( 1 ) );
+        final String channelString = NullnessUtil.castNonNull( matcher.group( 1 ) );
+
+        final Snowflake channelId = Snowflake.of( channelString );
 
         return client.getChannelById( channelId );
 
