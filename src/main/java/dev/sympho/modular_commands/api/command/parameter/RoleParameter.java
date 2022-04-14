@@ -23,7 +23,7 @@ import reactor.core.publisher.Mono;
 public record RoleParameter(
         String name, String description,
         boolean required, @Nullable Role defaultValue
-) implements MentionableParameter<Role> {
+) implements MentionParameter<Role> {
 
     /**
      * Creates a new instance.

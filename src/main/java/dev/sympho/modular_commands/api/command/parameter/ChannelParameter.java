@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 public record ChannelParameter(
         String name, String description,
         boolean required, @Nullable Channel defaultValue
-) implements MentionableParameter<Channel> {
+) implements MentionParameter<Channel> {
 
     /** Link URL pattern. */
     private static final Pattern LINK_PATTERN = Pattern.compile(

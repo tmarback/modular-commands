@@ -3,22 +3,22 @@ package dev.sympho.modular_commands.utils.builder.parameter;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.MentionableParameter;
+import dev.sympho.modular_commands.api.command.parameter.MentionParameter;
 import discord4j.core.object.entity.Entity;
 
 /**
- * Base for a mentionable parameter builder.
+ * Base for a mention parameter builder.
  *
  * @param <T> The type of entity received by the parameter.
  * @param <P> The parameter type.
  * @param <SELF> The self type.
- * @see MentionableParameter
+ * @see MentionParameter
  * @version 1.0
  * @since 1.0
  */
-abstract sealed class MentionableParameterBuilder<
+abstract sealed class MentionParameterBuilder<
             T extends Entity, 
-            P extends MentionableParameter<T>,
+            P extends MentionParameter<T>,
             SELF extends EntityParameterBuilder<T, P, SELF>
         > extends EntityParameterBuilder<T, P, SELF> permits ChannelParameterBuilder {
 
@@ -26,7 +26,7 @@ abstract sealed class MentionableParameterBuilder<
      * Constructs a new builder with default values.
      */
     @Pure
-    protected MentionableParameterBuilder() {}
+    protected MentionParameterBuilder() {}
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -34,8 +34,8 @@ abstract sealed class MentionableParameterBuilder<
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected MentionableParameterBuilder(
-            final MentionableParameterBuilder<? extends T, ?, ?> base ) {
+    protected MentionParameterBuilder(
+            final MentionParameterBuilder<? extends T, ?, ?> base ) {
 
         super( base );
 
@@ -48,7 +48,7 @@ abstract sealed class MentionableParameterBuilder<
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected MentionableParameterBuilder( final MentionableParameter<T> base ) {
+    protected MentionParameterBuilder( final MentionParameter<T> base ) {
 
         super( base );
 

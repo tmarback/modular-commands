@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 public record UserParameter(
         String name, String description,
         boolean required, @Nullable User defaultValue
-) implements MentionableParameter<User> {
+) implements MentionParameter<User> {
 
     /**
      * Creates a new instance.
