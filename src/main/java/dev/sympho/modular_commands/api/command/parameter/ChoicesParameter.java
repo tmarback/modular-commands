@@ -6,6 +6,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import reactor.core.publisher.Mono;
 
@@ -42,7 +43,7 @@ public sealed interface ChoicesParameter<T extends @NonNull Object> extends Para
     T parseValue( String raw ) throws InvalidArgumentException;
 
     @Override
-    default Mono<T> parse( String raw ) throws InvalidArgumentException {
+    default Mono<T> parse( CommandContext context, String raw ) throws InvalidArgumentException {
 
         final T value = parseValue( raw );
         if ( choices().isEmpty() || choices().containsValue( value ) ) {

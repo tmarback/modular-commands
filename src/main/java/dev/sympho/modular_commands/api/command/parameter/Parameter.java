@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import reactor.core.publisher.Mono;
 
@@ -65,12 +66,13 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
     /**
      * Parses the given raw argument from the user into the corresponding value.
      *
+     * @param context The execution context.
      * @param raw The raw argument received from the user.
      * @return A Mono that issues the parsed argument. If the raw value is invalid, it may
      *         fail with a {@link InvalidArgumentException}.
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
     @SideEffectFree
-    Mono<T> parse( String raw ) throws InvalidArgumentException;
+    Mono<T> parse( CommandContext context, String raw ) throws InvalidArgumentException;
     
 }

@@ -79,7 +79,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     protected Mono<Object> parseArgument( final Parameter<?> parameter, final String raw ) 
             throws InvalidArgumentException {
 
-        return parameter.parse( raw ).map( a -> a );
+        return parameter.parse( this, raw ).map( a -> a );
 
     }
 
