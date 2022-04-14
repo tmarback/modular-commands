@@ -15,7 +15,7 @@ import discord4j.core.object.entity.channel.Channel;
  * @since 1.0
  */
 public final class ChannelParameterBuilder 
-        extends MentionParameterBuilder<Channel, ChannelParameter, ChannelParameterBuilder> {
+        extends MentionableParameterBuilder<Channel, ChannelParameter, ChannelParameterBuilder> {
 
     /**
      * Constructs a new builder with default values.

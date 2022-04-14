@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
 public record RoleParameter(
         String name, String description,
         boolean required, @Nullable Role defaultValue
-) implements MentionParameter<Role> {
+) implements MentionableParameter<Role> {
 
     /**
      * Creates a new instance.
@@ -58,7 +58,7 @@ public record RoleParameter(
     @Override
     public String parseMention( final String mention ) throws InvalidArgumentException {
 
-        return OptionalUtils.castPresent( MentionParameter.parseMention( mention, "@&" ) )
+        return OptionalUtils.castPresent( MentionableParameter.parseMention( mention, "@&" ) )
                 .orElseThrow( () -> new InvalidArgumentException( this, 
                         "Not a valid role mention: <%s>".formatted( mention ) )
                 );
@@ -72,7 +72,7 @@ public record RoleParameter(
         if ( "@everyone".equals( raw ) || "@here".equals( raw ) ) {
             return context.getGuild().flatMap( Guild::getEveryoneRole );
         } else {
-            return MentionParameter.super.parse( context, raw );
+            return MentionableParameter.super.parse( context, raw );
         }
 
     }

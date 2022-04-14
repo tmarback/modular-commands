@@ -20,7 +20,7 @@ abstract sealed class EntityParameterBuilder<
             T extends Entity, 
             P extends EntityParameter<T>,
             SELF extends EntityParameterBuilder<T, P, SELF>
-        > extends ParameterBuilder<T, P, SELF> permits MentionParameterBuilder {
+        > extends ParameterBuilder<T, P, SELF> permits MentionableParameterBuilder {
 
     /**
      * Constructs a new builder with default values.

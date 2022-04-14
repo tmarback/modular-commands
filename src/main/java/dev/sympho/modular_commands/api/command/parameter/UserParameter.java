@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 public record UserParameter(
         String name, String description,
         boolean required, @Nullable User defaultValue
-) implements MentionParameter<User> {
+) implements MentionableParameter<User> {
 
     /**
      * Creates a new instance.
@@ -58,8 +58,8 @@ public record UserParameter(
     public String parseMention( final String mention ) throws InvalidArgumentException {
 
         return OptionalUtils.castPresent( 
-                MentionParameter.parseMention( mention, "@" )
-                .or( () -> MentionParameter.parseMention( mention, "@!" ) ) 
+                MentionableParameter.parseMention( mention, "@" )
+                .or( () -> MentionableParameter.parseMention( mention, "@!" ) ) 
         ).orElseThrow( () -> new InvalidArgumentException( this, 
                 "Not a valid role mention: <%s>".formatted( mention ) )
         );

@@ -28,7 +28,7 @@ import reactor.core.publisher.Mono;
 public record ChannelParameter(
         String name, String description,
         boolean required, @Nullable Channel defaultValue
-) implements MentionParameter<Channel> {
+) implements MentionableParameter<Channel> {
 
     /** Link URL pattern. */
     private static final Pattern LINK_PATTERN = Pattern.compile(
@@ -83,7 +83,7 @@ public record ChannelParameter(
     @Override
     public String parseMention( final String mention ) throws InvalidArgumentException {
 
-        return OptionalUtils.castPresent( MentionParameter.parseMention( mention, "#" ) )
+        return OptionalUtils.castPresent( MentionableParameter.parseMention( mention, "#" ) )
                 .orElseThrow( () -> new InvalidArgumentException( this, 
                         "Not a valid channel mention: <%s>".formatted( mention ) )
                 );
