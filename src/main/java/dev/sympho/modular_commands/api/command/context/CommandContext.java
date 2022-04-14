@@ -8,6 +8,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import discord4j.common.util.Snowflake;
+import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -31,6 +32,18 @@ public sealed interface CommandContext permits LazyContext,
      */
     @Pure
     Event getEvent();
+
+    /**
+     * Retrieves the client where the command was received.
+     *
+     * @return The client.
+     */
+    @Pure
+    default GatewayDiscordClient getClient() {
+
+        return getEvent().getClient();
+
+    }
 
     /**
      * Retrieves the invocation that triggered the command.
