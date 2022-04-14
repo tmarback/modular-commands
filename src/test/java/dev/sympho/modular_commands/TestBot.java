@@ -16,8 +16,11 @@ import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.builder.command.TextCommandBuilder;
+import dev.sympho.modular_commands.utils.builder.parameter.ChannelParameterBuilder;
 import dev.sympho.modular_commands.utils.builder.parameter.StringParameterBuilder;
 import discord4j.core.DiscordClient;
+import discord4j.core.object.entity.channel.Channel;
+import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Mono;
 
 /**
@@ -91,6 +94,37 @@ public class TestBot {
     }
 
     /**
+     * Creates a tweet command.
+     *
+     * @return The command.
+     */
+    private static Command tweetCommand() {
+
+        return new TextCommandBuilder()
+                .withName( "tweet" )
+                .withDisplayName( "Tweet Command" )
+                .withDescription( "Says something in a channel" )
+                .addParameter( new ChannelParameterBuilder()
+                    .withName( "channel" )
+                    .withDescription( "The channel to send to" )
+                    .withRequired( true )
+                    .build()
+                )
+                .withInvocationHandler( ctx -> {
+                    final Channel c = ctx.requireArgument( "channel", Channel.class );
+                    if ( c instanceof MessageChannel ch ) {
+                        return ch.createMessage( "Tweet" )
+                                .then( Results.okMono() );
+                    } else {
+                        return Results.failMono();
+                    }
+
+                } )
+                .build();
+
+    }
+
+    /**
      * Main runner.
      *
      * @param args Command line arguments.
@@ -104,6 +138,7 @@ public class TestBot {
 
         registry.registerCommand( "ping", pingCommand() );
         registry.registerCommand( "parrot", parrotCommand() );
+        registry.registerCommand( "tweet", tweetCommand() );
 
         LOGGER.info( "Arguments: {}", registry.getCommand( "parrot" ).parameters().get( 0 ) );
         
