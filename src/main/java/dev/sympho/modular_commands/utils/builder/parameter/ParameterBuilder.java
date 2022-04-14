@@ -28,7 +28,7 @@ abstract sealed class ParameterBuilder<
             T extends @NonNull Object, 
             P extends @NonNull Parameter<T>,
             SELF extends @NonNull ParameterBuilder<T, P, SELF>
-        > implements Builder<SELF> permits ChoicesParameterBuilder {
+        > implements Builder<SELF> permits ChoicesParameterBuilder, EntityParameterBuilder {
 
     /** The parameter name. */
     protected @MonotonicNonNull String name;
