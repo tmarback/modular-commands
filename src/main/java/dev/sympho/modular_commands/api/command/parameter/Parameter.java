@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
  */
 // END LONG LINES
 public sealed interface Parameter<T extends @NonNull Object> extends Serializable
-        permits ChoicesParameter {
+        permits ChoicesParameter, EntityParameter {
 
     /**
      * The name of the parameter.
