@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.api.command.parameter;
 
+import org.checkerframework.dataflow.qual.SideEffectFree;
+
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Entity;
@@ -20,6 +22,7 @@ public non-sealed interface MentionableParameter<T extends Entity> extends Entit
      * @return The ID in the mention.
      * @throws InvalidArgumentException if the mention was invalid.
      */
+    @SideEffectFree
     String parseMention( String mention ) throws InvalidArgumentException;
 
     @Override
@@ -27,7 +30,7 @@ public non-sealed interface MentionableParameter<T extends Entity> extends Entit
 
         final String id;
         if ( raw.startsWith( "<" ) && raw.endsWith( ">" ) ) {
-            id = parseMention( raw.substring( 0, raw.length() - 1 ) );
+            id = parseMention( raw.substring( 1, raw.length() - 1 ) );
         } else {
             id = raw;
         }
