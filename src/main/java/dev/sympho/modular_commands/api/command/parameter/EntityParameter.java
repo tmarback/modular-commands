@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 public sealed interface EntityParameter<T extends Entity> extends Parameter<T>
-        permits MentionableParameter {
+        permits MentionableParameter, MessageParameter {
 
     /**
      * Parses the entity from a URL.
