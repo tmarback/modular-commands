@@ -75,9 +75,10 @@ public sealed interface EntityParameter<T extends Entity> extends Parameter<T>
             final var id = parseId( raw );
             result = getEntity( context, id );
         }
-        return result.switchIfEmpty( 
-                Mono.error( () -> new InvalidArgumentException( this, "Not found." ) )
-        );
+        return result.onErrorMap( e -> new InvalidArgumentException( this, "Invalid.", e ) )
+                .switchIfEmpty( 
+                    Mono.error( () -> new InvalidArgumentException( this, "Not found." ) )
+                );
 
     }
     
