@@ -13,7 +13,8 @@ import discord4j.core.object.entity.Entity;
  * @version 1.0
  * @since 1.0
  */
-public non-sealed interface MentionableParameter<T extends Entity> extends EntityParameter<T> {
+public sealed interface MentionableParameter<T extends Entity> extends EntityParameter<T>
+        permits ChannelParameter {
 
     /**
      * Parses the entity ID from a text mention.
