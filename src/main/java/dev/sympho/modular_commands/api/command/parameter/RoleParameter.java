@@ -5,6 +5,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.utils.OptionalUtils;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
@@ -57,12 +58,10 @@ public record RoleParameter(
     @Override
     public String parseMention( final String mention ) throws InvalidArgumentException {
 
-        if ( !mention.startsWith( "@&" ) ) {
-            throw new InvalidArgumentException( this, String.format( 
-                "Not a valid role mention: <%s>", mention ) );
-        }
-
-        return mention.substring( 2 );
+        return OptionalUtils.castPresent( MentionParameter.parseMention( mention, "@&" ) )
+                .orElseThrow( () -> new InvalidArgumentException( this, 
+                        "Not a valid role mention: <%s>".formatted( mention ) )
+                );
 
     }
 
