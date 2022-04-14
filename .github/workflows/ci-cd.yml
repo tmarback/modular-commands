@@ -1,26 +1,52 @@
-# Build and release workflow
+# Workflow for checking and releasing all new commits to main and tags
 
-name: CD
+name: CI/CD
 
 on:
   push:
     branches: # Trigger on commits to main
       - main
     tags:
-      - v* # Also version tags to avoid skipping releases
+      - v* # Also version tags
 
-concurrency: cd-${{ github.ref }}
+concurrency: 
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  wait:
-    name: Wait for Checks
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for checks to succeed
-        uses: lewagon/wait-on-check-action@v1.1.1
+      - name: Check out main Git repository
+        uses: actions/checkout@v2
         with:
           ref: ${{ github.sha }}
-          running-workflow-name: 'Wait for Checks'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+      - name: Run tests
+        run: mvn clean verify -B
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main Git repository
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: 'maven'
+      - name: Run static checks
+        run: mvn compile -B -P lint,strict
 
   prepare:
     name: Prepare Metadata
@@ -83,7 +109,7 @@ jobs:
 
   deploy:
     name: Deploy Version
-    needs: [ wait, prepare ]
+    needs: [ test, lint, prepare ]
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag' || needs.prepare.outputs.type == 'snapshot'
     steps:
@@ -135,7 +161,7 @@ jobs:
 
   site-build:
     name: Build Site
-    needs: wait
+    needs: [ test, lint ]
     runs-on: ubuntu-latest
     steps:
       - name: Check out main Git repository
