@@ -108,6 +108,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                     } else {
                         LOGGER.debug( "Finished command execution {} with result {}", 
                                 context.getInvocation(), result.getClass().getSimpleName() );
+                        LOGGER.trace( "{} => {}", context.getInvocation(), result );
                     }
                 } )
                 .flatMap( this::handleResult )
