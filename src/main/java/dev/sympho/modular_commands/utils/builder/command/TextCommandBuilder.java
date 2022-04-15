@@ -9,7 +9,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.TextCommand;
-import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.AnyInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 import dev.sympho.modular_commands.impl.command.TextCommandImpl;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -22,7 +22,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
 public final class TextCommandBuilder extends CommandBuilder<TextCommand, 
-        AnyCommandHandler, AnyResultHandler, TextCommandBuilder> 
+        AnyInvocationHandler, AnyResultHandler, TextCommandBuilder> 
         implements MessageCommandBuilderMethods<TextCommandBuilder> {
 
     /** The command aliases. */

@@ -8,7 +8,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.TextCommand;
-import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.AnyInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.CommandUtils;
@@ -60,7 +60,7 @@ public record TextCommandImpl(
         boolean privateReply,
         boolean inheritSettings,
         boolean invokeParent,
-        AnyCommandHandler invocationHandler,
+        AnyInvocationHandler invocationHandler,
         List<? extends AnyResultHandler> resultHandlers
 ) implements TextCommand {
 
@@ -110,7 +110,7 @@ public record TextCommandImpl(
             final boolean privateReply,
             final boolean inheritSettings,
             final boolean invokeParent,
-            final AnyCommandHandler invocationHandler,
+            final AnyInvocationHandler invocationHandler,
             final List<? extends AnyResultHandler> resultHandlers
     ) {
 

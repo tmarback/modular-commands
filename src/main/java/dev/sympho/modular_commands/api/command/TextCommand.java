@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command;
 import java.util.Collections;
 import java.util.List;
 
-import dev.sympho.modular_commands.api.command.handler.AnyCommandHandler;
+import dev.sympho.modular_commands.api.command.handler.AnyInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 
 /**
@@ -16,7 +16,7 @@ import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
 public interface TextCommand extends MessageCommand, SlashCommand {
 
     @Override
-    AnyCommandHandler invocationHandler();
+    AnyInvocationHandler invocationHandler();
 
     @Override
     default List<? extends AnyResultHandler> resultHandlers() {
