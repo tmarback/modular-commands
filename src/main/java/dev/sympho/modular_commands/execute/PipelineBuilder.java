@@ -21,6 +21,7 @@ import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
+import dev.sympho.modular_commands.api.exception.FailureException;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
 import dev.sympho.modular_commands.api.registry.Registry;
 import discord4j.common.util.Snowflake;
@@ -291,7 +292,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     private Mono<CommandResult> invokeWrap( final IH handler, final CTX context ) {
 
         try {
-            return invoke( handler, context ).onErrorResume( e -> Results.exceptionMono( e ) );
+            return invoke( handler, context )
+                    .onErrorResume( FailureException.class, e -> Mono.just( e.getResult() ) )
+                    .onErrorResume( e -> Results.exceptionMono( e ) );
+        } catch ( final FailureException e ) {
+            return Mono.just( e.getResult() );
         } catch ( final Exception e ) {
             return Results.exceptionMono( e );
         }
