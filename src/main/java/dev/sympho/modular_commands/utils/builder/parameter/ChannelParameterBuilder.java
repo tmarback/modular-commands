@@ -1,5 +1,8 @@
 package dev.sympho.modular_commands.utils.builder.parameter;
 
+import java.util.Objects;
+
+import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -13,14 +16,22 @@ import discord4j.core.object.entity.channel.Channel;
  * @version 1.0
  * @since 1.0
  */
+@SuppressWarnings( "checkstyle:hiddenfield" )
 public final class ChannelParameterBuilder 
         extends MentionableParameterBuilder<Channel, ChannelParameter, ChannelParameterBuilder> {
+
+    /** The channel type. */
+    private Class<? extends Channel> type;
 
     /**
      * Constructs a new builder with default values.
      */
     @Pure
-    public ChannelParameterBuilder() {}
+    public ChannelParameterBuilder() {
+
+        this.type = Channel.class;
+
+    }
 
     /**
      * Constructs a new builder that is a copy of the given builder.
@@ -31,6 +42,7 @@ public final class ChannelParameterBuilder
     public ChannelParameterBuilder( final ChannelParameterBuilder base ) {
 
         super( base );
+        this.type = base.type;
 
     }
 
@@ -44,6 +56,23 @@ public final class ChannelParameterBuilder
     public ChannelParameterBuilder( final ChannelParameter base ) {
 
         super( base );
+        this.type = base.getType();
+
+    }
+
+    /**
+     * Sets the channel type.
+     * 
+     * <p>Defaults to {@link Channel}, so any channel type.
+     *
+     * @param type The channel type.
+     * @return This builder.
+     */
+    @Deterministic
+    public ChannelParameterBuilder withType( final Class<? extends Channel> type ) {
+
+        this.type = Objects.requireNonNull( type );
+        return this;
 
     }
 
@@ -54,7 +83,7 @@ public final class ChannelParameterBuilder
             return new ChannelParameter( 
                     buildName(),
                     buildDescription(),
-                    this.required, this.defaultValue );
+                    this.required, this.defaultValue, type );
         } catch ( final IllegalArgumentException e ) {
             throw new IllegalStateException( "Invalid parameter configuration.", e );
         }

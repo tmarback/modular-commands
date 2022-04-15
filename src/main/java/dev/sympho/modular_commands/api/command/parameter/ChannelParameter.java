@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands.api.command.parameter;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -22,12 +23,14 @@ import reactor.core.publisher.Mono;
  * @param description The description of the parameter.
  * @param required Whether the parameter must be specified to invoke the command.
  * @param defaultValue The default value for the parameter.
+ * @param type The type of channel.
  * @version 1.0
  * @since 1.0
  */
 public record ChannelParameter(
         String name, String description,
-        boolean required, @Nullable Channel defaultValue
+        boolean required, @Nullable Channel defaultValue,
+        Class<? extends Channel> type
 ) implements MentionableParameter<Channel> {
 
     /** Link URL pattern. */
@@ -42,17 +45,38 @@ public record ChannelParameter(
      * @param description The description of the parameter.
      * @param required Whether the parameter must be specified to invoke the command.
      * @param defaultValue The default value for the parameter.
+     * @param type The type of channel.
      */
     @SideEffectFree
     public ChannelParameter( 
             final String name, final String description, 
-            final boolean required, final @Nullable Channel defaultValue
+            final boolean required, final @Nullable Channel defaultValue,
+            final Class<? extends Channel> type
     ) {
 
         this.name = ParameterUtils.validateName( name );
         this.description = ParameterUtils.validateDescription( description );
         this.required = required;
         this.defaultValue = defaultValue;
+        this.type = Objects.requireNonNull( type );
+
+    }
+
+    /**
+     * Validates that a channel is of the expected type.
+     *
+     * @param channel The channel.
+     * @return The channel.
+     * @throws InvalidArgumentException if the channel does not match the expected type.
+     */
+    private Channel validate( final Channel channel ) throws InvalidArgumentException {
+
+        try {
+            return type.cast( channel );
+        } catch ( final ClassCastException e ) {
+            throw new InvalidArgumentException( this, "Channel must be a %s".formatted( 
+                    type.getSimpleName() ) );
+        }
 
     }
 
@@ -69,14 +93,14 @@ public record ChannelParameter(
 
         final Snowflake channelId = Snowflake.of( channelString );
 
-        return client.getChannelById( channelId );
+        return client.getChannelById( channelId ).map( this::validate );
 
     }
 
     @Override
     public Mono<Channel> getEntity( final CommandContext context, final Snowflake id ) {
 
-        return context.getGuild().flatMap( g -> g.getChannelById( id ) );
+        return context.getGuild().flatMap( g -> g.getChannelById( id ) ).map( this::validate );
 
     }
 
@@ -87,6 +111,17 @@ public record ChannelParameter(
                 .orElseThrow( () -> new InvalidArgumentException( this, 
                         "Not a valid channel mention: <%s>".formatted( mention ) )
                 );
+
+    }
+
+    /**
+     * Retrives the channel type.
+     *
+     * @return The channel type.
+     */
+    public Class<? extends Channel> getType() {
+
+        return type;
 
     }
     
