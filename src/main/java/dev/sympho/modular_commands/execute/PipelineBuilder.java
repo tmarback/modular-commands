@@ -121,7 +121,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                     LOGGER.error( "Exception thrown within processing pipeline", e );
                     return Mono.empty();
                 } )
-        ).then();
+        ).doOnError( e -> LOGGER.error( "Fatal error", e ) ).then();
 
     }
 

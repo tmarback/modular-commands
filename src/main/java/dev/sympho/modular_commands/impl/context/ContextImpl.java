@@ -109,6 +109,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     private ResultException wrapInvalidParam( final Parameter<?> parameter, final A raw, 
             final InvalidArgumentException exception ) {
 
+        LOGGER.trace( "Invalid argument {} for parameter {}", raw, parameter );
         final var arg = rawToString( raw );
         final var error = exception.getMessage();
         final var result = new CommandFailureArgumentInvalid( arg, parameter, error );
