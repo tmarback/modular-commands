@@ -5,6 +5,7 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.context.InteractionCommandContext;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.exception.FailureException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -20,20 +21,23 @@ public interface AnyCommandHandler extends MessageInvocationHandler, Interaction
      * @see #handle(AnyCommandContext)
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
-    Mono<CommandResult> handle( CommandContext context ) throws Exception;
+    Mono<CommandResult> handle( CommandContext context ) throws FailureException, Exception;
 
     @Override
-    default Mono<CommandResult> handle( MessageCommandContext context ) throws Exception {
+    default Mono<CommandResult> handle( MessageCommandContext context ) 
+            throws FailureException, Exception {
         return handle( ( CommandContext ) context );
     }
 
     @Override
-    default Mono<CommandResult> handle( InteractionCommandContext context ) throws Exception {
+    default Mono<CommandResult> handle( InteractionCommandContext context )
+            throws FailureException, Exception {
         return handle( ( CommandContext ) context );
     }
 
     @Override
-    default Mono<CommandResult> handle( AnyCommandContext context ) throws Exception {
+    default Mono<CommandResult> handle( AnyCommandContext context ) 
+            throws FailureException, Exception {
         return handle( ( CommandContext ) context );
     }
 

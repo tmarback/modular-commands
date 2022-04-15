@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.handler;
 import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.exception.FailureException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -18,10 +19,12 @@ public non-sealed interface MessageInvocationHandler extends InvocationHandler {
      * @see #handle(AnyCommandContext)
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
-    Mono<CommandResult> handle( MessageCommandContext context ) throws Exception;
+    Mono<CommandResult> handle( MessageCommandContext context )
+            throws FailureException, Exception;
 
     @Override
-    default Mono<CommandResult> handle( AnyCommandContext context ) throws Exception {
+    default Mono<CommandResult> handle( AnyCommandContext context )
+            throws FailureException, Exception {
         return handle( ( MessageCommandContext ) context );
     }
 

@@ -4,6 +4,7 @@ import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
 import dev.sympho.modular_commands.api.command.context.InteractionCommandContext;
 import dev.sympho.modular_commands.api.command.context.SlashCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.exception.FailureException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,10 +20,12 @@ public interface InteractionInvocationHandler extends SlashInvocationHandler {
      * @see #handle(AnyCommandContext)
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
-    Mono<CommandResult> handle( InteractionCommandContext context ) throws Exception;
+    Mono<CommandResult> handle( InteractionCommandContext context )
+            throws FailureException, Exception;
 
     @Override
-    default Mono<CommandResult> handle( SlashCommandContext context ) throws Exception {
+    default Mono<CommandResult> handle( SlashCommandContext context ) 
+            throws FailureException, Exception {
         return handle( ( InteractionCommandContext ) context );
     }
 
