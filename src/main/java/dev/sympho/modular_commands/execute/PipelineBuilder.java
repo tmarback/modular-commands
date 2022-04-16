@@ -294,7 +294,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         try {
             return invoke( handler, context )
                     .onErrorResume( FailureException.class, e -> Mono.just( e.getResult() ) )
-                    .onErrorResume( e -> Results.exceptionMono( e ) );
+                    .onErrorResume( e -> Results.exceptionMono( e ) )
+                    .defaultIfEmpty( Results.error( "No result issued!" ) );
         } catch ( final FailureException e ) {
             return Mono.just( e.getResult() );
         } catch ( final Exception e ) {
