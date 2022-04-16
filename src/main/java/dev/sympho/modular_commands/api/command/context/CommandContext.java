@@ -69,7 +69,8 @@ public sealed interface CommandContext permits LazyContext,
      * member as provided by the triggering event, if
      * present.
      *
-     * @return The calling user as a guild member, or 
+     * @return The calling user as a guild member, or {@code null} 
+     *         if the command was invoked in a private channel.
      */
     @Pure
     @Nullable Member getCallerMember();
