@@ -1,5 +1,9 @@
 package dev.sympho.modular_commands.execute;
 
+import org.checkerframework.checker.nullness.util.NullnessUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dev.sympho.modular_commands.api.registry.Registry;
 import discord4j.core.GatewayDiscordClient;
 import reactor.core.Disposable;
@@ -13,6 +17,9 @@ import reactor.util.annotation.Nullable;
  * @since 1.0
  */
 public class CommandExecutor {
+
+    /** Logger. */
+    private final Logger logger = LoggerFactory.getLogger( this.getClass() );
 
     /** The event processing pipeline. */
     private final Mono<Void> pipeline;
@@ -48,6 +55,7 @@ public class CommandExecutor {
             return false;
         }
 
+        logger.info( "Starting command executor" );
         live = pipeline.subscribe();
         return true;
 
@@ -65,7 +73,8 @@ public class CommandExecutor {
             return false;
         }
 
-        live.dispose();
+        logger.info( "Stopping command executor" );
+        NullnessUtil.castNonNull( live ).dispose();
         live = null;
         return true;
 
