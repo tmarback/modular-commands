@@ -1,7 +1,10 @@
 package dev.sympho.modular_commands.api;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.checkerframework.checker.nullness.qual.KeyFor;
 import org.checkerframework.dataflow.qual.Pure;
@@ -57,6 +60,28 @@ public interface CommandGroup {
     static CommandGroup of( final Map<String, Command> commands ) {
         final var copy = Map.copyOf( commands );
         return () -> copy;
+    }
+
+    /**
+     * Merges multiple command groups into one.
+     *
+     * @param groups The groups to merge.
+     * @return A group that contains all the commands in the merged groups.
+     * @throws IllegalStateException if there are duplicate command IDs.
+     */
+    @SideEffectFree
+    @SuppressWarnings( "methodref.return" )
+    static CommandGroup merge( final Collection<CommandGroup> groups )
+            throws IllegalStateException {
+
+        final var commands = groups.stream()
+                .map( CommandGroup::commands )
+                .map( Map::entrySet )
+                .flatMap( Set::stream )
+                .collect( Collectors.toMap( Entry::getKey, Entry::getValue ) );
+
+        return of( commands );
+
     }
     
 }
