@@ -63,6 +63,10 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
             return args;
         }
 
+        if ( parameters.isEmpty() ) {
+            return args;
+        }
+
         final var last = parameters.size() - 1;
         if ( parameters.get( last ) instanceof StringParameter ) {
             final List<String> head = args.subList( 0, last );
