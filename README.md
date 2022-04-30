@@ -4,3 +4,9 @@
 Framework for creating and managing chat commands for Discord bots that use Discord4J.
 
 TODO: Instructions
+
+## Compiling
+
+TODO
+
+**NOTE:** If using the `lint` profile, make sure to checkout submodules (`git submodule update --init`).

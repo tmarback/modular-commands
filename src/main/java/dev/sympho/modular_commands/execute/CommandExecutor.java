@@ -1,6 +1,5 @@
 package dev.sympho.modular_commands.execute;
 
-import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,7 @@ public class CommandExecutor {
         }
 
         logger.info( "Stopping command executor" );
-        NullnessUtil.castNonNull( live ).dispose();
+        live.dispose();
         live = null;
         return true;
 

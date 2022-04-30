@@ -356,7 +356,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         return Mono.just( event )
                 .map( e -> Tuples.of( e, parse( e ) ) )
                 .filter( ctx -> !ctx.getT2().isEmpty() )
-                .mapNotNull( ctx -> {
+                .map( ctx -> {
                     final E e = ctx.getT1();
                     final List<String> args = ctx.getT2();
 

@@ -564,6 +564,7 @@
                                     <compilerArgs>
                                         <arg>-Xlint:all,-processing,-requires-transitive-automatic,-requires-automatic</arg>
                                         <arg>-AreportEvalWarns</arg>
+                                        <arg>-Astubs=./stubs</arg>
                                         <!-- Manually open JDK packages until checker supports modules -->
                                         <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
                                         <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>

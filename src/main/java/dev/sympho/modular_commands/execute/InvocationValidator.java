@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.nullness.util.NullnessUtil;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.result.Results;
@@ -185,9 +184,7 @@ public abstract class InvocationValidator<E extends Event> {
 
             if ( active( command ) ) {
                 return getValue( event )
-                        // Cast because mapNotNull doesn't have @Nullable annotation
-                        .mapNotNull( v -> NullnessUtil.castNonNull( 
-                                validate( getCaller( event ), v ) ) )
+                        .mapNotNull( v -> validate( getCaller( event ), v ) )
                         .map( Results::failure )
                         .doOnNext( r -> {
                             throw new ResultException( r );
