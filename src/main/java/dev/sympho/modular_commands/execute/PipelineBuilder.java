@@ -506,6 +506,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         for ( final RH handler : getResultHandlers( command ) ) {
             state = state.filterWhen( c -> handle( handler, c, result ) );
         }
+        state = state.filterWhen( c -> BaseHandler.get().handle( c, result ) );
 
         return state.name( "command-result" ).metrics();
 
