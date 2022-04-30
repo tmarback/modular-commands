@@ -666,7 +666,7 @@
         <module name="PackageDeclaration"/>
         <!-- Flag TODO comments -->
         <module name="TodoComment">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="info"/>
             <property name="format" value="(TODO:(?!VERSION))|(FIXME)"/>
         </module>
         <!-- Log version placeholders -->

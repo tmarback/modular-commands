@@ -48,6 +48,16 @@ public final class Results {
     }
 
     /**
+     * Alias for {@link #cont()} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @return The result.
+     */
+    public static CommandResult contR() {
+        return cont();
+    }
+
+    /**
      * Generates a result indicating execution should continue along the chain.
      *
      * @return A Mono that issues the generated result.
@@ -68,6 +78,16 @@ public final class Results {
 
         return OK;
 
+    }
+
+    /**
+     * Alias for {@link #ok()} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @return The result.
+     */
+    public static CommandResult okR() {
+        return ok();
     }
 
     /**
@@ -94,6 +114,16 @@ public final class Results {
     }
 
     /**
+     * Alias for {@link #fail()} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @return The result.
+     */
+    public static CommandResult failR() {
+        return fail();
+    }
+
+    /**
      * Generates a result indicating the command failed with no further context.
      *
      * @return A Mono that issues the generated result.
@@ -116,6 +146,17 @@ public final class Results {
 
         return new ResultSuccessMessage( message );
 
+    }
+
+    /**
+     * Alias for {@link #success(String)} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @param message The message to the user.
+     * @return The result.
+     */
+    public static CommandResult successR( final String message ) {
+        return success( message );
     }
 
     /**
@@ -145,6 +186,17 @@ public final class Results {
     }
 
     /**
+     * Alias for {@link #failure(String)} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @param message The message to the user.
+     * @return The result.
+     */
+    public static CommandResult failureR( final String message ) {
+        return failure( message );
+    }
+
+    /**
      * Generates a result indicating the command failed with a message to the user.
      *
      * @param message The message to the user.
@@ -167,6 +219,17 @@ public final class Results {
 
         return new ResultError( message );
 
+    }
+
+    /**
+     * Alias for {@link #error(String)} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @param message The message to the user.
+     * @return The result.
+     */
+    public static CommandResult errorR( final String message ) {
+        return error( message );
     }
 
     /**
@@ -195,6 +258,17 @@ public final class Results {
 
         return new ResultException( cause );
 
+    }
+
+    /**
+     * Alias for {@link #exception(Throwable)} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @param cause The exception that caused the error.
+     * @return The result.
+     */
+    public static CommandResult exceptionR( final Throwable cause ) {
+        return exception( cause );
     }
 
     /**
