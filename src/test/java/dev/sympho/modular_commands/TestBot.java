@@ -45,7 +45,12 @@ public class TestBot {
             final String message ) {
 
         LOGGER.info( "Sending message: {}", message );
-        return context.reply( message ).thenReturn( Results.ok() );
+        return context.reply( message ).flatMap( m -> Mono.just( m )
+                    .then( context.replyManager().setPrivate( true ).add( "Test1" ) )
+                    .then( context.replyManager().setPrivate( false ).add( "Test2" ) )
+                    .then( context.replyManager().setPrivate( true ).add( "Test3" ) )
+                    .then( context.replyManager().setPrivate( false ).add( "Test4" ) )
+        ).thenReturn( Results.ok() );
 
     }
 

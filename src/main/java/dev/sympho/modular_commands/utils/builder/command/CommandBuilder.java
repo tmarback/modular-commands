@@ -112,7 +112,7 @@ abstract class CommandBuilder<
         this.nsfw = false;
         this.botOwnerOnly = false;
         this.serverOwnerOnly = false;
-        this.privateReply = true;
+        this.privateReply = false;
         this.ephemeralReply = EphemeralType.NONE;
         this.inheritSettings = false;
         this.invokeParent = false;
@@ -433,7 +433,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command response should be sent privately to the caller.
      * 
-     * <p>The default value is {@code true}.
+     * <p>The default value is {@code false}.
      *
      * @param privateReply Whether the response should be sent privately.
      * @return This builder.
@@ -449,6 +449,8 @@ abstract class CommandBuilder<
 
     /**
      * Sets the type of ephemeral response to use, if any.
+     * 
+     * <p>The default value is {@link EphemeralType#NONE NONE}.
      *
      * @param ephemeralReply The type of ephemeral response to use, if any.
      * @return This builder.

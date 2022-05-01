@@ -12,6 +12,11 @@ import reactor.util.function.Tuple2;
 
 /**
  * Manages the replies sent by a command.
+ * 
+ * <p>All methods capture the state of the manager <i>at the time of calling</i>; for example,
+ * {@link #add(MessageCreateSpec)} will use the configuration that is in place at the time it
+ * is called, not at the time the returned Mono is subscribed; and methods like 
+ * {@link #edit(MessageEditSpec)} expect the referenced reply to have already been sent.
  *
  * @version 1.0
  * @since 1.0

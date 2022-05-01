@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -99,12 +98,13 @@ public class MessageReplyManager implements ReplyManager {
     /**
      * Gets the channel to send messages in.
      *
+     * @param sendPrivate Whether to send privately.
      * @return The channel.
      */
     @Pure
-    private MessageChannel getChannel() {
+    private MessageChannel getChannel( final boolean sendPrivate ) {
 
-        if ( priv && privateChannel != null ) {
+        if ( sendPrivate && privateChannel != null ) {
             return privateChannel;
         } else {
             return publicChannel;
@@ -123,6 +123,62 @@ public class MessageReplyManager implements ReplyManager {
         final var channel = publicChannel.getId().asString();
         final var message = original.getId().asString();
         return "https://discord.com/channels/%s/%s/%s".formatted( guild, channel, message );
+
+    }
+
+    /**
+     * Sends a reply according to the current configuration.
+     *
+     * @param spec The message specification.
+     * @param sendPrivate Whether to send privately.
+     * @param sendEphemeral Whether the reply should be ephemeral.
+     * @return The created reply and its index.
+     */
+    private Mono<Tuple2<Message, Integer>> sendReply( final MessageCreateSpec spec, 
+            final boolean sendPrivate, final EphemeralType sendEphemeral ) {
+
+        final var channel = getChannel( sendPrivate );
+        // https://github.com/typetools/checker-framework/issues/1256
+        @SuppressWarnings( "monotonic" )
+        final Snowflake previous = sendPrivate ? lastPrivate : lastPublic;
+
+        final Mono<Snowflake> prevId;
+        if ( previous == null ) {
+            final var reference = EmbedCreateSpec.builder()
+                    .color( Color.WHITE )
+                    .addField( "command", original.getContent(), false )
+                    .addField( "source", getOriginalUrl(), false )
+                    .build();
+            prevId = channel.createMessage( reference )
+                    .map( Message::getId );
+        } else {
+            prevId = Mono.just( previous );
+        }
+
+        return prevId.map( id -> MessageCreateSpec.builder()
+                        .from( spec )
+                        .messageReference( id )
+                        .build() 
+                )
+                .flatMap( channel::createMessage )
+                .map( m -> {
+
+                    final var id = replies.size();
+                    replies.add( new Reply( channel, m.getId() ) );
+
+                    if ( sendPrivate ) {
+                        lastPrivate = m.getId();
+                    } else {
+                        lastPublic = m.getId();
+                    }
+
+                    if ( sendEphemeral.timed() ) { // Delete after delay
+                        m.delete().delaySubscription( delay ).subscribe();
+                    }
+
+                    return Tuples.of( m, id );
+
+                } );
 
     }
 
@@ -162,7 +218,7 @@ public class MessageReplyManager implements ReplyManager {
             return Mono.empty();
         } else {
             deferred = true;
-            return getChannel().type();
+            return getChannel( priv ).type();
         }
 
     }
@@ -180,48 +236,10 @@ public class MessageReplyManager implements ReplyManager {
     @Override
     public Mono<Tuple2<Message, Integer>> add( final MessageCreateSpec spec ) {
 
-        final var channel = getChannel();
-        // https://github.com/typetools/checker-framework/issues/1256
-        @SuppressWarnings( "monotonic" )
-        final @Nullable Snowflake previous = priv ? lastPrivate : lastPublic;
-
-        final Mono<Snowflake> prevId;
-        if ( previous == null ) {
-            final var reference = EmbedCreateSpec.builder()
-                    .color( Color.WHITE )
-                    .description( original.getContent() )
-                    .footer( getOriginalUrl(), null )
-                    .build();
-            prevId = channel.createMessage( reference )
-                    .map( Message::getId );
-        } else {
-            prevId = Mono.just( previous );
-        }
-
-        return prevId.map( id -> MessageCreateSpec.builder()
-                        .from( spec )
-                        .messageReference( id )
-                        .build() 
-                )
-                .flatMap( channel::createMessage )
-                .map( m -> {
-
-                    final var id = replies.size();
-                    replies.add( new Reply( channel, m.getId() ) );
-
-                    if ( priv ) {
-                        lastPrivate = m.getId();
-                    } else {
-                        lastPublic = m.getId();
-                    }
-
-                    if ( ephemeral.timed() ) { // Delete after delay
-                        m.delete().delaySubscription( delay ).subscribe();
-                    }
-
-                    return Tuples.of( m, id );
-
-                } );
+        final var sendPrivate = priv;
+        final var sendEphemeral = ephemeral;
+        
+        return Mono.defer( () -> sendReply( spec, sendPrivate, sendEphemeral ) );
 
     }
 
