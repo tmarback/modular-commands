@@ -27,8 +27,8 @@ import discord4j.rest.util.PermissionSet;
  * @param description The description of the command.
  * @param parameters The command parameters, in the order that they should be provided
  *                   by the user.
- * @param requiredDiscordPermissions he built-in permissions that a user should have in
- *                                   order to execute the command.
+ * @param requiredPermissions The permissions that a user should have in order to execute 
+ *                            the command.
  * @param requireParentPermissions Whether a user invoking this command must also have 
  *                                 the permissions to invoke its parent command.
  * @param nsfw Whether this command can only be invoked in a NSFW channel.
@@ -54,7 +54,7 @@ public record MessageCommandImpl(
         Set<String> aliases,
         String description,
         List<Parameter<?>> parameters,
-        PermissionSet requiredDiscordPermissions,
+        PermissionSet requiredPermissions,
         boolean requireParentPermissions,
         boolean nsfw,
         boolean botOwnerOnly,
@@ -79,8 +79,8 @@ public record MessageCommandImpl(
      * @param description The description of the command.
      * @param parameters The command parameters, in the order that they should be provided
      *                   by the user.
-     * @param requiredDiscordPermissions he built-in permissions that a user should have in
-     *                                   order to execute the command.
+     * @param requiredPermissions The permissions that a user should have inorder to execute 
+     *                            the command.
      * @param requireParentPermissions Whether a user invoking this command must also have 
      *                                 the permissions to invoke its parent command.
      * @param nsfw Whether this command can only be invoked in a NSFW channel.
@@ -106,7 +106,7 @@ public record MessageCommandImpl(
             final Set<String> aliases,
             final String description,
             final List<Parameter<?>> parameters,
-            final PermissionSet requiredDiscordPermissions,
+            final PermissionSet requiredPermissions,
             final boolean requireParentPermissions,
             final boolean nsfw,
             final boolean botOwnerOnly,
@@ -127,8 +127,7 @@ public record MessageCommandImpl(
         this.aliases = CommandUtils.validateAliases( aliases );
         this.description = CommandUtils.validateDescription( description );
         this.parameters = CommandUtils.validateParameters( parameters );
-        this.requiredDiscordPermissions = CommandUtils.validateDiscordPermissions( 
-                requiredDiscordPermissions );
+        this.requiredPermissions = CommandUtils.validatePermissions( requiredPermissions );
         this.requireParentPermissions = requireParentPermissions;
         this.nsfw = nsfw;
         this.botOwnerOnly = botOwnerOnly;

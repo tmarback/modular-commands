@@ -100,7 +100,7 @@ public final class TextCommandBuilder extends CommandBuilder<TextCommand,
             return new TextCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), aliases,
                 buildDescription(), parameters,
-                requiredDiscordPermissions, requireParentPermissions, 
+                requiredPermissions, requireParentPermissions, 
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );

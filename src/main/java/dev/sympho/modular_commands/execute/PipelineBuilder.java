@@ -401,7 +401,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         final var validator = getValidator();
 
         return validator.validateSettings( event, chain )
-                .thenEmpty( validator.validateDiscordPermissions( event, chain ) )
+                .thenEmpty( validator.validatePermissions( event, chain ) )
                 .name( "command-validate" ).metrics();
 
     }

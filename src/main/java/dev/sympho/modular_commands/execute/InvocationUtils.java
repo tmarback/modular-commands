@@ -97,21 +97,21 @@ public final class InvocationUtils {
     }
 
     /**
-     * Determines the total set of build-in permissions required for an execution chain.
+     * Determines the total set of permissions required for an execution chain.
      *
      * @param chain The execution chain.
-     * @return The required built-in permissions.
+     * @return The required permissions.
      */
     @SideEffectFree
-    public static PermissionSet accumulateDiscordPermissions( 
+    public static PermissionSet accumulatePermissions( 
             final List<? extends Command> chain ) {
 
         final var permIt = chain.listIterator( chain.size() );
         Command permSource = permIt.previous();
-        PermissionSet permissions = permSource.requiredDiscordPermissions();
+        PermissionSet permissions = permSource.requiredPermissions();
         while ( permIt.hasPrevious() && permSource.requireParentPermissions() ) {
             permSource = permIt.previous();
-            permissions = permissions.or( permSource.requiredDiscordPermissions() );
+            permissions = permissions.or( permSource.requiredPermissions() );
         }
         return permissions;
 

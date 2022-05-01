@@ -62,8 +62,8 @@ abstract class CommandBuilder<
     /** The command parameters. */
     protected List<Parameter<?>> parameters;
 
-    /** The required built-in permissions for the user. */
-    protected PermissionSet requiredDiscordPermissions;
+    /** The required permissions for the user. */
+    protected PermissionSet requiredPermissions;
 
     /** Whether to also require the parent command's permissions. */
     protected boolean requireParentPermissions;
@@ -107,7 +107,7 @@ abstract class CommandBuilder<
         this.name = null;
         this.displayName = null;
         this.parameters = new LinkedList<>();
-        this.requiredDiscordPermissions = PermissionSet.none();
+        this.requiredPermissions = PermissionSet.none();
         this.requireParentPermissions = true;
         this.nsfw = false;
         this.botOwnerOnly = false;
@@ -135,7 +135,7 @@ abstract class CommandBuilder<
         this.name = base.name;
         this.displayName = base.displayName;
         this.parameters = new LinkedList<>( base.parameters );
-        this.requiredDiscordPermissions = base.requiredDiscordPermissions;
+        this.requiredPermissions = base.requiredPermissions;
         this.requireParentPermissions = base.requireParentPermissions;
         this.nsfw = base.nsfw;
         this.botOwnerOnly = base.botOwnerOnly;
@@ -168,7 +168,7 @@ abstract class CommandBuilder<
         this.name = base.name();
         this.displayName = base.displayName();
         this.parameters = new LinkedList<>( base.parameters() );
-        this.requiredDiscordPermissions = base.requiredDiscordPermissions();
+        this.requiredPermissions = base.requiredPermissions();
         this.requireParentPermissions = base.requireParentPermissions();
         this.nsfw = base.nsfw();
         this.botOwnerOnly = base.botOwnerOnly();
@@ -344,19 +344,19 @@ abstract class CommandBuilder<
     }
 
     /**
-     * Sets the built-in permissions that the caller should have.
+     * Sets the permissions that the caller should have.
      * 
      * <p>The default value is an empty set (no permissions required).
      *
      * @param permissions The user permissions. If {@code null}, restores the default
      *                    value.
      * @return This builder.
-     * @see Command#requiredDiscordPermissions()
+     * @see Command#requiredPermissions()
      */
     @Deterministic
-    public SELF requireDiscordPermissions( final @Nullable PermissionSet permissions ) {
+    public SELF requirePermissions( final @Nullable PermissionSet permissions ) {
 
-        this.requiredDiscordPermissions = Objects.requireNonNullElse( permissions, 
+        this.requiredPermissions = Objects.requireNonNullElse( permissions, 
                 PermissionSet.none() );
         return self();
 

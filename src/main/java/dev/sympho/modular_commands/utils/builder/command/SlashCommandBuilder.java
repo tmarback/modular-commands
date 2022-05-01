@@ -51,7 +51,7 @@ public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, Slas
             return new SlashCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), 
                 buildDescription(), parameters,
-                requiredDiscordPermissions, requireParentPermissions, 
+                requiredPermissions, requireParentPermissions, 
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );

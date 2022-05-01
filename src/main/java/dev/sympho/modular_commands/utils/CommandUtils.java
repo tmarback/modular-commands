@@ -205,15 +205,15 @@ public final class CommandUtils {
     }
 
     /**
-     * Validates the required built-in permissions of a command.
+     * Validates the required permissions of a command.
      *
      * @param perms The permission set to validate.
      * @return The validated permission set.
      */
     @Pure
-    public static PermissionSet validateDiscordPermissions( final PermissionSet perms ) {
+    public static PermissionSet validatePermissions( final PermissionSet perms ) {
 
-        return Objects.requireNonNull( perms, "Discord permission set cannot be null." );
+        return Objects.requireNonNull( perms, "Permission set cannot be null." );
 
     }
 
@@ -264,7 +264,7 @@ public final class CommandUtils {
         validateDisplayName( command.displayName() );
         validateDescription( command.description() );
         validateParameters( command.parameters() );
-        validateDiscordPermissions( command.requiredDiscordPermissions() );
+        validatePermissions( command.requiredPermissions() );
         validateInvocationHandler( command.invocationHandler() );
         validateResultHandlers( command.resultHandlers() );
 

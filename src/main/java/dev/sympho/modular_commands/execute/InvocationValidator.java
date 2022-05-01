@@ -105,18 +105,17 @@ public abstract class InvocationValidator<E extends Event> {
     }
 
     /**
-     * Validates that the user that invoked a command has sufficient built-in
-     * permissions to do so.
+     * Validates that the user that invoked a command has sufficient permissions to do so.
      *
      * @param event The triggering event.
      * @param chain The execution chain.
      * @return A Mono that completes successfully if the user posses the required permissions,
      *         otherwise issuing a {@link ResultException} error with an error result.
      */
-    public Mono<Void> validateDiscordPermissions( final E event, 
+    public Mono<Void> validatePermissions( final E event, 
             final List<? extends Command> chain ) {
 
-        final var required = InvocationUtils.accumulateDiscordPermissions( chain );
+        final var required = InvocationUtils.accumulatePermissions( chain );
         if ( required.isEmpty() ) {
             return Mono.empty();
         }

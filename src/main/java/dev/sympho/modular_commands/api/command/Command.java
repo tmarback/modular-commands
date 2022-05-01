@@ -153,20 +153,23 @@ public sealed interface Command
 
 
     /**
-     * The built-in permissions that a user should have in order to execute the
-     * command.
+     * The permissions that a user should have in order to execute the command.
      * 
      * <p>If the invoking channel is a private channel and the {@link #scope() scope}
      * of the command allows being invoked there, this requirement is ignored.
+     * 
+     * <p>For application commands, this is only used to set the default permissions.
      *
      * @return The built-in permissions required to run the command.
      */
     @Pure
-    PermissionSet requiredDiscordPermissions();
+    PermissionSet requiredPermissions();
 
     /**
      * Whether a user invoking this command must also have the permissions
      * to invoke its parent command.
+     * 
+     * <p>For application commands, this is only used to set the default permissions.
      *
      * @return Whether a user invoking this command must also have the permissions
      *         to invoke the parent command.
