@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.context;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.ReplyManager;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
@@ -104,6 +105,11 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
 
     @Override
     public MessageCreateEvent getMessageEvent() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ReplyManager replyManager() {
         throw new UnsupportedOperationException();
     }
     

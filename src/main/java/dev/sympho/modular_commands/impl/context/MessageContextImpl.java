@@ -6,6 +6,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.StringParameter;
@@ -77,6 +78,22 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         return args;
 
+    }
+
+    @Override
+    protected Mono<ReplyManager> makeReplyManager() {
+
+        final var message = getMessageEvent().getMessage();
+        final var caller = getCaller();
+        return Mono.zip( getChannel(), caller.getPrivateChannel() )
+                .map( t -> {
+                    
+                    final var publicChannel = t.getT1();
+                    final var privateChannel = t.getT2();
+                    return new MessageReplyManager( message, publicChannel, privateChannel );
+
+                } );
+        
     }
 
     @Override

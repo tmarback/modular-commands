@@ -7,6 +7,7 @@ import java.util.Set;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.TextCommand;
 import dev.sympho.modular_commands.api.command.handler.AnyInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
@@ -35,6 +36,7 @@ import discord4j.rest.util.PermissionSet;
  * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
  * @param privateReply Whether this command's response is sent in a way that only the 
  *                     invoking user can see.
+ * @param ephemeralReply The type of ephemeral response to use, if any.
  * @param inheritSettings Whether the command settings should be inherited from the parent 
  *                        command (ignoring the values provided by this command).
  * @param invokeParent Whether to invoke the parent as part of normal execution.
@@ -58,6 +60,7 @@ public record TextCommandImpl(
         boolean botOwnerOnly,
         boolean serverOwnerOnly,
         boolean privateReply,
+        EphemeralType ephemeralReply,
         boolean inheritSettings,
         boolean invokeParent,
         AnyInvocationHandler invocationHandler,
@@ -85,6 +88,7 @@ public record TextCommandImpl(
      * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
      * @param privateReply Whether this command's response is sent in a way that only the 
      *                     invoking user can see.
+     * @param ephemeralReply The type of ephemeral response to use, if any.
      * @param inheritSettings Whether the command settings should be inherited from the parent 
      *                        command (ignoring the values provided by this command).
      * @param invokeParent Whether to invoke the parent as part of normal execution.
@@ -108,6 +112,7 @@ public record TextCommandImpl(
             final boolean botOwnerOnly,
             final boolean serverOwnerOnly,
             final boolean privateReply,
+            final EphemeralType ephemeralReply,
             final boolean inheritSettings,
             final boolean invokeParent,
             final AnyInvocationHandler invocationHandler,
@@ -129,6 +134,7 @@ public record TextCommandImpl(
         this.botOwnerOnly = botOwnerOnly;
         this.serverOwnerOnly = serverOwnerOnly;
         this.privateReply = privateReply;
+        this.ephemeralReply = Objects.requireNonNull( ephemeralReply );
         this.inheritSettings = inheritSettings;
         this.invokeParent = invokeParent;
         this.invocationHandler = CommandUtils.validateInvocationHandler( invocationHandler );

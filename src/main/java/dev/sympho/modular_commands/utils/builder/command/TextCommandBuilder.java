@@ -101,7 +101,7 @@ public final class TextCommandBuilder extends CommandBuilder<TextCommand,
                 scope, callable, parent, buildName(), buildDisplayName(), aliases,
                 buildDescription(), parameters,
                 requiredDiscordPermissions, requireParentPermissions, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, 
+                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {

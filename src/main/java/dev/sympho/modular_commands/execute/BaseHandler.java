@@ -100,10 +100,7 @@ public final class BaseHandler {
                     .description( message )
                     .build();
 
-            // TODO: Change to reply manager
-            return context.getChannel()
-                    .flatMap( ch -> ch.createMessage( embed ) )
-                    .thenReturn( false );
+            return context.reply( embed ).thenReturn( false );
         } else {
             return Mono.just( false );
         }
@@ -128,10 +125,7 @@ public final class BaseHandler {
                     .description( message )
                     .build();
 
-            // TODO: Change to reply manager
-            return context.getChannel()
-                    .flatMap( ch -> ch.createMessage( embed ) )
-                    .thenReturn( false );
+            return context.reply( embed ).thenReturn( false );
         } else {
             return Mono.just( false );
         }
@@ -155,10 +149,7 @@ public final class BaseHandler {
                 .description( message )
                 .build();
 
-        // TODO: Change to reply manager
-        return context.getChannel()
-                .flatMap( ch -> ch.createMessage( embed ) )
-                .thenReturn( false );
+        return context.reply( embed ).thenReturn( false );
 
     }
     

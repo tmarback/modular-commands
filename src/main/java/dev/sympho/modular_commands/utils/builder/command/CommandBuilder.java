@@ -14,6 +14,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -79,6 +80,9 @@ abstract class CommandBuilder<
     /** Whether the command response should only be seen by the caller. */
     protected boolean privateReply;
 
+    /** The type of ephemeral response to use, if any. */
+    protected EphemeralType ephemeralReply;
+
     /** Whether to inherit settings from parent. */
     protected boolean inheritSettings;
 
@@ -109,6 +113,7 @@ abstract class CommandBuilder<
         this.botOwnerOnly = false;
         this.serverOwnerOnly = false;
         this.privateReply = true;
+        this.ephemeralReply = EphemeralType.NONE;
         this.inheritSettings = false;
         this.invokeParent = false;
         this.invocationHandler = null;
@@ -136,6 +141,7 @@ abstract class CommandBuilder<
         this.botOwnerOnly = base.botOwnerOnly;
         this.serverOwnerOnly = base.serverOwnerOnly;
         this.privateReply = base.privateReply;
+        this.ephemeralReply = base.ephemeralReply;
         this.inheritSettings = base.inheritSettings;
         this.invokeParent = base.invokeParent;
         this.invocationHandler = base.invocationHandler;
@@ -168,6 +174,7 @@ abstract class CommandBuilder<
         this.botOwnerOnly = base.botOwnerOnly();
         this.serverOwnerOnly = base.serverOwnerOnly();
         this.privateReply = base.privateReply();
+        this.ephemeralReply = base.ephemeralReply();
         this.inheritSettings = base.inheritSettings();
         this.invokeParent = base.invokeParent();
         this.invocationHandler = ( IH ) base.invocationHandler();
@@ -436,6 +443,21 @@ abstract class CommandBuilder<
     public SELF setPrivateReply( final boolean privateReply ) {
 
         this.privateReply = privateReply;
+        return self();
+
+    }
+
+    /**
+     * Sets the type of ephemeral response to use, if any.
+     *
+     * @param ephemeralReply The type of ephemeral response to use, if any.
+     * @return This builder.
+     * @see Command#ephemeralReply()
+     */
+    @Deterministic
+    public SELF setEphemeralReply( final EphemeralType ephemeralReply ) {
+
+        this.ephemeralReply = ephemeralReply;
         return self();
 
     }

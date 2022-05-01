@@ -52,7 +52,7 @@ public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, Slas
                 scope, callable, parent, buildName(), buildDisplayName(), 
                 buildDescription(), parameters,
                 requiredDiscordPermissions, requireParentPermissions, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, 
+                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {

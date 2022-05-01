@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.checkerframework.dataflow.qual.Pure;
 
+import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -215,11 +216,22 @@ public sealed interface Command
      *         can see.
      * @apiNote This setting only affects the default configuration of the reply manager
      *          provided by the execution context. The specific mechanism used for it
-     *          depends on how the command was invoked (message, slash command, etc).
+     *          depends on how the command was invoked (message, slash command, etc)
+     *          and the value of {@link #ephemeralReply()}.
      */
     @Pure
     boolean privateReply();
 
+    /**
+     * The type of ephemeral response to use, if any.
+     *
+     * @return The ephemeral response type.
+     * @apiNote This setting only affects the default configuration of the reply manager
+     *          provided by the execution context. The specific mechanism used for it
+     *          depends on how the command was invoked (message, slash command, etc).
+     */
+    @Pure
+    EphemeralType ephemeralReply();
 
     /**
      * Whether the command settings should be inherited from the parent command

@@ -45,9 +45,7 @@ public class TestBot {
             final String message ) {
 
         LOGGER.info( "Sending message: {}", message );
-        return context.getChannel()
-                .flatMap( ch -> ch.createMessage( message ) )
-                .thenReturn( Results.ok() );
+        return context.reply( message ).thenReturn( Results.ok() );
 
     }
 
@@ -85,7 +83,7 @@ public class TestBot {
                     .build()
                 )
                 .withInvocationHandler( c -> {
-                    final String message = c.getArgument( "message", String.class );
+                    final String message = c.requireArgument( "message", String.class );
                     final String response = String.format( "You said: %s", message );
                     return sendMessage( c, response );
                 } )
@@ -114,7 +112,7 @@ public class TestBot {
                     final Channel c = ctx.requireArgument( "channel", Channel.class );
                     if ( c instanceof MessageChannel ch ) {
                         return ch.createMessage( "Tweet" )
-                                .then( Results.okMono() );
+                                .then( Results.successMono( "Sent." ) );
                     } else {
                         return Results.failMono();
                     }

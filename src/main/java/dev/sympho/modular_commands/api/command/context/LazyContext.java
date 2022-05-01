@@ -18,10 +18,14 @@ public non-sealed interface LazyContext extends CommandContext {
     /**
      * Loads internal state, making the context ready for use.
      * 
-     * <p>Until this method is called and the returned mono is completed <i>successfully</i>,
-     * the values returned by {@link #getArgument(String, Class)} are undefined.
+     * <p>Until this method is called and the returned mono completes <i>successfully</i>,
+     * all methods other than this one have undefined behavior.
+     * 
+     * <p>This method is idempotent; if it is called multiple times, the context will still
+     * be initialized only once, and all the returned Monos will only complete once it has
+     * finished initializing.
      *
-     * @return A mono that completes once internal values are loaded. It may also error out
+     * @return A Mono that completes once internal values are loaded. It may also error out
      *         with a {@link ResultException} to terminate the invocation with a result.
      * @throws ResultException if execution should be terminated.
      */

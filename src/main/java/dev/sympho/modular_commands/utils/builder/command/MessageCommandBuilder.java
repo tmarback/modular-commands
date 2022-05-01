@@ -101,7 +101,7 @@ public final class MessageCommandBuilder extends CommandBuilder<MessageCommand,
                 scope, callable, parent, buildName(), buildDisplayName(), aliases, 
                 buildDescription(), parameters,
                 requiredDiscordPermissions, requireParentPermissions, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, 
+                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply,
                 inheritSettings, invokeParent, 
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {

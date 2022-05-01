@@ -7,14 +7,19 @@ import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.ReplyManager;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 /**
  * The execution context of an invoked command.
@@ -209,10 +214,90 @@ public sealed interface CommandContext permits LazyContext,
      * @throws NullPointerException if the context object was {@code null}.
      */
     @Pure
-    default <T> T requireContext( String key, Class<? extends T> type )
+    default <T> T requireContext( final String key, final Class<? extends T> type )
             throws IllegalArgumentException, ClassCastException, NullPointerException {
 
         return Objects.requireNonNull( getContext( key, type ) );
+
+    }
+
+    /**
+     * Retrieves the reply manager for this instance.
+     * 
+     * <p>Note that calling {@link ReplyManager#longTerm()} on the returned manager
+     * will cause this method to also return the long-term manager from that point
+     * on.
+     *
+     * @return The reply manager.
+     */
+    @Pure
+    ReplyManager replyManager();
+
+    /**
+     * Defers response to the command, as if by calling 
+     * {@link #replyManager()}.{@link ReplyManager#defer() defer()}.
+     *
+     * @return A Mono that completes after deferral is processed.
+     * @see #replyManager()
+     * @see ReplyManager#defer()
+     */
+    default Mono<Void> deferReply() {
+        
+        return replyManager().defer();
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replyManager()}.{@link ReplyManager#add(String) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param content The message content.
+     * @return The message.
+     * @see #replyManager()
+     * @see ReplyManager#add(String)
+     */
+    default Mono<Message> reply( final String content ) {
+
+        return replyManager().add( content ).map( Tuple2::getT1 );
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replyManager()}.{@link ReplyManager#add(EmbedCreateSpec...) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param embeds The message embeds.
+     * @return The message.
+     * @see #replyManager()
+     * @see ReplyManager#add(EmbedCreateSpec...)
+     */
+    default Mono<Message> reply( final EmbedCreateSpec... embeds ) {
+
+        return replyManager().add( embeds ).map( Tuple2::getT1 );
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replyManager()}.{@link ReplyManager#add(MessageCreateSpec) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param spec The message specification.
+     * @return The message.
+     * @see #replyManager()
+     * @see ReplyManager#add(MessageCreateSpec)
+     */
+    default Mono<Message> reply( final MessageCreateSpec spec ) {
+
+        return replyManager().add( spec ).map( Tuple2::getT1 );
 
     }
     
