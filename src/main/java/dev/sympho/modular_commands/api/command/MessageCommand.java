@@ -9,6 +9,7 @@ import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.handler.MessageInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.MessageResultHandler;
+import dev.sympho.modular_commands.api.permission.Group;
 
 /**
  * A message-based command.
@@ -47,6 +48,14 @@ public non-sealed interface MessageCommand extends Command {
                 .collect( Collectors.toUnmodifiableSet() );
 
     }
+
+    /**
+     * The group that a user must belong to in order to invoke this command.
+     *
+     * @return The required group.
+     */
+    @Pure
+    Group requiredGroup();
 
     @Override
     MessageInvocationHandler invocationHandler();
