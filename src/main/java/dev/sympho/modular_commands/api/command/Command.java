@@ -9,7 +9,8 @@ import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import discord4j.rest.util.PermissionSet;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.api.permission.Group;
 
 // BEGIN LONG LINES
 /**
@@ -150,33 +151,63 @@ public sealed interface Command
     @Pure
     List<Parameter<?>> parameters();
 
-
-
     /**
-     * The permissions that a user should have in order to execute the command.
+     * The group that a user must have access for in order to invoke this command.
      * 
-     * <p>If the invoking channel is a private channel and the {@link #scope() scope}
-     * of the command allows being invoked there, this requirement is ignored.
+     * <p>Note that having access to a group is not necessarily the same as belonging
+     * to that group (although it is the basic threshold); the specific definition
+     * depends on the {@link AccessValidator} implementation used to verify access.
      * 
-     * <p>For application commands, this is only used to set the default permissions.
+     * <p>For application commands, be aware that this is completely disjoint from Discord's
+     * own permission system, and so utilizing this feature may lead to user confusion due
+     * to discrepancies between the apparent configured permissions and the internal group
+     * checks. It is nonetheless left as an option for situations where the application
+     * should have control over who is allowed to run the command (instead of guild
+     * administrators), for example global debug commands that should be reserved for 
+     * the developers, and for complex permissions beyond what Discord can support
+     * (for example, subcommand-specific access restrictions). Make sure that
+     * {@link #skipGroupCheckOnInteraction() group checking is not skipped} when
+     * doing this.
+     * 
+     * <p>To completely skip group checking on invocations made through application
+     * commands (possibly saving a few function calls in such cases), use
+     * {@link #skipGroupCheckOnInteraction()}. It may also be useful in the case of 
+     * commands that support both text and interactions, where group checking may be 
+     * wanted only for the text case (where there is no built-in permission system 
+     * through Discord).
      *
-     * @return The built-in permissions required to run the command.
+     * @return The required group.
      */
     @Pure
-    PermissionSet requiredPermissions();
+    Group requiredGroup();
 
     /**
-     * Whether a user invoking this command must also have the permissions
-     * to invoke its parent command.
-     * 
-     * <p>For application commands, this is only used to set the default permissions.
+     * Whether group access checking should be skipped when this command is invoked
+     * through an interaction. This option is only meaningful if the command <i>can</i>
+     * be invoked through interactions.
      *
-     * @return Whether a user invoking this command must also have the permissions
-     *         to invoke the parent command.
+     * @return Whether group access checking should be skipped when this command is 
+     *         invoked through an interaction.
+     * @see #requiredGroup()
+     * @implSpec The default returns {@code true}, as application commands should generally
+     *           avoid clashing with user-set permissions unless necessary.
+     */
+    @Pure
+    default boolean skipGroupCheckOnInteraction() {
+        return true;
+    }
+
+    /**
+     * Whether a user invoking this command must also have access to the groups
+     * necessary to invoke its parent command(s).
+     *
+     * @return Whether a user invoking this command must also have access to the
+     *         groups required by its parents.
+     * @see #requiredGroup()
      * @apiNote This value is only meaningful for subcommands.
      */
     @Pure
-    boolean requireParentPermissions();
+    boolean requireParentGroups();
 
     /**
      * Whether this command can only be invoked in a NSFW channel.

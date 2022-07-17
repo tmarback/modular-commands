@@ -40,12 +40,13 @@ public class MessageCommandExecutor extends CommandExecutor {
      *
      * @param client The client to receive events from.
      * @param registry The registry to use to look up commands.
+     * @param accessManager The access manager to use for access checks.
      * @param prefixProvider The provider to get prefixes from.
      */
     public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final PrefixProvider prefixProvider ) {
+            final AccessManager accessManager, final PrefixProvider prefixProvider ) {
 
-        super( client, registry, new Builder( prefixProvider ) );
+        super( client, registry, new Builder( accessManager, prefixProvider ) );
 
     }
 
@@ -64,9 +65,12 @@ public class MessageCommandExecutor extends CommandExecutor {
         /** 
          * Creates a new instance. 
          *
+         * @param accessManager The access manager to use for access checks.
          * @param prefixProvider Provides the prefixes that commands should have.
          */
-        Builder( final PrefixProvider prefixProvider ) {
+        Builder( final AccessManager accessManager, final PrefixProvider prefixProvider ) {
+
+            super( accessManager );
 
             this.prefixProvider = prefixProvider;
 
@@ -213,14 +217,37 @@ public class MessageCommandExecutor extends CommandExecutor {
         protected MessageContextImpl makeContext( final MessageCreateEvent event,
                 final MessageCommand command, final Invocation invocation, 
                 final List<String> args ) {
-    
-            return new MessageContextImpl( event, invocation, command.parameters(), args );
+
+            final var access = accessValidator( event );
+            return new MessageContextImpl( event, invocation, command.parameters(), args, access );
     
         }
     
         @Override
         protected Optional<Snowflake> getGuildId( final MessageCreateEvent event ) {
             return event.getGuildId();
+        }
+
+        @Override
+        protected Mono<Guild> getGuild( final MessageCreateEvent event ) {
+            return event.getGuild();
+        }
+
+        @Override
+        protected Mono<MessageChannel> getChannel( final MessageCreateEvent event ) {
+            return event.getMessage().getChannel();
+        }
+
+        @Override
+        protected User getCaller( final MessageCreateEvent event ) {
+
+            final var author = event.getMessage().getAuthor();
+            if ( author.isPresent() ) {
+                return author.get();
+            } else {
+                throw new IllegalStateException( "Message with no author." );
+            }
+
         }
     
         @Override

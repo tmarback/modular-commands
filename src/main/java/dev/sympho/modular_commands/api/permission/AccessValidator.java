@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  * @apiNote This type should usually not be manually created during command handling;
- *          Rather, it should be obtain from the execution context in order to respect
+ *          Rather, it should be obtained from the execution context in order to respect
  *          current configuration.
  */
 @FunctionalInterface

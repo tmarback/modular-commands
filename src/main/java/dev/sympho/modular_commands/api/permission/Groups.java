@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
@@ -651,27 +650,15 @@ public final class Groups {
 
         }
 
-        /**
-         * Constructs a Mono that issues the remote guild.
-         *
-         * @param client The client to retrieve the guild with.
-         * @return A Mono that issues the remote guild, or an error if the current value
-         *         of the remote ID does not match to a guild.
-         */
-        private Mono<Guild> getGuild( final GatewayDiscordClient client ) {
-
-            return remoteGuild.flatMap( g -> client.getGuildById( g )
-                    .switchIfEmpty( Mono.error( () -> notFound( g ) ) )
-            );
-
-        }
-
         @Override
         public Mono<Boolean> belongs( Mono<Guild> guild, Mono<MessageChannel> channel,
                 User caller ) {
 
-            return guild.map( Guild::getClient ).map( this::getGuild )
-                    .flatMap( g -> group.belongs( g, channel, caller ) );
+            final var client = caller.getClient();
+            final var remote = remoteGuild.flatMap( g -> client.getGuildById( g )
+                    .switchIfEmpty( Mono.error( () -> notFound( g ) ) )
+            );
+            return group.belongs( remote, channel, caller );
 
         }
 

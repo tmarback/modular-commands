@@ -4,10 +4,13 @@ import java.util.Objects;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -27,8 +30,8 @@ import reactor.util.function.Tuple2;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface CommandContext permits LazyContext, 
-        MessageCommandContext, InteractionCommandContext {
+public sealed interface CommandContext extends AccessValidator 
+        permits LazyContext, MessageCommandContext, InteractionCommandContext {
 
     /**
      * Retrieves the event that triggered the command.
@@ -230,7 +233,7 @@ public sealed interface CommandContext permits LazyContext,
      *
      * @return The reply manager.
      */
-    @Pure
+    @SideEffectFree
     ReplyManager replyManager();
 
     /**
@@ -298,6 +301,39 @@ public sealed interface CommandContext permits LazyContext,
     default Mono<Message> reply( final MessageCreateSpec spec ) {
 
         return replyManager().add( spec ).map( Tuple2::getT1 );
+
+    }
+
+    /**
+     * Determines whether the given user belongs to the given group in the context of
+     * this invocation (guild and channel).
+     *
+     * @param user The user to check for.
+     * @param group The group to check for.
+     * @return A Mono that emits {@code true} if the given user belongs to the given
+     *         group under this invocation context, or {@code false} otherwise.
+     */
+    @SideEffectFree
+    default Mono<Boolean> belongs( final User user, final Group group ) {
+
+        return group.belongs( getGuild(), getChannel(), user )
+                .defaultIfEmpty( false ); // Just to be safe
+
+    }
+
+    /**
+     * Determines whether the given user belongs to the given group in the context of
+     * this invocation (guild and channel).
+     *
+     * @param user The ID of the user to check for.
+     * @param group The group to check for.
+     * @return A Mono that emits {@code true} if the given user belongs to the given
+     *         group under this invocation context, or {@code false} otherwise.
+     */
+    @SideEffectFree
+    default Mono<Boolean> belongs( final Snowflake user, final Group group ) {
+
+        return getClient().getUserById( user ).flatMap( u -> belongs( u, group ) );
 
     }
     

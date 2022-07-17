@@ -6,18 +6,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
+
+import com.google.common.collect.Lists;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
+import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.registry.Registry;
-import discord4j.rest.util.PermissionSet;
 
 /**
  * Utility functions for handling invocations.
@@ -85,35 +88,33 @@ public final class InvocationUtils {
      * @see Command#inheritSettings()
      */
     @Pure
-    public static Command getSettingsSource( final List<? extends Command> chain ) {
+    public static <C extends Command> C getSettingsSource( final List<C> chain ) {
 
-        final var settingIt = chain.listIterator( chain.size() );
-        Command settingsSource = settingIt.previous();
-        while ( settingIt.hasPrevious() && settingsSource.inheritSettings() ) {
-            settingsSource = settingIt.previous();
-        }
-        return settingsSource;
+        return Lists.reverse( chain ).stream()
+                .filter( Predicate.not( Command::inheritSettings ) )
+                .findFirst()
+                .orElse( chain.get( 0 ) );
 
     }
 
     /**
-     * Determines the total set of permissions required for an execution chain.
+     * Determines the total set of groups required for an execution chain.
      *
      * @param chain The execution chain.
-     * @return The required permissions.
+     * @return The required groups.
      */
     @SideEffectFree
-    public static PermissionSet accumulatePermissions( 
+    public static List<Group> accumulateGroups( 
             final List<? extends Command> chain ) {
 
-        final var permIt = chain.listIterator( chain.size() );
-        Command permSource = permIt.previous();
-        PermissionSet permissions = permSource.requiredPermissions();
-        while ( permIt.hasPrevious() && permSource.requireParentPermissions() ) {
-            permSource = permIt.previous();
-            permissions = permissions.or( permSource.requiredPermissions() );
-        }
-        return permissions;
+        final var take = Lists.reverse( chain ).stream()
+                .takeWhile( Command::requireParentGroups )
+                .count() + 1;
+
+        return chain.stream()
+                .skip( chain.size() - take )
+                .map( Command::requiredGroup )
+                .toList();
 
     }
 

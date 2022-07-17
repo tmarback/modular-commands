@@ -23,10 +23,14 @@ import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.exception.FailureException;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
+import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple3;
@@ -62,6 +66,20 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( PipelineBuilder.class );
+
+    /** The access manager to use for access checks. */
+    protected final AccessManager accessManager;
+
+    /** 
+     * Creates a new instance. 
+     *
+     * @param accessManager The access manager to use for access checks.
+     */
+    protected PipelineBuilder( final AccessManager accessManager ) {
+
+        this.accessManager = accessManager;
+
+    }
 
     /* Public interface */
 
@@ -240,6 +258,53 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     protected abstract Optional<Snowflake> getGuildId( E event );
 
     /**
+     * Retrieves the guild where the command was invoked, if any, from the
+     * triggering event.
+     *
+     * @param event The triggering event.
+     * @return The guild where the event was invoked.
+     */
+    @SideEffectFree
+    protected abstract Mono<Guild> getGuild( E event );
+
+    /**
+     * Retrieves the channel where the command was invoked from the
+     * triggering event.
+     *
+     * @param event The triggering event.
+     * @return The channel where the event was invoked.
+     */
+    @SideEffectFree
+    protected abstract Mono<MessageChannel> getChannel( E event );
+
+    /**
+     * Retrieves the user that invoked the command from the
+     * triggering event.
+     *
+     * @param event The triggering event.
+     * @return The user that invoked the command.
+     */
+    @SideEffectFree
+    protected abstract User getCaller( E event );
+
+    /**
+     * Creates an access validator for the context of the given event.
+     *
+     * @param event The triggering event.
+     * @return The access validator.
+     */
+    @SideEffectFree
+    protected AccessValidator accessValidator( final E event ) {
+
+        final var guild = getGuild( event );
+        final var channel = getChannel( event );
+        final var caller = getCaller( event );
+
+        return accessManager.validator( guild, channel, caller );
+        
+    }
+
+    /**
      * Retreives the invocation handler specified by the given command.
      *
      * @param command The command.
@@ -396,12 +461,13 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      *         otherwise issuing a {@link ResultException} error with an error result.
      */
     @SideEffectFree
-    private Mono<Void> validateCommand( final E event, final List<? extends Command> chain ) {
+    private Mono<CommandResult> validateCommand( final E event, final List<? extends Command> chain ) {
 
         final var validator = getValidator();
+        final var access = accessValidator( event );
 
         return validator.validateSettings( event, chain )
-                .thenEmpty( validator.validatePermissions( event, chain ) )
+                .switchIfEmpty( validator.validateAccess( access, chain ) )
                 .name( "command-validate" ).metrics();
 
     }
@@ -478,14 +544,16 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         final C command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
 
+        final Mono<CommandResult> execute = context.load()
+                .thenEmpty( Mono.fromRunnable( () -> {
+                    context.replyManager()
+                            .setPrivate( command.privateReply() )
+                            .setEphemeral( command.ephemeralReply() ) ;
+                } ) )
+                .then( invokeCommand( chain, context ) );
+
         return validateCommand( event, chain )
-                .thenReturn( context )
-                .flatMap( ctx -> ctx.load().thenReturn( ctx ) )
-                .doOnNext( ctx -> ctx.replyManager()
-                        .setPrivate( command.privateReply() )
-                        .setEphemeral( command.ephemeralReply() ) 
-                )
-                .flatMap( ctx -> invokeCommand( chain, ctx ) )
+                .then( execute )
                 .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                 .map( result -> Tuples.of( command, context, result ) )
                 .name( "command-execute" ).metrics();
