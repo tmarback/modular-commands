@@ -11,8 +11,8 @@ import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.InteractionInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.InteractionResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.utils.CommandUtils;
-import discord4j.rest.util.PermissionSet;
 
 /**
  * Default implementation of an interaction-based command.
@@ -25,10 +25,11 @@ import discord4j.rest.util.PermissionSet;
  * @param description The description of the command.
  * @param parameters The command parameters, in the order that they should be provided
  *                   by the user.
- * @param requiredPermissions The permissions that a user should have in order to execute 
- *                            the command.
- * @param requireParentPermissions Whether a user invoking this command must also have 
- *                                 the permissions to invoke its parent command.
+ * @param requiredGroup The group that a user must have access for in order to invoke 
+ *                      this command.
+ * @param skipGroupCheckOnInteraction Whether group access checking should be skipped.
+ * @param requireParentGroups Whether a user invoking this command must also have access 
+ *                            to the groups necessary to invoke its parent command(s).
  * @param nsfw Whether this command can only be invoked in a NSFW channel.
  * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
  * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
@@ -51,8 +52,9 @@ public record InteractionCommandImpl(
         String displayName,
         String description,
         List<Parameter<?>> parameters,
-        PermissionSet requiredPermissions,
-        boolean requireParentPermissions,
+        Group requiredGroup,
+        boolean skipGroupCheckOnInteraction,
+        boolean requireParentGroups,
         boolean nsfw,
         boolean botOwnerOnly,
         boolean serverOwnerOnly,
@@ -75,10 +77,11 @@ public record InteractionCommandImpl(
      * @param description The description of the command.
      * @param parameters The command parameters, in the order that they should be provided
      *                   by the user.
-     * @param requiredPermissions The permissions that a user should have inorder to execute 
-     *                            the command.
-     * @param requireParentPermissions Whether a user invoking this command must also have 
-     *                                 the permissions to invoke its parent command.
+     * @param requiredGroup The group that a user must have access for in order to invoke 
+     *                      this command.
+     * @param skipGroupCheckOnInteraction Whether group access checking should be skipped.
+     * @param requireParentGroups Whether a user invoking this command must also have access 
+     *                            to the groups necessary to invoke its parent command(s).
      * @param nsfw Whether this command can only be invoked in a NSFW channel.
      * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
      * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
@@ -101,8 +104,9 @@ public record InteractionCommandImpl(
             final String displayName,
             final String description,
             final List<Parameter<?>> parameters,
-            final PermissionSet requiredPermissions,
-            final boolean requireParentPermissions,
+            final Group requiredGroup,
+            final boolean skipGroupCheckOnInteraction,
+            final boolean requireParentGroups,
             final boolean nsfw,
             final boolean botOwnerOnly,
             final boolean serverOwnerOnly,
@@ -121,8 +125,9 @@ public record InteractionCommandImpl(
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.description = CommandUtils.validateDescription( description );
         this.parameters = CommandUtils.validateParameters( parameters );
-        this.requiredPermissions = CommandUtils.validatePermissions( requiredPermissions );
-        this.requireParentPermissions = requireParentPermissions;
+        this.requiredGroup = CommandUtils.validateGroup( requiredGroup );
+        this.skipGroupCheckOnInteraction = skipGroupCheckOnInteraction;
+        this.requireParentGroups = requireParentGroups;
         this.nsfw = nsfw;
         this.botOwnerOnly = botOwnerOnly;
         this.serverOwnerOnly = serverOwnerOnly;

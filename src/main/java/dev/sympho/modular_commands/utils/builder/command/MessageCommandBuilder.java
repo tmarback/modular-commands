@@ -100,7 +100,7 @@ public final class MessageCommandBuilder extends CommandBuilder<MessageCommand,
             return new MessageCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), aliases, 
                 buildDescription(), parameters,
-                requiredPermissions, requireParentPermissions, 
+                requiredGroup, requireParentGroups,
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply,
                 inheritSettings, invokeParent, 
                 buildInvocationHandler(), resultHandlers );

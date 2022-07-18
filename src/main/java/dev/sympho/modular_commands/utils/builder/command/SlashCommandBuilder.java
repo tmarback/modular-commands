@@ -13,8 +13,8 @@ import dev.sympho.modular_commands.impl.command.SlashCommandImpl;
  * @version 1.0
  * @since 1.0
  */
-public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, SlashInvocationHandler, 
-        SlashResultHandler, SlashCommandBuilder> {
+public final class SlashCommandBuilder extends InteractionCommandBuilder<SlashCommand, 
+        SlashInvocationHandler, SlashResultHandler, SlashCommandBuilder> {
 
     /**
      * Constructs a new builder with default values.
@@ -51,7 +51,7 @@ public final class SlashCommandBuilder extends CommandBuilder<SlashCommand, Slas
             return new SlashCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), 
                 buildDescription(), parameters,
-                requiredPermissions, requireParentPermissions, 
+                requiredGroup, skipGroupCheckOnInteraction, requireParentGroups, 
                 nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );

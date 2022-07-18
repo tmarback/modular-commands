@@ -18,9 +18,10 @@ import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.utils.CommandUtils;
 import dev.sympho.modular_commands.utils.builder.Builder;
-import discord4j.rest.util.PermissionSet;
 
 /**
  * Base for a command builder.
@@ -40,6 +41,19 @@ abstract class CommandBuilder<
             RH extends @NonNull ResultHandler,
             SELF extends @NonNull CommandBuilder<C, IH, RH, SELF>
         > implements Builder<SELF> {
+
+    /* Defaults */
+
+    /** Default for {@link #withScope(Scope)} ({@link Scope#GLOBAL}). */
+    public static final Scope DEFAULT_SCOPE = Scope.GLOBAL;
+
+    /** Default for {@link #requireGroup(Group)} ({@link Groups#EVERYONE}). */
+    public static final Group DEFAULT_GROUP = Groups.EVERYONE;
+
+    /** Default for {@link #setEphemeralReply(EphemeralType)} ({@link EphemeralType#NONE}). */
+    public static final EphemeralType DEFAULT_EPHEMERAL = EphemeralType.NONE;
+
+    /* Configuration */
 
     /** The command scope. */
     protected Scope scope;
@@ -62,11 +76,11 @@ abstract class CommandBuilder<
     /** The command parameters. */
     protected List<Parameter<?>> parameters;
 
-    /** The required permissions for the user. */
-    protected PermissionSet requiredPermissions;
+    /** The group that a user must have access for. */
+    protected Group requiredGroup;
 
-    /** Whether to also require the parent command's permissions. */
-    protected boolean requireParentPermissions;
+    /** Whether to also require the parent command's groups. */
+    protected boolean requireParentGroups;
 
     /** Whether the command can only be run in NSFW channels. */
     protected boolean nsfw;
@@ -101,19 +115,19 @@ abstract class CommandBuilder<
     @SideEffectFree
     protected CommandBuilder() {
 
-        this.scope = Scope.GLOBAL;
+        this.scope = DEFAULT_SCOPE;
         this.callable = true;
         this.parent = Invocation.of();
         this.name = null;
         this.displayName = null;
         this.parameters = new LinkedList<>();
-        this.requiredPermissions = PermissionSet.none();
-        this.requireParentPermissions = true;
+        this.requiredGroup = DEFAULT_GROUP;
+        this.requireParentGroups = true;
         this.nsfw = false;
         this.botOwnerOnly = false;
         this.serverOwnerOnly = false;
         this.privateReply = false;
-        this.ephemeralReply = EphemeralType.NONE;
+        this.ephemeralReply = DEFAULT_EPHEMERAL;
         this.inheritSettings = false;
         this.invokeParent = false;
         this.invocationHandler = null;
@@ -135,8 +149,8 @@ abstract class CommandBuilder<
         this.name = base.name;
         this.displayName = base.displayName;
         this.parameters = new LinkedList<>( base.parameters );
-        this.requiredPermissions = base.requiredPermissions;
-        this.requireParentPermissions = base.requireParentPermissions;
+        this.requiredGroup = base.requiredGroup;
+        this.requireParentGroups = base.requireParentGroups;
         this.nsfw = base.nsfw;
         this.botOwnerOnly = base.botOwnerOnly;
         this.serverOwnerOnly = base.serverOwnerOnly;
@@ -168,8 +182,8 @@ abstract class CommandBuilder<
         this.name = base.name();
         this.displayName = base.displayName();
         this.parameters = new LinkedList<>( base.parameters() );
-        this.requiredPermissions = base.requiredPermissions();
-        this.requireParentPermissions = base.requireParentPermissions();
+        this.requiredGroup = base.requiredGroup();
+        this.requireParentGroups = base.requireParentGroups();
         this.nsfw = base.nsfw();
         this.botOwnerOnly = base.botOwnerOnly();
         this.serverOwnerOnly = base.serverOwnerOnly();
@@ -185,7 +199,7 @@ abstract class CommandBuilder<
     /**
      * Sets the command scope.
      * 
-     * <p>The default value is {@link Scope#GLOBAL}.
+     * <p>The default value is {@link #DEFAULT_SCOPE}.
      *
      * @param scope The command scope. If {@code null}, restores the default value.
      * @return This builder.
@@ -194,7 +208,7 @@ abstract class CommandBuilder<
     @Deterministic
     public SELF withScope( final @Nullable Scope scope ) {
 
-        this.scope = Objects.requireNonNullElse( scope, Scope.GLOBAL );
+        this.scope = Objects.requireNonNullElse( scope, DEFAULT_SCOPE );
         return self();
 
     }
@@ -344,37 +358,35 @@ abstract class CommandBuilder<
     }
 
     /**
-     * Sets the permissions that the caller should have.
+     * Sets the group that a user must have access for.
      * 
-     * <p>The default value is an empty set (no permissions required).
+     * <p>The default value is {@link #DEFAULT_GROUP}.
      *
-     * @param permissions The user permissions. If {@code null}, restores the default
-     *                    value.
+     * @param group The required group. If {@code null}, restores the default value.
      * @return This builder.
-     * @see Command#requiredPermissions()
+     * @see Command#requiredGroup()
      */
     @Deterministic
-    public SELF requirePermissions( final @Nullable PermissionSet permissions ) {
+    public SELF requireGroup( final @Nullable Group group ) {
 
-        this.requiredPermissions = Objects.requireNonNullElse( permissions, 
-                PermissionSet.none() );
+        this.requiredGroup = Objects.requireNonNullElse( group, DEFAULT_GROUP );
         return self();
 
     }
 
     /**
-     * Sets whether the command also require its parent command's permissions.
+     * Sets whether the command also require its parent command's groups.
      * 
      * <p>The default value is {@code true}.
      *
-     * @param require Whether to require the parent's permissions.
+     * @param require Whether to require the parent's groups.
      * @return This builder.
-     * @see Command#requireParentPermissions()
+     * @see Command#requireParentGroups()
      */
     @Deterministic
-    public SELF setRequireParentPermissions( final boolean require ) {
+    public SELF setRequireParentGroups( final boolean require ) {
 
-        this.requireParentPermissions = require;
+        this.requireParentGroups = require;
         return self();
 
     }
@@ -450,16 +462,17 @@ abstract class CommandBuilder<
     /**
      * Sets the type of ephemeral response to use, if any.
      * 
-     * <p>The default value is {@link EphemeralType#NONE NONE}.
+     * <p>The default value is {@link #DEFAULT_EPHEMERAL}.
      *
-     * @param ephemeralReply The type of ephemeral response to use, if any.
+     * @param ephemeralReply The type of ephemeral response to use, if any. 
+     *                       If {@code null}, restores the default value.
      * @return This builder.
      * @see Command#ephemeralReply()
      */
     @Deterministic
-    public SELF setEphemeralReply( final EphemeralType ephemeralReply ) {
+    public SELF setEphemeralReply( final @Nullable EphemeralType ephemeralReply ) {
 
-        this.ephemeralReply = ephemeralReply;
+        this.ephemeralReply = Objects.requireNonNullElse( ephemeralReply, DEFAULT_EPHEMERAL );
         return self();
 
     }

@@ -457,8 +457,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      *
      * @param event The event that triggered the invocation.
      * @param chain The command chain.
-     * @return A Mono that completes successfully if the invocation is appropriate,
-     *         otherwise issuing a {@link ResultException} error with an error result.
+     * @return A Mono that completes empty if the invocation is appropriate,
+     *         otherwise issuing a failure result.
      */
     @SideEffectFree
     private Mono<CommandResult> validateCommand( final E event, final List<? extends Command> chain ) {
