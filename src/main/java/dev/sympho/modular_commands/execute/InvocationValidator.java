@@ -72,6 +72,8 @@ public abstract class InvocationValidator<E extends Event> {
     public Mono<CommandResult> validateSettings( final E event, 
             final List<? extends Command> chain ) {
 
+        // https://github.com/typetools/checker-framework/issues/4048
+        @SuppressWarnings( "type.argument" )
         final Command command = InvocationUtils.getSettingsSource( chain );
         return Flux.fromIterable( validators )
                 .flatMap( v -> v.validate( command, event ) )

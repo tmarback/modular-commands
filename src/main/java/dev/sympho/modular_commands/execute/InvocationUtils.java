@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -89,7 +90,7 @@ public final class InvocationUtils {
      * @see Command#inheritSettings()
      */
     @Pure
-    public static <C extends Command> C getSettingsSource( final List<C> chain ) {
+    public static <C extends @NonNull Command> C getSettingsSource( final List<C> chain ) {
 
         return Lists.reverse( chain ).stream()
                 .filter( Predicate.not( Command::inheritSettings ) )
@@ -108,6 +109,8 @@ public final class InvocationUtils {
     public static List<Group> accumulateGroups( 
             final List<? extends Command> chain ) {
 
+        // https://github.com/typetools/checker-framework/issues/4048
+        @SuppressWarnings( "type.argument" )
         final var take = Lists.reverse( chain ).stream()
                 .takeWhile( Command::requireParentGroups )
                 .count() + 1;
