@@ -34,8 +34,6 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @param requireParentGroups Whether a user invoking this command must also have access 
  *                            to the groups necessary to invoke its parent command(s).
  * @param nsfw Whether this command can only be invoked in a NSFW channel.
- * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
- * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
  * @param privateReply Whether this command's response is sent in a way that only the 
  *                     invoking user can see.
  * @param ephemeralReply The type of ephemeral response to use, if any.
@@ -60,8 +58,6 @@ public record TextCommandImpl(
         boolean skipGroupCheckOnInteraction,
         boolean requireParentGroups,
         boolean nsfw,
-        boolean botOwnerOnly,
-        boolean serverOwnerOnly,
         boolean privateReply,
         EphemeralType ephemeralReply,
         boolean inheritSettings,
@@ -89,8 +85,6 @@ public record TextCommandImpl(
      * @param requireParentGroups Whether a user invoking this command must also have access 
      *                            to the groups necessary to invoke its parent command(s).
      * @param nsfw Whether this command can only be invoked in a NSFW channel.
-     * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
-     * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
      * @param privateReply Whether this command's response is sent in a way that only the 
      *                     invoking user can see.
      * @param ephemeralReply The type of ephemeral response to use, if any.
@@ -115,8 +109,6 @@ public record TextCommandImpl(
             final boolean skipGroupCheckOnInteraction,
             final boolean requireParentGroups,
             final boolean nsfw,
-            final boolean botOwnerOnly,
-            final boolean serverOwnerOnly,
             final boolean privateReply,
             final EphemeralType ephemeralReply,
             final boolean inheritSettings,
@@ -137,8 +129,6 @@ public record TextCommandImpl(
         this.skipGroupCheckOnInteraction = skipGroupCheckOnInteraction;
         this.requireParentGroups = requireParentGroups;
         this.nsfw = nsfw;
-        this.botOwnerOnly = botOwnerOnly;
-        this.serverOwnerOnly = serverOwnerOnly;
         this.privateReply = privateReply;
         this.ephemeralReply = Objects.requireNonNull( ephemeralReply );
         this.inheritSettings = inheritSettings;

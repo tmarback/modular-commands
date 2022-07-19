@@ -224,25 +224,6 @@ public sealed interface Command
     boolean nsfw();
 
     /**
-     * Whether this command can only be invoked by the owner of the bot.
-     *
-     * @return Whether this command can only be invoked by the owner of the bot.
-     */
-    @Pure
-    boolean botOwnerOnly();
-
-    /**
-     * Whether this command can only be invoked by the owner of the server.
-     * 
-     * <p>If the invoking channel is a private channel and the {@link #scope() scope}
-     * of the command allows being invoked there, this requirement is ignored.
-     *
-     * @return Whether this command can only be invoked by the owner of the server.
-     */
-    @Pure
-    boolean serverOwnerOnly();
-
-    /**
      * Whether this command's response is sent in a way that only the invoking user
      * can see.
      *

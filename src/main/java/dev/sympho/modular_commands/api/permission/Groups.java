@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
@@ -45,6 +46,22 @@ public final class Groups {
     public static final Group ADMINS = named(
             hasGuildPermissions( PermissionSet.of( Permission.ADMINISTRATOR ) ),
             "Administrators"
+    );
+
+    /** The group that only matches the server owner. */
+    public static final Group SERVER_OWNER = named(
+            ( guild, channel, user ) -> guild
+                    .map( Guild::getOwnerId )
+                    .map( user.getId()::equals ),
+            "Server Owner"
+    );
+
+    /** The group that only matches the bot owner. */
+    public static final Group BOT_OWNER = named(
+            ( guild, channel, user ) -> user.getClient().getApplicationInfo()
+                    .map( ApplicationInfo::getOwnerId )
+                    .map( user.getId()::equals ), 
+            "Bot Owner" 
     );
 
     /** Do not instantiate. */

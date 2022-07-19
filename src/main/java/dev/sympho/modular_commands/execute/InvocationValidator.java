@@ -9,7 +9,6 @@ import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import discord4j.core.event.domain.Event;
-import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -32,9 +31,7 @@ public abstract class InvocationValidator<E extends Event> {
      * invocation.
      */
     private final List<Validator<?>> validators = List.<Validator<?>>of(
-        new NsfwValidator(),
-        new ServerOwnerValidator(),
-        new BotOwnerValidator()
+        new NsfwValidator()
     );
 
     /**
@@ -189,74 +186,6 @@ public abstract class InvocationValidator<E extends Event> {
                 return null;
             } else {
                 return "Command can only be called from a NSFW channel.";
-            }
-
-        }
-
-    }
-
-    /**
-     * A validator for commands that may only be executed by server owners.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private final class ServerOwnerValidator extends Validator<Guild> {
-
-        /** Creates a new instance. */
-        ServerOwnerValidator() {}
-         
-        @Override
-        public boolean active( final Command command ) {
-            return command.serverOwnerOnly();
-        }
-
-        @Override
-        public Mono<Guild> getValue( final E event ) {
-            return getGuild( event );
-        }
-
-        @Override
-        public @Nullable String validate( final User caller, final Guild guild ) {
-
-            if ( guild.getOwnerId().equals( caller.getId() ) ) {
-                return null;
-            } else {
-                return "Must be server owner to call this command.";
-            }
-
-        }
-
-    }
-
-    /**
-     * A validator for commands that may only be executed by the bot owner.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private final class BotOwnerValidator extends Validator<ApplicationInfo> {
-
-        /** Creates a new instance. */
-        BotOwnerValidator() {}
-         
-        @Override
-        public boolean active( final Command command ) {
-            return command.botOwnerOnly();
-        }
-
-        @Override
-        public Mono<ApplicationInfo> getValue( final E event ) {
-            return event.getClient().getApplicationInfo();
-        }
-
-        @Override
-        public @Nullable String validate( final User caller, final ApplicationInfo guild ) {
-
-            if ( guild.getOwnerId().equals( caller.getId() ) ) {
-                return null;
-            } else {
-                return "Must be bot owner to call this command.";
             }
 
         }

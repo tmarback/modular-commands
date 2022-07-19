@@ -101,7 +101,7 @@ public final class TextCommandBuilder extends InteractionCommandBuilder<TextComm
                 scope, callable, parent, buildName(), buildDisplayName(), aliases,
                 buildDescription(), parameters,
                 requiredGroup, skipGroupCheckOnInteraction, requireParentGroups, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
+                nsfw, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {

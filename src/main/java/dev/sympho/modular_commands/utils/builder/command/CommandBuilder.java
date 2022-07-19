@@ -59,12 +59,6 @@ abstract class CommandBuilder<
     /** Default for {@link #setNsfw(boolean)}. */
     public static final boolean DEFAULT_NSFW = false;
 
-    /** Default for {@link #setBotOwnerOnly(boolean)}. */
-    public static final boolean DEFAULT_BOT_OWNER_ONLY = false;
-
-    /** Default for {@link #setServerOwnerOnly(boolean)}. */
-    public static final boolean DEFAULT_SERVER_OWNER_ONLY = false;
-
     /** Default for {@link #setPrivateReply(boolean)}. */
     public static final boolean DEFAULT_PRIVATE = false;
 
@@ -109,12 +103,6 @@ abstract class CommandBuilder<
     /** Whether the command can only be run in NSFW channels. */
     protected boolean nsfw;
 
-    /** Whether the command can only be run by the bot's owner. */
-    protected boolean botOwnerOnly;
-
-    /** Whether the command can only be run by the server's owner. */
-    protected boolean serverOwnerOnly;
-
     /** Whether the command response should only be seen by the caller. */
     protected boolean privateReply;
 
@@ -148,8 +136,6 @@ abstract class CommandBuilder<
         this.requiredGroup = DEFAULT_GROUP;
         this.requireParentGroups = DEFAULT_REQUIRE_PARENT_GROUPS;
         this.nsfw = DEFAULT_NSFW;
-        this.botOwnerOnly = DEFAULT_BOT_OWNER_ONLY;
-        this.serverOwnerOnly = DEFAULT_SERVER_OWNER_ONLY;
         this.privateReply = DEFAULT_PRIVATE;
         this.ephemeralReply = DEFAULT_EPHEMERAL;
         this.inheritSettings = DEFAULT_INHERIT;
@@ -176,8 +162,6 @@ abstract class CommandBuilder<
         this.requiredGroup = base.requiredGroup;
         this.requireParentGroups = base.requireParentGroups;
         this.nsfw = base.nsfw;
-        this.botOwnerOnly = base.botOwnerOnly;
-        this.serverOwnerOnly = base.serverOwnerOnly;
         this.privateReply = base.privateReply;
         this.ephemeralReply = base.ephemeralReply;
         this.inheritSettings = base.inheritSettings;
@@ -209,8 +193,6 @@ abstract class CommandBuilder<
         this.requiredGroup = base.requiredGroup();
         this.requireParentGroups = base.requireParentGroups();
         this.nsfw = base.nsfw();
-        this.botOwnerOnly = base.botOwnerOnly();
-        this.serverOwnerOnly = base.serverOwnerOnly();
         this.privateReply = base.privateReply();
         this.ephemeralReply = base.ephemeralReply();
         this.inheritSettings = base.inheritSettings();
@@ -428,40 +410,6 @@ abstract class CommandBuilder<
     public SELF setNsfw( final boolean nsfw ) {
 
         this.nsfw = nsfw;
-        return self();
-
-    }
-
-    /**
-     * Sets whether the command can only be run by the bot owner.
-     * 
-     * <p>The default value is {@value #DEFAULT_BOT_OWNER_ONLY}.
-     *
-     * @param botOwnerOnly Whether the command can only be used by the bot owner.
-     * @return This builder.
-     * @see Command#botOwnerOnly()
-     */
-    @Deterministic
-    public SELF setBotOwnerOnly( final boolean botOwnerOnly ) {
-
-        this.botOwnerOnly = botOwnerOnly;
-        return self();
-
-    }
-
-    /**
-     * Sets whether the command can only be run by the server owner.
-     * 
-     * <p>The default value is {@value #DEFAULT_SERVER_OWNER_ONLY}.
-     *
-     * @param serverOwnerOnly Whether the command can only be used by the server owner.
-     * @return This builder.
-     * @see Command#serverOwnerOnly()
-     */
-    @Deterministic
-    public SELF setServerOwnerOnly( final boolean serverOwnerOnly ) {
-
-        this.serverOwnerOnly = serverOwnerOnly;
         return self();
 
     }
