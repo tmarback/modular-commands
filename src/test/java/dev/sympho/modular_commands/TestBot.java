@@ -10,6 +10,7 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.registry.Registry;
+import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.CommandExecutor;
 import dev.sympho.modular_commands.execute.MessageCommandExecutor;
 import dev.sympho.modular_commands.execute.PrefixProvider;
@@ -149,7 +150,7 @@ public class TestBot {
             .withGateway( client -> {
 
                 final List<CommandExecutor> executors = List.of(
-                    new MessageCommandExecutor( client, registry, prefix )
+                    new MessageCommandExecutor( client, registry, AccessManager.basic(), prefix )
                 );
 
                 executors.forEach( CommandExecutor::start );
