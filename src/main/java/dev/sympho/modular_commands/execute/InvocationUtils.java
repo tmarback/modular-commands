@@ -9,10 +9,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
-
-import com.google.common.collect.Lists;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -83,6 +83,7 @@ public final class InvocationUtils {
      * Determines the command in the execution chain that should provide the
      * invocation settings.
      *
+     * @param <C> The command type.
      * @param chain The command chain.
      * @return The command to take settings from.
      * @see Command#inheritSettings()

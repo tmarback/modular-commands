@@ -36,7 +36,7 @@ abstract class InteractionCommandBuilder<
      * Constructs a new builder with default values.
      */
     @SideEffectFree
-    public InteractionCommandBuilder() {
+    protected InteractionCommandBuilder() {
 
         this.skipGroupCheckOnInteraction = DEFAULT_SKIP;
 
@@ -48,7 +48,7 @@ abstract class InteractionCommandBuilder<
      * @param base The builder to copy.
     */
     @SideEffectFree
-    public InteractionCommandBuilder( 
+    protected InteractionCommandBuilder( 
             final InteractionCommandBuilder<?, ? extends IH, ? extends RH, ?> base ) {
         super( base );
 
@@ -64,7 +64,7 @@ abstract class InteractionCommandBuilder<
      * @throws IllegalArgumentException if the given command has invalid values.
      */
     @SideEffectFree
-    public InteractionCommandBuilder( final C base ) 
+    protected InteractionCommandBuilder( final C base ) 
             throws IllegalArgumentException {
         super( base );
 

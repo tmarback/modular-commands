@@ -461,7 +461,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      *         otherwise issuing a failure result.
      */
     @SideEffectFree
-    private Mono<CommandResult> validateCommand( final E event, final List<? extends Command> chain ) {
+    private Mono<CommandResult> validateCommand( final E event, 
+            final List<? extends Command> chain ) {
 
         final var validator = getValidator();
         final var access = accessValidator( event );
@@ -548,7 +549,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                 .thenEmpty( Mono.fromRunnable( () -> {
                     context.replyManager()
                             .setPrivate( command.privateReply() )
-                            .setEphemeral( command.ephemeralReply() ) ;
+                            .setEphemeral( command.ephemeralReply() );
                 } ) )
                 .then( invokeCommand( chain, context ) );
 

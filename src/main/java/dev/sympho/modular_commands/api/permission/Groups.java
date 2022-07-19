@@ -85,17 +85,18 @@ public final class Groups {
     /**
      * Decorates a group so that membership is always checked in relation to the given guild,
      * rather than the guild where the command was executed in.
-     * <p>
-     * In other words, this overrides the {@code guild} parameter provided to the
+     * 
+     * <p>In other words, this overrides the {@code guild} parameter provided to the
      * {@link Group#belongs(Mono, Mono, User)} method to the given guild, before delegating
      * to the given group.
-     * <p>
-     * This allows for permission checking on commands that always operate on some remote
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
      * guild, and thus should be checked in relation to that guild.
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for. The issued value
      *              may change over time.
+     * @return The decorated group.
      */
     public static Group remote( final Group group, final Mono<Snowflake> guild ) {
 
@@ -106,13 +107,14 @@ public final class Groups {
     /**
      * Decorates a group so that membership is always checked in relation to the given guild,
      * rather than the guild where the command was executed in.
-     * <p>
-     * This allows for permission checking on commands that always operate on some remote
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
      * guild, and thus should be checked in relation to that guild.
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for. The issued value
      *              may change over time.
+     * @return The decorated group.
      */
     public static Group remote( final Group group, final Supplier<Snowflake> guild ) {
 
@@ -123,12 +125,13 @@ public final class Groups {
     /**
      * Decorates a group so that membership is always checked in relation to the given guild,
      * rather than the guild where the command was executed in.
-     * <p>
-     * This allows for permission checking on commands that always operate on some remote
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
      * guild, and thus should be checked in relation to that guild.
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for.
+     * @return The decorated group.
      */
     public static Group remote( final Group group, final Snowflake guild ) {
 
@@ -148,7 +151,7 @@ public final class Groups {
 
         return ( guild, channel, caller ) -> {
 
-            return groups.flatMap( g -> g.belongs( guild, channel, caller) )
+            return groups.flatMap( g -> g.belongs( guild, channel, caller ) )
                     .any( Boolean::booleanValue );
 
         };
@@ -200,7 +203,7 @@ public final class Groups {
 
         return ( guild, channel, caller ) -> {
 
-            return groups.flatMap( g -> g.belongs( guild, channel, caller) )
+            return groups.flatMap( g -> g.belongs( guild, channel, caller ) )
                     .all( Boolean::booleanValue );
 
         };
@@ -617,17 +620,19 @@ public final class Groups {
 
     /* Inner classes */
 
-
     /**
      * Wrapper for a group that adds a name to it.
      *
+     * @param group The wrapped group.
+     * @param name The name of the group.
      * @version 1.0
+     * @since 1.0
      */
     private record Named( Group group, String name ) implements NamedGroup {
 
         @Override
-        public Mono<Boolean> belongs( Mono<Guild> guild, Mono<MessageChannel> channel,
-                User caller ) {
+        public Mono<Boolean> belongs( final Mono<Guild> guild, 
+                final Mono<MessageChannel> channel, final User caller ) {
 
             return group.belongs( guild, channel, caller );
 
@@ -651,6 +656,7 @@ public final class Groups {
      * @param remoteGuild The guild where group membership should be checked for. The issued 
      *                    value may change over time.
      * @version 1.0
+     * @since 1.0
      */
     private record Remote( Group group, Mono<Snowflake> remoteGuild ) implements Group {
 
@@ -668,8 +674,8 @@ public final class Groups {
         }
 
         @Override
-        public Mono<Boolean> belongs( Mono<Guild> guild, Mono<MessageChannel> channel,
-                User caller ) {
+        public Mono<Boolean> belongs( final Mono<Guild> guild, 
+                final Mono<MessageChannel> channel, final User caller ) {
 
             final var client = caller.getClient();
             final var remote = remoteGuild.flatMap( g -> client.getGuildById( g )
