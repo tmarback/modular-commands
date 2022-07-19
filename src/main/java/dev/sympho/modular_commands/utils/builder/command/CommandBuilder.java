@@ -47,11 +47,35 @@ abstract class CommandBuilder<
     /** Default for {@link #withScope(Scope)} ({@link Scope#GLOBAL}). */
     public static final Scope DEFAULT_SCOPE = Scope.GLOBAL;
 
+    /** Default for {@link #withCallable(boolean)}. */
+    public static final boolean DEFAULT_CALLABLE = true;
+
     /** Default for {@link #requireGroup(Group)} ({@link Groups#EVERYONE}). */
     public static final Group DEFAULT_GROUP = Groups.EVERYONE;
 
+    /** Default for {@link #setRequireParentGroups(boolean)}. */
+    public static final boolean DEFAULT_REQUIRE_PARENT_GROUPS = true;
+
+    /** Default for {@link #setNsfw(boolean)}. */
+    public static final boolean DEFAULT_NSFW = false;
+
+    /** Default for {@link #setBotOwnerOnly(boolean)}. */
+    public static final boolean DEFAULT_BOT_OWNER_ONLY = false;
+
+    /** Default for {@link #setServerOwnerOnly(boolean)}. */
+    public static final boolean DEFAULT_SERVER_OWNER_ONLY = false;
+
+    /** Default for {@link #setPrivateReply(boolean)}. */
+    public static final boolean DEFAULT_PRIVATE = false;
+
     /** Default for {@link #setEphemeralReply(EphemeralType)} ({@link EphemeralType#NONE}). */
     public static final EphemeralType DEFAULT_EPHEMERAL = EphemeralType.NONE;
+
+    /** Default for {@link #setInheritSettings(boolean)}. */
+    public static final boolean DEFAULT_INHERIT = false;
+
+    /** Default for {@link #setInvokeParent(boolean)}. */
+    public static final boolean DEFAULT_INVOKE_PARENT = false;
 
     /* Configuration */
 
@@ -116,20 +140,20 @@ abstract class CommandBuilder<
     protected CommandBuilder() {
 
         this.scope = DEFAULT_SCOPE;
-        this.callable = true;
+        this.callable = DEFAULT_CALLABLE;
         this.parent = Invocation.of();
         this.name = null;
         this.displayName = null;
         this.parameters = new LinkedList<>();
         this.requiredGroup = DEFAULT_GROUP;
-        this.requireParentGroups = true;
-        this.nsfw = false;
-        this.botOwnerOnly = false;
-        this.serverOwnerOnly = false;
-        this.privateReply = false;
+        this.requireParentGroups = DEFAULT_REQUIRE_PARENT_GROUPS;
+        this.nsfw = DEFAULT_NSFW;
+        this.botOwnerOnly = DEFAULT_BOT_OWNER_ONLY;
+        this.serverOwnerOnly = DEFAULT_SERVER_OWNER_ONLY;
+        this.privateReply = DEFAULT_PRIVATE;
         this.ephemeralReply = DEFAULT_EPHEMERAL;
-        this.inheritSettings = false;
-        this.invokeParent = false;
+        this.inheritSettings = DEFAULT_INHERIT;
+        this.invokeParent = DEFAULT_INVOKE_PARENT;
         this.invocationHandler = null;
         this.resultHandlers = new LinkedList<>();
 
@@ -216,7 +240,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command can be invoked directly.
      * 
-     * <p>The default value is {@code true}.
+     * <p>The default value is {@value #DEFAULT_CALLABLE}.
      *
      * @param callable Whether a user can invoke the command directly.
      * @return This builder.
@@ -377,7 +401,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command also require its parent command's groups.
      * 
-     * <p>The default value is {@code true}.
+     * <p>The default value is {@value #DEFAULT_REQUIRE_PARENT_GROUPS}.
      *
      * @param require Whether to require the parent's groups.
      * @return This builder.
@@ -394,7 +418,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command can only be run in channels marked as NSFW.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_NSFW}.
      *
      * @param nsfw Whether the command is NSFW.
      * @return This builder.
@@ -411,7 +435,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command can only be run by the bot owner.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_BOT_OWNER_ONLY}.
      *
      * @param botOwnerOnly Whether the command can only be used by the bot owner.
      * @return This builder.
@@ -428,7 +452,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command can only be run by the server owner.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_SERVER_OWNER_ONLY}.
      *
      * @param serverOwnerOnly Whether the command can only be used by the server owner.
      * @return This builder.
@@ -445,7 +469,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command response should be sent privately to the caller.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_PRIVATE}.
      *
      * @param privateReply Whether the response should be sent privately.
      * @return This builder.
@@ -480,7 +504,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command should inherit settings from the parent command.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_INHERIT}.
      *
      * @param inheritSettings Whether the command inherits the parent command's settings.
      * @return This builder.
@@ -497,7 +521,7 @@ abstract class CommandBuilder<
     /**
      * Sets whether the command should also invoke the parent's handler.
      * 
-     * <p>The default value is {@code false}.
+     * <p>The default value is {@value #DEFAULT_INVOKE_PARENT}.
      *
      * @param invokeParent Whether the command should invoke the parent's handler.
      * @return This builder.
