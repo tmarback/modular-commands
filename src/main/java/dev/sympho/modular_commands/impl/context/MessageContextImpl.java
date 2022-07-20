@@ -11,6 +11,7 @@ import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.StringParameter;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
@@ -37,11 +38,13 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @param invocation The invocation that triggered execution.
      * @param parameters The command parameters.
      * @param args The raw arguments received.
+     * @param access The validator to use for access checks.
      */
     public MessageContextImpl( final MessageCreateEvent event, final Invocation invocation, 
-            final List<Parameter<?>> parameters, final List<String> args ) {
+            final List<Parameter<?>> parameters, final List<String> args, 
+            final AccessValidator access ) {
 
-        super( invocation, parameters, adjustArgs( parameters, args ) );
+        super( invocation, parameters, adjustArgs( parameters, args ), access );
 
         this.event = event;
 

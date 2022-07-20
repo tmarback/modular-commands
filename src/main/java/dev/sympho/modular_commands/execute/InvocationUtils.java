@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -16,8 +20,8 @@ import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
+import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.registry.Registry;
-import discord4j.rest.util.PermissionSet;
 
 /**
  * Utility functions for handling invocations.
@@ -80,40 +84,45 @@ public final class InvocationUtils {
      * Determines the command in the execution chain that should provide the
      * invocation settings.
      *
+     * @param <C> The command type.
      * @param chain The command chain.
      * @return The command to take settings from.
      * @see Command#inheritSettings()
      */
     @Pure
-    public static Command getSettingsSource( final List<? extends Command> chain ) {
+    public static <C extends @NonNull Command> C getSettingsSource( final List<C> chain ) {
 
-        final var settingIt = chain.listIterator( chain.size() );
-        Command settingsSource = settingIt.previous();
-        while ( settingIt.hasPrevious() && settingsSource.inheritSettings() ) {
-            settingsSource = settingIt.previous();
-        }
-        return settingsSource;
+        return Lists.reverse( chain ).stream()
+                .filter( Predicate.not( Command::inheritSettings ) )
+                .findFirst()
+                .orElse( chain.get( 0 ) );
 
     }
 
     /**
-     * Determines the total set of permissions required for an execution chain.
+     * Determines the total set of groups required for an execution chain.
      *
      * @param chain The execution chain.
-     * @return The required permissions.
+     * @return The required groups.
      */
     @SideEffectFree
-    public static PermissionSet accumulatePermissions( 
+    public static List<Group> accumulateGroups( 
             final List<? extends Command> chain ) {
 
-        final var permIt = chain.listIterator( chain.size() );
-        Command permSource = permIt.previous();
-        PermissionSet permissions = permSource.requiredPermissions();
-        while ( permIt.hasPrevious() && permSource.requireParentPermissions() ) {
-            permSource = permIt.previous();
-            permissions = permissions.or( permSource.requiredPermissions() );
-        }
-        return permissions;
+        // https://github.com/typetools/checker-framework/issues/4048
+        @SuppressWarnings( "type.argument" )
+        final var needParent = Lists.reverse( chain ).stream()
+                .takeWhile( Command::requireParentGroups )
+                .count();
+
+        // Need to include the parent of the last command to require parent, unless all
+        // of them do (clamp at chain size)
+        final var take = Math.min( needParent + 1, chain.size() );
+
+        return chain.stream()
+                .skip( chain.size() - take )
+                .map( Command::requiredGroup )
+                .toList();
 
     }
 

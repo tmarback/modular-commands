@@ -11,8 +11,8 @@ import dev.sympho.modular_commands.api.command.SlashCommand;
 import dev.sympho.modular_commands.api.command.handler.SlashInvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.SlashResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.utils.CommandUtils;
-import discord4j.rest.util.PermissionSet;
 
 /**
  * Default implementation of a slash command.
@@ -25,13 +25,12 @@ import discord4j.rest.util.PermissionSet;
  * @param description The description of the command.
  * @param parameters The command parameters, in the order that they should be provided
  *                   by the user.
- * @param requiredPermissions The permissions that a user should have inorder to execute 
- *                            the command.
- * @param requireParentPermissions Whether a user invoking this command must also have 
- *                                 the permissions to invoke its parent command.
+ * @param requiredGroup The group that a user must have access for in order to invoke 
+ *                      this command.
+ * @param skipGroupCheckOnInteraction Whether group access checking should be skipped.
+ * @param requireParentGroups Whether a user invoking this command must also have access 
+ *                            to the groups necessary to invoke its parent command(s).
  * @param nsfw Whether this command can only be invoked in a NSFW channel.
- * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
- * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
  * @param privateReply Whether this command's response is sent in a way that only the 
  *                     invoking user can see.
  * @param ephemeralReply The type of ephemeral response to use, if any.
@@ -51,11 +50,10 @@ public record SlashCommandImpl(
         String displayName,
         String description,
         List<Parameter<?>> parameters,
-        PermissionSet requiredPermissions,
-        boolean requireParentPermissions,
+        Group requiredGroup,
+        boolean skipGroupCheckOnInteraction,
+        boolean requireParentGroups,
         boolean nsfw,
-        boolean botOwnerOnly,
-        boolean serverOwnerOnly,
         boolean privateReply,
         EphemeralType ephemeralReply,
         boolean inheritSettings,
@@ -75,13 +73,12 @@ public record SlashCommandImpl(
      * @param description The description of the command.
      * @param parameters The command parameters, in the order that they should be provided
      *                   by the user.
-     * @param requiredPermissions The permissions that a user should have inorder to execute 
-     *                            the command.
-     * @param requireParentPermissions Whether a user invoking this command must also have 
-     *                                 the permissions to invoke its parent command.
+     * @param requiredGroup The group that a user must have access for in order to invoke 
+     *                      this command.
+     * @param skipGroupCheckOnInteraction Whether group access checking should be skipped.
+     * @param requireParentGroups Whether a user invoking this command must also have access 
+     *                            to the groups necessary to invoke its parent command(s).
      * @param nsfw Whether this command can only be invoked in a NSFW channel.
-     * @param botOwnerOnly Whether this command can only be invoked by the owner of the bot.
-     * @param serverOwnerOnly Whether this command can only be invoked by the owner of the server.
      * @param privateReply Whether this command's response is sent in a way that only the 
      *                     invoking user can see.
      * @param ephemeralReply The type of ephemeral response to use, if any.
@@ -101,11 +98,10 @@ public record SlashCommandImpl(
             final String displayName,
             final String description,
             final List<Parameter<?>> parameters,
-            final PermissionSet requiredPermissions,
-            final boolean requireParentPermissions,
+            final Group requiredGroup,
+            final boolean skipGroupCheckOnInteraction,
+            final boolean requireParentGroups,
             final boolean nsfw,
-            final boolean botOwnerOnly,
-            final boolean serverOwnerOnly,
             final boolean privateReply,
             final EphemeralType ephemeralReply,
             final boolean inheritSettings,
@@ -121,11 +117,10 @@ public record SlashCommandImpl(
         this.displayName = CommandUtils.validateDisplayName( displayName );
         this.description = CommandUtils.validateDescription( description );
         this.parameters = CommandUtils.validateParameters( parameters );
-        this.requiredPermissions = CommandUtils.validatePermissions( requiredPermissions );
-        this.requireParentPermissions = requireParentPermissions;
+        this.requiredGroup = CommandUtils.validateGroup( requiredGroup );
+        this.skipGroupCheckOnInteraction = skipGroupCheckOnInteraction;
+        this.requireParentGroups = requireParentGroups;
         this.nsfw = nsfw;
-        this.botOwnerOnly = botOwnerOnly;
-        this.serverOwnerOnly = serverOwnerOnly;
         this.privateReply = privateReply;
         this.ephemeralReply = Objects.requireNonNull( ephemeralReply );
         this.inheritSettings = inheritSettings;

@@ -100,8 +100,8 @@ public final class MessageCommandBuilder extends CommandBuilder<MessageCommand,
             return new MessageCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), aliases, 
                 buildDescription(), parameters,
-                requiredPermissions, requireParentPermissions, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply,
+                requiredGroup, requireParentGroups,
+                nsfw, privateReply, ephemeralReply,
                 inheritSettings, invokeParent, 
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {

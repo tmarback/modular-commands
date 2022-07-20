@@ -1,21 +1,19 @@
 package dev.sympho.modular_commands.execute;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Command;
+import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
 import discord4j.core.event.domain.Event;
-import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.GuildChannel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.rest.util.PermissionSet;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -33,9 +31,7 @@ public abstract class InvocationValidator<E extends Event> {
      * invocation.
      */
     private final List<Validator<?>> validators = List.<Validator<?>>of(
-        new NsfwValidator(),
-        new ServerOwnerValidator(),
-        new BotOwnerValidator()
+        new NsfwValidator()
     );
 
     /**
@@ -70,66 +66,38 @@ public abstract class InvocationValidator<E extends Event> {
      *
      * @param event The triggering event.
      * @param chain The execution chain.
-     * @return A Mono that completes successfully if all requirements were satisfied
-     *         or disabled for that command, otherwise issuing a {@link ResultException}
-     *         error with an error result.
+     * @return A Mono that completes empty if the requirement was satisfied
+     *         or disabled for that command, otherwise issuing a failure result.
      */
-    public Mono<Void> validateSettings( final E event, final List<? extends Command> chain ) {
-
-        final Command command = InvocationUtils.getSettingsSource( chain );        
-
-        Mono<Void> state = Mono.empty();
-        for ( final var validator : validators ) {
-            state = state.thenEmpty( validator.validate( command, event ) );
-        }
-        return state;
-
-    }
-
-    /**
-     * Retreives the effective permissions that the given user has in the given channel.
-     *
-     * @param channel The channel.
-     * @param user The user.
-     * @return The effective permissions for the given user in the given channel.
-     */
-    private Mono<PermissionSet> getChannelPermissions( final MessageChannel channel, 
-            final User user ) {
-
-        if ( channel instanceof GuildChannel c ) {
-            return c.getEffectivePermissions( user.getId() );
-        } else {
-            return Mono.empty();
-        }
-
-    }
-
-    /**
-     * Validates that the user that invoked a command has sufficient permissions to do so.
-     *
-     * @param event The triggering event.
-     * @param chain The execution chain.
-     * @return A Mono that completes successfully if the user posses the required permissions,
-     *         otherwise issuing a {@link ResultException} error with an error result.
-     */
-    public Mono<Void> validatePermissions( final E event, 
+    public Mono<CommandResult> validateSettings( final E event, 
             final List<? extends Command> chain ) {
 
-        final var required = InvocationUtils.accumulatePermissions( chain );
-        if ( required.isEmpty() ) {
-            return Mono.empty();
-        }
+        // https://github.com/typetools/checker-framework/issues/4048
+        @SuppressWarnings( "type.argument" )
+        final Command command = InvocationUtils.getSettingsSource( chain );
+        return Flux.fromIterable( validators )
+                .flatMap( v -> v.validate( command, event ) )
+                .next(); // Return first error
 
-        return getChannel( event )
-                .flatMap( c -> getChannelPermissions( c, getCaller( event ) ) )
-                .map( required::andNot )
-                .filter( Predicate.not( Collection::isEmpty ) )
-                .map( m -> "Missing permissions: " + m.toString() )
-                .map( Results::failure )
-                .doOnNext( r -> {
-                    throw new ResultException( r );
-                } )
-                .then();
+    }
+
+    /**
+     * Validates that the user that invoked a command has sufficient access to do so.
+     *
+     * @param validator The validator to use to check access.
+     * @param chain The execution chain.
+     * @return A Mono that completes empty if the user has the required access,
+     *         otherwise issuing a failure result.
+     */
+    public Mono<CommandResult> validateAccess( final AccessValidator validator, 
+            final List<? extends Command> chain ) {
+
+        // Defer first step to avoid relatively expensive accumulation until
+        // it is known to be necessary
+        return Mono.fromSupplier( () -> InvocationUtils.accumulateGroups( chain ) )
+                .flatMapMany( Flux::fromIterable )
+                .flatMap( validator::validate )
+                .next(); // Return first error
         
     }
 
@@ -175,20 +143,15 @@ public abstract class InvocationValidator<E extends Event> {
          *
          * @param command The command being invoked.
          * @param event The triggering event.
-         * @return A Mono that completes successfully if the requirement was satisfied
-         *         or disabled for that command, otherwise issuing a {@link ResultException}
-         *         error with an error result.
+         * @return A Mono that completes empty if the requirement was satisfied
+         *         or disabled for that command, otherwise issuing a failure result.
          */
-        public Mono<Void> validate( final Command command, final E event ) {
+        public Mono<CommandResult> validate( final Command command, final E event ) {
 
             if ( active( command ) ) {
                 return getValue( event )
                         .mapNotNull( v -> validate( getCaller( event ), v ) )
-                        .map( Results::failure )
-                        .doOnNext( r -> {
-                            throw new ResultException( r );
-                        } )
-                        .then();
+                        .map( Results::failure );
             } else {
                 return Mono.empty();
             }
@@ -225,74 +188,6 @@ public abstract class InvocationValidator<E extends Event> {
                 return null;
             } else {
                 return "Command can only be called from a NSFW channel.";
-            }
-
-        }
-
-    }
-
-    /**
-     * A validator for commands that may only be executed by server owners.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private final class ServerOwnerValidator extends Validator<Guild> {
-
-        /** Creates a new instance. */
-        ServerOwnerValidator() {}
-         
-        @Override
-        public boolean active( final Command command ) {
-            return command.serverOwnerOnly();
-        }
-
-        @Override
-        public Mono<Guild> getValue( final E event ) {
-            return getGuild( event );
-        }
-
-        @Override
-        public @Nullable String validate( final User caller, final Guild guild ) {
-
-            if ( guild.getOwnerId().equals( caller.getId() ) ) {
-                return null;
-            } else {
-                return "Must be server owner to call this command.";
-            }
-
-        }
-
-    }
-
-    /**
-     * A validator for commands that may only be executed by the bot owner.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private final class BotOwnerValidator extends Validator<ApplicationInfo> {
-
-        /** Creates a new instance. */
-        BotOwnerValidator() {}
-         
-        @Override
-        public boolean active( final Command command ) {
-            return command.botOwnerOnly();
-        }
-
-        @Override
-        public Mono<ApplicationInfo> getValue( final E event ) {
-            return event.getClient().getApplicationInfo();
-        }
-
-        @Override
-        public @Nullable String validate( final User caller, final ApplicationInfo guild ) {
-
-            if ( guild.getOwnerId().equals( caller.getId() ) ) {
-                return null;
-            } else {
-                return "Must be bot owner to call this command.";
             }
 
         }

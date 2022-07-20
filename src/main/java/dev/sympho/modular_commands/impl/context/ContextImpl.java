@@ -15,6 +15,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,10 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
+import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.execute.ResultException;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
 import discord4j.core.object.entity.Message;
@@ -60,11 +64,20 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /** The invocation that triggered this context. */
     private final Invocation invocation;
 
+    /** The validator to use for access checks. */
+    private final AccessValidator access;
+
     /** Storage for context objects. */
     private final Map<String, @Nullable Object> context;
 
     /** The reply manager. */
     private @MonotonicNonNull ReplyManager reply;
+
+    /** Marks if loaded or not. */
+    private final AtomicBoolean initialized;
+
+    /** Latch that marks if loading finished. */
+    private final ReactiveLatch initializeLatch;
 
     /** Marks if loaded or not. */
     private final AtomicBoolean loaded;
@@ -78,20 +91,24 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @param invocation The invocation that triggered execution.
      * @param parameters The command parameters.
      * @param rawArguments The raw arguments received.
+     * @param access The validator to use for access checks.
      */
     protected ContextImpl( final Invocation invocation, final List<Parameter<?>> parameters,
-            final List<A> rawArguments ) {
+            final List<A> rawArguments, final AccessValidator access ) {
 
         this.parameterOrder = parameters.stream().toList();
         this.rawArguments = rawArguments.stream().toList();
 
         this.invocation = invocation;
+        this.access = access;
 
         this.arguments = parameters.stream().collect( Collectors.toUnmodifiableMap( 
                     Parameter::name, p -> new Argument() ) );
         this.context = new HashMap<>();
 
         this.reply = null;
+        this.initialized = new AtomicBoolean( false );
+        this.initializeLatch = new ReactiveLatch();
         this.loaded = new AtomicBoolean( false );
         this.loadLatch = new ReactiveLatch();
 
@@ -236,6 +253,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @throws IllegalStateException if the context was not loaded yet.
      */
     @Override
+    @Pure
     public ReplyManager replyManager() throws IllegalStateException {
 
         if ( reply == null ) {
@@ -243,6 +261,35 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         } else {
             return reply;
         }
+
+    }
+
+    @Override
+    @SideEffectFree
+    public Mono<CommandResult> validate( final Group group ) {
+
+        return access.validate( group );
+
+    }
+
+    @Override
+    public Mono<Void> initialize() {
+
+        if ( initialized.getAndSet( true ) ) {
+            return initializeLatch.await(); // Already initializing
+        }
+
+        LOGGER.trace( "Initializing context" );
+
+        return makeReplyManager() // Initialize reply manager
+                .map( ReplyManagerWrapper::new )
+                .doOnNext( manager -> {
+                    this.reply = manager;
+                } )
+                .then()
+                .doOnSuccess( v -> loadLatch.countDown() )
+                .doOnError( loadLatch::fail )
+                .cache(); // Prevent cancelling
 
     }
 
@@ -279,14 +326,10 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .map( t -> Tuples.of( arguments.get( t.getT1() ), t.getT2() ) )
                 .doOnNext( t -> t.getT1().setValue( t.getT2().orElse( null ) ) )
                 .name( "parameter-parse" ).metrics()
-                .then( makeReplyManager() ) // Initialize reply manager
-                .map( ReplyManagerWrapper::new )
-                .doOnNext( manager -> {
-                    this.reply = manager;
-                } )
-                .doOnSuccess( m -> loadLatch.countDown() )
+                .doOnComplete( loadLatch::countDown )
                 .doOnError( loadLatch::fail )
-                .then();
+                .then()
+                .cache(); // Prevent cancelling
 
     }
 

@@ -4,6 +4,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
+import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
@@ -110,6 +112,11 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
 
     @Override
     public ReplyManager replyManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Mono<CommandResult> validate( final Group group ) {
         throw new UnsupportedOperationException();
     }
     

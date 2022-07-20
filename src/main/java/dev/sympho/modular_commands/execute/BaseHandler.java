@@ -10,6 +10,8 @@ import dev.sympho.modular_commands.api.command.result.CommandFailureMessage;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.CommandSuccess;
 import dev.sympho.modular_commands.api.command.result.CommandSuccessMessage;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
+import dev.sympho.modular_commands.api.permission.NamedGroup;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
@@ -65,7 +67,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If fully handled.
+     * @return If not fully handled.
      */
     private static Mono<Boolean> defaultHandler( final CommandContext context, 
             final CommandResult result ) {
@@ -87,13 +89,14 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If fully handled.
+     * @return If not fully handled.
      */
     private static Mono<Boolean> handleSuccess( final CommandContext context, 
             final CommandSuccess result ) {
 
+        final String message;
         if ( result instanceof CommandSuccessMessage res ) {
-            final var message = res.message();
+            message = res.message();
             final var embed = EmbedCreateSpec.builder()
                     .title( "Success" )
                     .color( COLOR_SUCCESS )
@@ -112,23 +115,32 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If fully handled.
+     * @return If not fully handled.
      */
     private static Mono<Boolean> handleFailure( final CommandContext context, 
             final CommandFailure result ) {
 
-        if ( result instanceof CommandFailureMessage res ) {
-            final var message = res.message();
-            final var embed = EmbedCreateSpec.builder()
-                    .title( "Error" )
-                    .color( COLOR_FAILURE )
-                    .description( message )
-                    .build();
-
-            return context.reply( embed ).thenReturn( false );
+        final String message;
+        if ( result instanceof UserNotAllowed res ) {
+            final var required = res.required();
+            if ( required instanceof NamedGroup req ) {
+                message = "Only users in the %s group can use this command."
+                        .formatted( req.name() );
+            } else {
+                message = "You cannot use this command.";
+            }
+        } else if ( result instanceof CommandFailureMessage res ) {
+            message = res.message();
         } else {
             return Mono.just( false );
         }
+
+        final var embed = EmbedCreateSpec.builder()
+                .title( "Error" )
+                .color( COLOR_FAILURE )
+                .description( message )
+                .build();
+        return context.reply( embed ).thenReturn( false );
 
     }
 
@@ -137,7 +149,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If fully handled.
+     * @return If not fully handled.
      */
     private static Mono<Boolean> handleError( final CommandContext context, 
             final CommandError result ) {

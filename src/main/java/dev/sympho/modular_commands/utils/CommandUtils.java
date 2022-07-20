@@ -22,7 +22,7 @@ import dev.sympho.modular_commands.api.command.MessageCommand;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import discord4j.rest.util.PermissionSet;
+import dev.sympho.modular_commands.api.permission.Group;
 
 /**
  * Utility functions for Commands.
@@ -205,15 +205,15 @@ public final class CommandUtils {
     }
 
     /**
-     * Validates the required permissions of a command.
+     * Validates the required group of a command.
      *
-     * @param perms The permission set to validate.
-     * @return The validated permission set.
+     * @param group The group to validate.
+     * @return The validated group.
      */
     @Pure
-    public static PermissionSet validatePermissions( final PermissionSet perms ) {
+    public static Group validateGroup( final Group group ) {
 
-        return Objects.requireNonNull( perms, "Permission set cannot be null." );
+        return Objects.requireNonNull( group, "Required group cannot be null." );
 
     }
 
@@ -264,7 +264,7 @@ public final class CommandUtils {
         validateDisplayName( command.displayName() );
         validateDescription( command.description() );
         validateParameters( command.parameters() );
-        validatePermissions( command.requiredPermissions() );
+        validateGroup( command.requiredGroup() );
         validateInvocationHandler( command.invocationHandler() );
         validateResultHandlers( command.resultHandlers() );
 

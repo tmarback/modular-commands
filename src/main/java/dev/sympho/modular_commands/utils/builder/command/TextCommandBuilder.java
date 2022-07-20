@@ -21,7 +21,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @since 1.0
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
-public final class TextCommandBuilder extends CommandBuilder<TextCommand, 
+public final class TextCommandBuilder extends InteractionCommandBuilder<TextCommand, 
         AnyInvocationHandler, AnyResultHandler, TextCommandBuilder> 
         implements MessageCommandBuilderMethods<TextCommandBuilder> {
 
@@ -100,8 +100,8 @@ public final class TextCommandBuilder extends CommandBuilder<TextCommand,
             return new TextCommandImpl( 
                 scope, callable, parent, buildName(), buildDisplayName(), aliases,
                 buildDescription(), parameters,
-                requiredPermissions, requireParentPermissions, 
-                nsfw, botOwnerOnly, serverOwnerOnly, privateReply, ephemeralReply, 
+                requiredGroup, skipGroupCheckOnInteraction, requireParentGroups, 
+                nsfw, privateReply, ephemeralReply, 
                 inheritSettings, invokeParent,
                 buildInvocationHandler(), resultHandlers );
         } catch ( final IllegalArgumentException e ) {
