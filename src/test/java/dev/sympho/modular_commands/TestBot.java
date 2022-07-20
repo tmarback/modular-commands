@@ -9,6 +9,7 @@ import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
+import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.CommandExecutor;
@@ -22,6 +23,8 @@ import dev.sympho.modular_commands.utils.builder.parameter.StringParameterBuilde
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.rest.util.Permission;
+import discord4j.rest.util.PermissionSet;
 import reactor.core.publisher.Mono;
 
 /**
@@ -129,6 +132,80 @@ public class TestBot {
     }
 
     /**
+     * Creates an admin command.
+     *
+     * @return The command.
+     */
+    private static Command adminCommand() {
+
+        return new TextCommandBuilder()
+                .withName( "admin" )
+                .withDisplayName( "Admin Command" )
+                .withDescription( "Only works when used by admins" )
+                .setSkipGroupCheckOnInteraction( false )
+                .requireGroup( Groups.ADMINS )
+                .withInvocationHandler( ctx -> Results.successMono( "You are an admin!" ) )
+                .build();
+
+    }
+
+    /**
+     * Creates a mod command.
+     *
+     * @return The command.
+     */
+    private static Command modCommand() {
+
+        return new TextCommandBuilder()
+                .withName( "mod" )
+                .withDisplayName( "Mod Command" )
+                .withDescription( "Only works when used by mods" )
+                .setSkipGroupCheckOnInteraction( false )
+                .requireGroup( Groups.hasGuildPermissions( PermissionSet.of( 
+                        Permission.MANAGE_MESSAGES 
+                ) ) )
+                .withInvocationHandler( ctx -> Results.successMono( "You are a mod!" ) )
+                .build();
+
+    }
+
+    /**
+     * Creates a server owner command.
+     *
+     * @return The command.
+     */
+    private static Command serverOwnerCommand() {
+
+        return new TextCommandBuilder()
+                .withName( "server-owner" )
+                .withDisplayName( "Server Owner Command" )
+                .withDescription( "Only works when used by server owners" )
+                .setSkipGroupCheckOnInteraction( false )
+                .requireGroup( Groups.SERVER_OWNER )
+                .withInvocationHandler( ctx -> Results.successMono( "You are the server owner!" ) )
+                .build();
+
+    }
+
+    /**
+     * Creates a bot owner command.
+     *
+     * @return The command.
+     */
+    private static Command botOwnerCommand() {
+
+        return new TextCommandBuilder()
+                .withName( "bot-owner" )
+                .withDisplayName( "Bot Owner Command" )
+                .withDescription( "Only works when used by the bot owner" )
+                .setSkipGroupCheckOnInteraction( false )
+                .requireGroup( Groups.BOT_OWNER )
+                .withInvocationHandler( ctx -> Results.successMono( "You are the bot owner!" ) )
+                .build();
+
+    }
+
+    /**
      * Main runner.
      *
      * @param args Command line arguments.
@@ -144,7 +221,10 @@ public class TestBot {
         registry.registerCommand( "parrot", parrotCommand() );
         registry.registerCommand( "tweet", tweetCommand() );
 
-        LOGGER.info( "Arguments: {}", registry.getCommand( "parrot" ).parameters().get( 0 ) );
+        registry.registerCommand( "admin", adminCommand() );
+        registry.registerCommand( "mod", modCommand() );
+        registry.registerCommand( "server-owner", serverOwnerCommand() );
+        registry.registerCommand( "bot-owner", botOwnerCommand() );
         
         DiscordClient.create( token )
             .withGateway( client -> {
