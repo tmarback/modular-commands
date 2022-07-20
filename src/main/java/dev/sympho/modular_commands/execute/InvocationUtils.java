@@ -111,9 +111,13 @@ public final class InvocationUtils {
 
         // https://github.com/typetools/checker-framework/issues/4048
         @SuppressWarnings( "type.argument" )
-        final var take = Lists.reverse( chain ).stream()
+        final var needParent = Lists.reverse( chain ).stream()
                 .takeWhile( Command::requireParentGroups )
-                .count() + 1;
+                .count();
+
+        // Need to include the parent of the last command to require parent, unless all
+        // of them do (clamp at chain size)
+        final var take = Math.min( needParent + 1, chain.size() );
 
         return chain.stream()
                 .skip( chain.size() - take )
