@@ -554,7 +554,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                 .then( invokeCommand( chain, context ) );
 
         return validateCommand( event, chain )
-                .then( execute )
+                .switchIfEmpty( execute )
                 .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                 .map( result -> Tuples.of( command, context, result ) )
                 .name( "command-execute" ).metrics();
