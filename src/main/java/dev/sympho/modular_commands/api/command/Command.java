@@ -256,8 +256,6 @@ public sealed interface Command
      * 
      * <ul>
      *  <li>{@link #nsfw()}</li>
-     *  <li>{@link #botOwnerOnly()}</li>
-     *  <li>{@link #serverOwnerOnly()}</li>
      *  <li>{@link #privateReply()}</li>
      * </ul>
      *
