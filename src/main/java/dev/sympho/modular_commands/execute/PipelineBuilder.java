@@ -553,7 +553,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                 } ) )
                 .then( invokeCommand( chain, context ) );
 
-        return validateCommand( event, chain )
+        return context.initialize()
+                .then( validateCommand( event, chain ) )
                 .switchIfEmpty( execute )
                 .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                 .map( result -> Tuples.of( command, context, result ) )

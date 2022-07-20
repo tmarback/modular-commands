@@ -74,6 +74,12 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     private @MonotonicNonNull ReplyManager reply;
 
     /** Marks if loaded or not. */
+    private final AtomicBoolean initialized;
+
+    /** Latch that marks if loading finished. */
+    private final ReactiveLatch initializeLatch;
+
+    /** Marks if loaded or not. */
     private final AtomicBoolean loaded;
 
     /** Latch that marks if loading finished. */
@@ -101,6 +107,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         this.context = new HashMap<>();
 
         this.reply = null;
+        this.initialized = new AtomicBoolean( false );
+        this.initializeLatch = new ReactiveLatch();
         this.loaded = new AtomicBoolean( false );
         this.loadLatch = new ReactiveLatch();
 
@@ -265,6 +273,27 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     @Override
+    public Mono<Void> initialize() {
+
+        if ( initialized.getAndSet( true ) ) {
+            return initializeLatch.await(); // Already initializing
+        }
+
+        LOGGER.trace( "Initializing context" );
+
+        return makeReplyManager() // Initialize reply manager
+                .map( ReplyManagerWrapper::new )
+                .doOnNext( manager -> {
+                    this.reply = manager;
+                } )
+                .then()
+                .doOnSuccess( v -> loadLatch.countDown() )
+                .doOnError( loadLatch::fail )
+                .cache(); // Prevent cancelling
+
+    }
+
+    @Override
     public Mono<Void> load() throws ResultException {
 
         if ( loaded.getAndSet( true ) ) {
@@ -297,14 +326,10 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .map( t -> Tuples.of( arguments.get( t.getT1() ), t.getT2() ) )
                 .doOnNext( t -> t.getT1().setValue( t.getT2().orElse( null ) ) )
                 .name( "parameter-parse" ).metrics()
-                .then( makeReplyManager() ) // Initialize reply manager
-                .map( ReplyManagerWrapper::new )
-                .doOnNext( manager -> {
-                    this.reply = manager;
-                } )
-                .doOnSuccess( m -> loadLatch.countDown() )
+                .doOnComplete( loadLatch::countDown )
                 .doOnError( loadLatch::fail )
-                .then();
+                .then()
+                .cache(); // Prevent cancelling
 
     }
 
