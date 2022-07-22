@@ -28,13 +28,13 @@ import reactor.core.publisher.Mono;
 public final class Groups {
 
     /** The group of all Discord users (matches everyone). */
-    public static final Group EVERYONE = named( 
+    public static final NamedGroup EVERYONE = named( 
             ( guild, channel, user ) -> Mono.just( true ), 
             "Everyone" 
     );
 
     /** The empty group (matches nobody). */
-    public static final Group NOBODY = named( 
+    public static final NamedGroup NOBODY = named( 
             ( guild, channel, user ) -> Mono.just( false ),
             "Nobody"
     );
@@ -43,13 +43,13 @@ public final class Groups {
      * The group of server admins (matches users with the 
      * {@link Permission#ADMINISTRATOR administrator} permission).
      */
-    public static final Group ADMINS = named(
+    public static final NamedGroup ADMINS = named(
             hasGuildPermissions( PermissionSet.of( Permission.ADMINISTRATOR ) ),
             "Administrators"
     );
 
     /** The group that only matches the server owner. */
-    public static final Group SERVER_OWNER = named(
+    public static final NamedGroup SERVER_OWNER = named(
             ( guild, channel, user ) -> guild
                     .map( Guild::getOwnerId )
                     .map( user.getId()::equals ),
@@ -57,7 +57,7 @@ public final class Groups {
     );
 
     /** The group that only matches the bot owner. */
-    public static final Group BOT_OWNER = named(
+    public static final NamedGroup BOT_OWNER = named(
             ( guild, channel, user ) -> user.getClient().getApplicationInfo()
                     .map( ApplicationInfo::getOwnerId )
                     .map( user.getId()::equals ), 
