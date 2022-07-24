@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command.handler;
 import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
 import dev.sympho.modular_commands.api.command.context.SlashCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
-import dev.sympho.modular_commands.api.exception.FailureException;
+import dev.sympho.modular_commands.api.exception.ResultException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -20,11 +20,11 @@ public non-sealed interface SlashInvocationHandler extends InvocationHandler {
      */
     @SuppressWarnings( "checkstyle:javadocmethod" )
     Mono<CommandResult> handle( SlashCommandContext context )
-            throws FailureException, Exception;
+            throws ResultException, Exception;
 
     @Override
     default Mono<CommandResult> handle( AnyCommandContext context ) 
-            throws FailureException, Exception {
+            throws ResultException, Exception {
         return handle( ( SlashCommandContext ) context );
     }
 

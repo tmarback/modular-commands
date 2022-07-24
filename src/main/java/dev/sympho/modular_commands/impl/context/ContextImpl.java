@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Streams;
-
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -28,9 +26,9 @@ import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInva
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
-import dev.sympho.modular_commands.execute.ResultException;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -39,7 +37,6 @@ import discord4j.core.spec.MessageEditSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 /**
  * Base implementation for context objects.
@@ -79,11 +76,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /** Latch that marks if loading finished. */
     private final ReactiveLatch initializeLatch;
 
-    /** Marks if loaded or not. */
-    private final AtomicBoolean loaded;
-
-    /** Latch that marks if loading finished. */
-    private final ReactiveLatch loadLatch;
+    /** The result of {@link #load()}. */
+    private @MonotonicNonNull Mono<CommandResult> loadResult;
 
     /**
      * Initializes a new context.
@@ -96,8 +90,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     protected ContextImpl( final Invocation invocation, final List<Parameter<?>> parameters,
             final List<A> rawArguments, final AccessValidator access ) {
 
-        this.parameterOrder = parameters.stream().toList();
-        this.rawArguments = rawArguments.stream().toList();
+        this.parameterOrder = List.copyOf( parameters );
+        this.rawArguments = List.copyOf( rawArguments );
 
         this.invocation = invocation;
         this.access = access;
@@ -109,8 +103,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         this.reply = null;
         this.initialized = new AtomicBoolean( false );
         this.initializeLatch = new ReactiveLatch();
-        this.loaded = new AtomicBoolean( false );
-        this.loadLatch = new ReactiveLatch();
+        this.loadResult = null;
 
     }
 
@@ -281,55 +274,71 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
         LOGGER.trace( "Initializing context" );
 
+        // Prepare load
+        // cache() for idempotence and to prevent cancelling
+        this.loadResult = Mono.defer( this::doLoad ).cache();
+
         return makeReplyManager() // Initialize reply manager
                 .map( ReplyManagerWrapper::new )
                 .doOnNext( manager -> {
                     this.reply = manager;
                 } )
                 .then()
-                .doOnSuccess( v -> loadLatch.countDown() )
-                .doOnError( loadLatch::fail )
+                .doOnSuccess( v -> initializeLatch.countDown() )
+                .doOnError( initializeLatch::fail )
                 .cache(); // Prevent cancelling
 
     }
 
-    @Override
-    public Mono<Void> load() throws ResultException {
-
-        if ( loaded.getAndSet( true ) ) {
-            return loadLatch.await(); // Already loading
-        }
+    /**
+     * Performs the {@link #load()} operation.
+     *
+     * @return The result.
+     * @see #load()
+     */
+    public Mono<CommandResult> doLoad() {
 
         LOGGER.trace( "Parsing arguments {} for parameters {}", rawArguments, parameterOrder );
 
         final var received = rawArguments.size();
         final var expected = parameterOrder.size();
         if ( received > expected ) {
-            final var unexpected = rawArguments.stream()
+            return Flux.fromIterable( rawArguments )
                     .skip( expected )
                     .map( this::rawToString )
-                    .toList();
-            throw new ResultException( new CommandFailureArgumentExtra( unexpected ) );
+                    .collectList()
+                    .map( CommandFailureArgumentExtra::new );
         }
 
-        final var parsed = Streams.zip( parameterOrder.stream(), rawArguments.stream(),
-                this::parseArgumentWrapped );
-        final var missing = parameterOrder.stream()
+        final var parsed = Flux.zip( 
+                        Flux.fromIterable( parameterOrder ), 
+                        Flux.fromIterable( rawArguments )
+                )
+                .flatMap( t -> parseArgumentWrapped( t.getT1(), t.getT2() ) )
+                .map( Optional::of );
+        final var missing = Flux.fromStream( parameterOrder.stream() )
                 .skip( received )
                 .map( ContextImpl::missingArgument );
 
-        return Flux.concat( parsed.toList() )
-                .map( Optional::of )
-                .concatWith( Flux.fromStream( missing ) )
-                .zipWithIterable( parameterOrder )
-                .map( t -> Tuples.of( t.getT2().name(), t.getT1() ) )
-                .map( t -> Tuples.of( arguments.get( t.getT1() ), t.getT2() ) )
+        return Flux.fromIterable( parameterOrder )
+                .map( Parameter::name )
+                .mapNotNull( arguments::get )
+                .zipWith( parsed.concatWith( missing ) )
                 .doOnNext( t -> t.getT1().setValue( t.getT2().orElse( null ) ) )
                 .name( "parameter-parse" ).metrics()
-                .doOnComplete( loadLatch::countDown )
-                .doOnError( loadLatch::fail )
-                .then()
-                .cache(); // Prevent cancelling
+                .then( Mono.empty().cast( CommandResult.class ) )
+                .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) );
+
+    }
+
+    @Override
+    public Mono<CommandResult> load() {
+
+        if ( loadResult == null ) {
+            throw new IllegalStateException( "Called load() before initialize()" );
+        } else {
+            return loadResult;
+        }
 
     }
 

@@ -21,8 +21,8 @@ import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
-import dev.sympho.modular_commands.api.exception.FailureException;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
+import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
 import discord4j.common.util.Snowflake;
@@ -358,10 +358,10 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
         try {
             return invoke( handler, context )
-                    .onErrorResume( FailureException.class, e -> Mono.just( e.getResult() ) )
+                    .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                     .onErrorResume( e -> Results.exceptionMono( e ) )
                     .defaultIfEmpty( Results.error( "No result issued!" ) );
-        } catch ( final FailureException e ) {
+        } catch ( final ResultException e ) {
             return Mono.just( e.getResult() );
         } catch ( final Exception e ) {
             return Results.exceptionMono( e );
@@ -556,7 +556,6 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         return context.initialize()
                 .then( validateCommand( event, chain ) )
                 .switchIfEmpty( execute )
-                .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                 .map( result -> Tuples.of( command, context, result ) )
                 .name( "command-execute" ).metrics();
 

@@ -1,6 +1,6 @@
 package dev.sympho.modular_commands.api.command.context;
 
-import dev.sympho.modular_commands.execute.ResultException;
+import dev.sympho.modular_commands.api.command.result.CommandResult;
 import reactor.core.publisher.Mono;
 
 /**
@@ -49,21 +49,22 @@ public non-sealed interface LazyContext extends CommandContext {
      * behavior is undefined.
      * 
      * <p>Until this method is called and the returned mono completes <i>successfully</i>,
-     * all methods other than this one have undefined behavior.
+     * all methods other than this one (and those specified in {@link #initialize()}) have 
+     * undefined behavior.
      * 
      * <p>This method is idempotent; if it is called multiple times, the context will still
      * be loaded only once, and all the returned Monos will only complete once it has
-     * finished loading.
+     * finished loading, with the same result.
      *
-     * @return A Mono that completes once internal values are loaded. It may also error out
-     *         with a {@link ResultException} to terminate the invocation with a result.
-     * @throws ResultException if execution should be terminated.
+     * @return A Mono that completes empty once internal values are successfully loaded. 
+     *         If a situation where the invocation should be terminated is encountered,
+     *         it emits the appropriate failure result.
      * @apiNote This is split from {@link #initialize()} for performance reasons; only a
      *          very limited subset of the API is necessary for early processing of the
      *          command, and things such as argument parsing can be relatively expensive,
      *          thus it is beneficial to delay the latter until later in the processing
      *          pipeline once they are actually needed.
      */
-    Mono<Void> load() throws ResultException;
+    Mono<CommandResult> load();
     
 }

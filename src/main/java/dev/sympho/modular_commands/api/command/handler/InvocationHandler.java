@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command.handler;
 import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
-import dev.sympho.modular_commands.api.exception.FailureException;
+import dev.sympho.modular_commands.api.exception.ResultException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -26,9 +26,10 @@ public sealed interface InvocationHandler
      * @param context The invocation context.
      * @return The invocation result. It may result in an error (exception) if an
      *         error occured during handling (same as if this handler threw the
-     *         exception directly). This includes {@link FailureException}.
-     * @throws FailureException if execution fails. This is equivalent to returning the failure,
-     *                          but should only be used when returning directly is impractical.
+     *         exception directly). This includes {@link ResultException}.
+     * @throws ResultException if execution finishes early. This is equivalent to returning 
+     *                         the result, but should only be used when returning directly 
+     *                         is impractical.
      * @throws Exception if an error occurred during handling.
      * @apiNote A handler is allowed to throw checked exceptions in order to simplify 
      *          error handling. If an exception occurs, the usual course of action would
@@ -49,6 +50,6 @@ public sealed interface InvocationHandler
      *          exception or manually returned as an exception result.
      */
     // END BUGGED PARAGRAPH
-    Mono<CommandResult> handle( AnyCommandContext context ) throws FailureException, Exception;
+    Mono<CommandResult> handle( AnyCommandContext context ) throws ResultException, Exception;
     
 }

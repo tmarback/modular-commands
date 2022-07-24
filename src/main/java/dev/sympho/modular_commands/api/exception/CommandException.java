@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.api.exception;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Base type for exceptions related to the command system.
  *
@@ -47,6 +49,20 @@ public class CommandException extends RuntimeException {
      */
     public CommandException( final Throwable cause ) {
         super( cause );
+    }
+    
+    /**
+     * Constructs a new exception.
+     *
+     * @param message The detail message.
+     * @param cause The cause. May be {@code null}.
+     * @param enableSuppression Whether or not suppression is enabled or disabled.
+     * @param writableStackTrace Whether or not the stack trace should be writable
+     * @see RuntimeException#RuntimeException(String, Throwable, boolean, boolean)
+     */
+    protected CommandException( final String message, final @Nullable Throwable cause,
+            final boolean enableSuppression, final boolean writableStackTrace ) {
+        super( message, cause, enableSuppression, writableStackTrace );
     }
     
 }
