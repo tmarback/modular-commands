@@ -259,13 +259,13 @@
     <!-- Import checks -->
     <module name="TreeWalker">
         
-        <!-- Avoid star imports (other than JUnit assertions) -->
+        <!-- Avoid star imports (other than JUnit and JAssert assertions) -->
         <module name="AvoidStarImport">
-            <property name="excludes" value="org.junit.jupiter.api.Assertions"/>
+            <property name="excludes" value="org.junit.jupiter.api.Assertions,org.assertj.core.api.Assertions"/>
         </module>
-        <!-- Avoid static imports (other than JUnit assertions) -->
+        <!-- Avoid static imports (other than JUnit and JAssert assertions) -->
         <module name="AvoidStaticImport">
-            <property name="excludes" value="org.junit.jupiter.api.Assertions.*"/>
+            <property name="excludes" value="org.junit.jupiter.api.Assertions.*,org.assertj.core.api.Assertions.*"/>
         </module>
         <!-- 
             Must follow Eclipse import order:
@@ -280,7 +280,7 @@
             <property name="groups" value="/^java\./,javax,com,org"/>
             <property name="ordered" value="true"/>
             <property name="separated" value="true"/>
-            <property name="option" value="above"/>
+            <property name="option" value="top"/>
             <property name="sortStaticImportsAlphabetically" value="true"/>
         </module>
         <!-- Avoid redundant imports -->

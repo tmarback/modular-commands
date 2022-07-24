@@ -310,20 +310,51 @@
             <!-- Unit tests -->
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <dependencies>
+                
+                    <dependency>
+                        <groupId>me.fabriciorby</groupId>
+                        <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                        <version>0.2.0</version>
+                    </dependency>
+
+                </dependencies>
                 <configuration>
                     <!-- Runs all tests in classes of the format *Test.java with tag "unit" -->
-                    <groups>unit</groups>
+                    <!-- <groups>unit</groups> -->
+                    <!-- Tree output for tests -->
+                    <reportFormat>plain</reportFormat>
+                    <consoleOutputReporter>
+                        <disable>true</disable>
+                    </consoleOutputReporter>
+                    <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
                 </configuration>
             </plugin>
             
             <!-- Integration tests -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <dependencies>
+
+                    <dependency>
+                        <groupId>me.fabriciorby</groupId>
+                        <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+                        <version>0.2.0</version>
+                    </dependency>
+
+                </dependencies>
                 <configuration>
                     <!-- Runs all tests in classes of the format *IT.java with tag "integration" -->
-                    <groups>integration</groups>
+                    <!-- <groups>integration</groups> -->
+                    <!-- Tree output for tests -->
+                    <reportFormat>plain</reportFormat>
+                    <consoleOutputReporter>
+                        <disable>true</disable>
+                    </consoleOutputReporter>
+                    <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
                 </configuration>
                 <executions>
+
                     <execution>
                         <id>integration-test</id>
                         <goals>
@@ -331,6 +362,7 @@
                             <goal>verify</goal>
                         </goals>
                     </execution>
+
                 </executions>
             </plugin>
 
