@@ -2,8 +2,10 @@ package dev.sympho.modular_commands.api.command.context;
 
 import org.checkerframework.dataflow.qual.Pure;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 
 /**
  * The execution context of an command invoked through a message.
@@ -25,6 +27,26 @@ public non-sealed interface MessageCommandContext extends CommandContext {
     @Override
     default Event getEvent() {
         return getMessageEvent();
+    }
+
+    /**
+     * Retrieves the message that invoked the command.
+     *
+     * @return The invoking message.
+     */
+    @Pure
+    default Message getMessage() {
+        return getMessageEvent().getMessage();
+    }
+
+    /**
+     * Retrieves the ID of the message that invoked the command.
+     *
+     * @return The invoking message ID.
+     */
+    @Pure
+    default Snowflake getMessageId() {
+        return getMessage().getId();
     }
     
 }
