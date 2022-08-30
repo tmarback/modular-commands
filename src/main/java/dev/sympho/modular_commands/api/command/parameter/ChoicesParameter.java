@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface ChoicesParameter<T extends @NonNull Object> extends Parameter<T> 
+public sealed interface ChoicesParameter<T extends @NonNull Object> extends InputParameter<T> 
         permits NumberParameter, StringParameter {
 
     /**

@@ -127,6 +127,18 @@ public final class InvocationUtils {
     }
 
     /**
+     * Determines if a parameter is always satisfied.
+     *
+     * @param parameter The parameter.
+     * @return If the parameter is always satisfied.
+     */
+    private static boolean satisfied( final Parameter<?, ?> parameter ) {
+
+        return parameter.required() || parameter.defaultValue() != null;
+
+    }
+
+    /**
      * Determines the sequence of invocation handlers to execute.
      *
      * @param <C> The command type.
@@ -149,10 +161,11 @@ public final class InvocationUtils {
 
         final C target = source;
         final Set<String> satisfiedParameters = source.parameters().stream()
-                .filter( p -> p.required() || p.defaultValue() != null )
+                .filter( InvocationUtils::satisfied )
                 .map( Parameter::name )
                 .collect( Collectors.toSet() );
-        @SuppressWarnings( "rawtypes" )
+        
+        @SuppressWarnings( "rawtypes" ) // Generics is dumb with Class<>
         final Map<String, Class<? extends Parameter>> parameterTypes = source.parameters().stream()
                 .collect( Collectors.toMap( Parameter::name, Parameter::getClass ) );
 
@@ -160,7 +173,7 @@ public final class InvocationUtils {
 
             source = it.previous();
             // Validate command compatibility
-            for ( final Parameter<?> p : source.parameters() ) {
+            for ( final var p : source.parameters() ) {
 
                 final var receivedType = parameterTypes.get( p.name() );
                 // Validate type

@@ -92,7 +92,7 @@ abstract class CommandBuilder<
     protected @MonotonicNonNull String description;
 
     /** The command parameters. */
-    protected List<Parameter<?>> parameters;
+    protected List<Parameter<?, ?>> parameters;
 
     /** The group that a user must have access for. */
     protected Group requiredGroup;
@@ -321,15 +321,16 @@ abstract class CommandBuilder<
      * @param parameters The command parameters. If {@code null}, restores the default
      *                   value.
      * @return This builder.
-     * @throws IllegalArgumentException if one of the parameters is not valid.
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF withParameters( final @Nullable List<Parameter<?>> parameters )
-            throws IllegalArgumentException {
+    public SELF withParameters( final @Nullable List<Parameter<?, ?>> parameters ) {
 
-        this.parameters = new LinkedList<>( CommandUtils.validateParameters(
-                Objects.requireNonNullElse( parameters, Collections.emptyList() ) ) );
+        final var params = new LinkedList<>( 
+                Objects.requireNonNullElse( parameters, Collections.emptyList() )
+        );
+        params.forEach( Objects::requireNonNull );
+        this.parameters = params;
         return self();
 
     }
@@ -342,7 +343,7 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF addParameter( final Parameter<?> parameter ) {
+    public SELF addParameter( final Parameter<?, ?> parameter ) {
 
         this.parameters.add( Objects.requireNonNull( parameter, "Parameter cannot be null." ) );
         return self();

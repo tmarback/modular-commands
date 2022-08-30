@@ -1,19 +1,32 @@
 package dev.sympho.modular_commands.impl.context;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Streams;
 
 import org.apache.commons.collections4.ListUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
+import dev.sympho.modular_commands.api.command.parameter.AttachmentParameter;
+import dev.sympho.modular_commands.api.command.parameter.InputParameter;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.StringParameter;
+import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Attachment;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.User;
@@ -31,6 +44,12 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     /** The event that triggered the invocation. */
     private final MessageCreateEvent event;
 
+    /** The arguments received as text. */
+    private final Map<String, String> inputArgs;
+
+    /** The arguments received as attachments. */
+    private final Map<String, Attachment> attachmentArgs;
+
     /**
      * Initializes a new context.
      *
@@ -39,14 +58,63 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @param parameters The command parameters.
      * @param args The raw arguments received.
      * @param access The validator to use for access checks.
+     * @throws ResultException if there is a mismatch between parameters and arguments.
      */
     public MessageContextImpl( final MessageCreateEvent event, final Invocation invocation, 
-            final List<Parameter<?>> parameters, final List<String> args, 
-            final AccessValidator access ) {
+            final List<Parameter<?, ?>> parameters, final List<String> args, 
+            final AccessValidator access ) throws ResultException {
 
-        super( invocation, parameters, adjustArgs( parameters, args ), access );
+        super( invocation, parameters, access );
 
         this.event = event;
+
+        final var inputParams = parameters.stream()
+                .filter( InputParameter.class::isInstance )
+                .toList();
+        final var attachmentParams = parameters.stream()
+                .filter( AttachmentParameter.class::isInstance )
+                .toList();
+
+        final var adjustedArgs = adjustArgs( inputParams, args );
+        this.inputArgs = assign( inputParams, adjustedArgs, Function.identity() );
+
+        final var attachments = event.getMessage().getAttachments();
+        this.attachmentArgs = assign( attachmentParams, attachments, Attachment::getFilename );
+
+    }
+
+    /**
+     * Assigns arguments to the corresponding parameters.
+     *
+     * @param <T> The raw argument type.
+     * @param parameters The parameters.
+     * @param arguments The arguments to assign.
+     * @param toString The function to use to convert an argument into an identifier
+     *                 for error messages.
+     * @return The arguments, keyed by the corresponding parameter name.
+     * @throws ResultException if there is a mismatch.
+     */
+    @SideEffectFree
+    private static <T> Map<String, T> assign( final List<? extends Parameter<?, ?>> parameters, 
+            final List<T> arguments, final Function<T, String> toString ) throws ResultException {
+
+        final var pairs = Streams.zip( 
+                parameters.stream().map( Parameter::name ),
+                arguments.stream(), 
+                Map::entry 
+        );
+        
+        final var merged = pairs.collect( Collectors.toMap( Entry::getKey, Entry::getValue ) );
+
+        if ( merged.size() < arguments.size() ) {
+            final var extra = arguments.stream()
+                    .skip( merged.size() )
+                    .map( toString )
+                    .toList();
+            throw new ResultException( new CommandFailureArgumentExtra( extra ) );
+        }
+
+        return merged;
 
     }
 
@@ -60,7 +128,8 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @param args The received raw arguments.
      * @return The adjusted raw arguments.
      */
-    private static List<String> adjustArgs( final List<Parameter<?>> parameters, 
+    @SideEffectFree
+    private static List<String> adjustArgs( final List<Parameter<?, ?>> parameters, 
             final List<String> args ) {
 
         if ( args.size() <= parameters.size() ) {
@@ -100,10 +169,21 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    protected Mono<Object> parseArgument( final Parameter<?> parameter, final String raw ) 
+    protected @Nullable String getInputArgument( final String name ) {
+        return inputArgs.get( name );
+    }
+
+    @Override
+    protected @Nullable Attachment getAttachmentArgument( final String name ) {
+        return attachmentArgs.get( name );
+    }
+
+    @Override
+    protected <T extends @NonNull Object> Mono<T> parseInputArgument( 
+            final InputParameter<T> parameter, final String raw )
             throws InvalidArgumentException {
 
-        return parameter.parse( this, raw ).map( a -> a );
+        return parameter.parse( this, raw );
 
     }
 

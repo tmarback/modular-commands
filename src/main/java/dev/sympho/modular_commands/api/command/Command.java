@@ -136,7 +136,7 @@ public sealed interface Command
     String description();
 
     /**
-     * The command parameters, in the order that they should be provided
+     * The command inline parameters, in the order that they should be provided
      * by the user.
      * 
      * <p>All parameters that are marked as {@link Parameter#required() required}
@@ -149,7 +149,7 @@ public sealed interface Command
      *          make the optional parameter required.
      */
     @Pure
-    List<Parameter<?>> parameters();
+    List<Parameter<?, ?>> parameters();
 
     /**
      * The group that a user must have access for in order to invoke this command.

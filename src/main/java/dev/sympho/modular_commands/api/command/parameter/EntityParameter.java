@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface EntityParameter<T extends Entity> extends Parameter<T>
+public sealed interface EntityParameter<T extends Entity> extends InputParameter<T>
         permits MentionableParameter, MessageParameter {
 
     /**

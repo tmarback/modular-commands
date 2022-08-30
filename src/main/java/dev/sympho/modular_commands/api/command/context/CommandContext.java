@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.api.command.context;
 
 import java.util.Objects;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -9,6 +10,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.common.util.Snowflake;
@@ -127,12 +129,38 @@ public sealed interface CommandContext extends AccessValidator
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
+     * @see #getArgument(Parameter, Class)
      * @apiNote This method will never return {@code null} if the parameter is marked
      *          as required or provides a default value.
      */
     @Pure
-    <T> @Nullable T getArgument( String name, Class<? extends T> argumentType )
+    <T extends @NonNull Object> @Nullable T getArgument( String name, Class<T> argumentType )
             throws IllegalArgumentException, ClassCastException;
+
+    /**
+     * Retrieves one of the arguments to the command.
+     *
+     * @param <T> The type of the argument.
+     * @param parameter The corresponding parameter.
+     * @param argumentType The type of the argument.
+     * @return The argument value, or {@code null} if the argument was not given by
+     *         the caller and does not have a default value.
+     * @throws IllegalArgumentException if there is no parameter with the given name.
+     * @throws ClassCastException if the given argument type does not match the type of the
+     *                            argument with the given name.
+     * @see #getArgument(String, Class)
+     * @apiNote This is functionally equivalent to {@link #getArgument(String, Class)},
+     *          but allows access directly from the parameter instance and provides
+     *          compile-time type checking.
+     */
+    @Pure
+    default <T extends @NonNull Object> @Nullable T getArgument( 
+            Parameter<? extends T, ?> parameter, Class<T> argumentType )
+            throws IllegalArgumentException, ClassCastException {
+
+        return getArgument( parameter.name(), argumentType );
+
+    }
 
     /**
      * Retrieves one of the arguments to the command, assuming it is non-null
@@ -148,15 +176,44 @@ public sealed interface CommandContext extends AccessValidator
      *                            argument with the given name.
      * @throws NullPointerException if the argument was not received and does not have a
      *                              default value.
+     * @see #requireArgument(Parameter, Class)
      * @apiNote An NPE thrown by this method indicates a mismatched configuration 
      *          (code expects the parameter to be required or default but it was not
      *          configured as such).
      */
     @Pure
-    default <T> T requireArgument( String name, Class<? extends T> argumentType )
+    default <T extends @NonNull Object> T requireArgument( String name, Class<T> argumentType )
             throws IllegalArgumentException, ClassCastException, NullPointerException {
 
         return Objects.requireNonNull( getArgument( name, argumentType ) );
+
+    }
+
+    /**
+     * Retrieves one of the arguments to the command, assuming it is non-null
+     * (so either required or with a default value).
+     *
+     * @param <T> The type of the argument.
+     * @param parameter The name of the corresponding parameter.
+     * @param argumentType The type of the argument.
+     * @return The argument value, or {@code null} if the argument was not given by
+     *         the caller and does not have a default value.
+     * @throws IllegalArgumentException if there is no parameter with the given name.
+     * @throws ClassCastException if the given argument type does not match the type of the
+     *                            argument with the given name.
+     * @throws NullPointerException if the argument was not received and does not have a
+     *                              default value.
+     * @see #requireArgument(String, Class)
+     * @apiNote This is functionally equivalent to {@link #requireArgument(String, Class)},
+     *          but allows access directly from the parameter instance and provides
+     *          compile-time type checking.
+     */
+    @Pure
+    default <T extends @NonNull Object> T requireArgument( 
+            Parameter<? extends T, ?> parameter, Class<T> argumentType ) 
+            throws IllegalArgumentException, ClassCastException, NullPointerException {
+
+        return requireArgument( parameter.name(), argumentType );
 
     }
 

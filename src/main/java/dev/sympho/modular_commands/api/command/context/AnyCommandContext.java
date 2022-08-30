@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands.api.command.context;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -72,8 +73,8 @@ public final class AnyCommandContext implements MessageCommandContext, SlashComm
     }
 
     @Override
-    public <T> @Nullable T getArgument( final String name, 
-            final Class<? extends T> parameterType )
+    public <T extends @NonNull Object> @Nullable T getArgument( 
+            final String name, final Class<T> parameterType )
             throws IllegalArgumentException, ClassCastException {
         throw new UnsupportedOperationException();
     }

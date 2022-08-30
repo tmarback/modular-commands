@@ -20,13 +20,14 @@ import reactor.core.publisher.Mono;
  * <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
  * Discord API specification</a> for command parameters.
  *
- * @param <T> The type of parameter that is received.
+ * @param <T> The type of argument that is provided.
+ * @param <R> The type of raw argument that is received.
  * @version 1.0
  * @since 1.0
  */
 // END LONG LINES
-public sealed interface Parameter<T extends @NonNull Object> extends Serializable
-        permits ChoicesParameter, EntityParameter {
+public sealed interface Parameter<T extends @NonNull Object, R extends @NonNull Object>
+        extends Serializable permits InputParameter, AttachmentParameter {
 
     /**
      * The name of the parameter.
@@ -46,7 +47,7 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
     String description();
 
     /**
-     * Whether the parameter must be specified to invoke the command.
+     * Whether the parameter must be provided to invoke the command.
      *
      * @return {@code true} if the parameter is required, {@code false} otherwise.
      */
@@ -73,6 +74,6 @@ public sealed interface Parameter<T extends @NonNull Object> extends Serializabl
      * @throws InvalidArgumentException if the given string is not a valid value.
      */
     @SideEffectFree
-    Mono<T> parse( CommandContext context, String raw ) throws InvalidArgumentException;
+    Mono<T> parse( CommandContext context, R raw ) throws InvalidArgumentException;
     
 }

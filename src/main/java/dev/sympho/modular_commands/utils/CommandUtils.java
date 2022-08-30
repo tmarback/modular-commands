@@ -1,7 +1,5 @@
 package dev.sympho.modular_commands.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -167,17 +165,18 @@ public final class CommandUtils {
     /**
      * Validates the parameters of a command.
      *
+     * @param <P> The parameter type.
      * @param parameters The parameters to validate.
      * @return An immutable copy of the validated parameter list, in the same order as given.
      * @throws IllegalArgumentException if the parameter list is not valid.
      */
     @SideEffectFree
-    public static List<Parameter<?>> validateParameters( final List<Parameter<?>> parameters )
-            throws IllegalArgumentException {
+    public static <P extends Parameter<?, ?>> List<P> validateParameters( 
+            final List<P> parameters ) throws IllegalArgumentException {
 
         Objects.requireNonNull( parameters, "Parameter list cannot be null." );
         boolean optional = false;
-        for ( final Parameter<?> p : parameters ) {
+        for ( final var p : parameters ) {
 
             Objects.requireNonNull( p, "Parameter specification cannot be null." );
             if ( !p.required() ) {
@@ -194,13 +193,13 @@ public final class CommandUtils {
         for ( final var entry : names.entrySet() ) {
 
             if ( entry.getCount() > 1 ) {
-                throw new IllegalArgumentException( String.format( "Duplicate argument: %s",
+                throw new IllegalArgumentException( String.format( "Duplicate parameter: %s",
                         entry.getElement() ) );
             }
 
         }
 
-        return Collections.unmodifiableList( new ArrayList<>( parameters ) );
+        return List.copyOf( parameters );
 
     }
 

@@ -9,7 +9,7 @@ import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.parameter.InputParameter;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import dev.sympho.modular_commands.utils.builder.Builder;
 
@@ -19,14 +19,14 @@ import dev.sympho.modular_commands.utils.builder.Builder;
  * @param <T> The type of value received by the parameter.
  * @param <P> The parameter type.
  * @param <SELF> The self type.
- * @see Parameter
+ * @see InputParameter
  * @version 1.0
  * @since 1.0
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract sealed class ParameterBuilder<
             T extends @NonNull Object, 
-            P extends @NonNull Parameter<T>,
+            P extends @NonNull InputParameter<T>,
             SELF extends @NonNull ParameterBuilder<T, P, SELF>
         > implements Builder<SELF> permits ChoicesParameterBuilder, EntityParameterBuilder {
 
@@ -77,7 +77,7 @@ abstract sealed class ParameterBuilder<
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected ParameterBuilder( final Parameter<T> base ) {
+    protected ParameterBuilder( final InputParameter<T> base ) {
 
         this.name = base.name();
         this.description = base.description();
@@ -92,7 +92,7 @@ abstract sealed class ParameterBuilder<
      * @param name The parameter name.
      * @return This builder.
      * @throws IllegalArgumentException if the given name is invalid.
-     * @see Parameter#name()
+     * @see InputParameter#name()
      */
     @Deterministic
     public SELF withName( final String name ) throws IllegalArgumentException {
@@ -108,7 +108,7 @@ abstract sealed class ParameterBuilder<
      * @param description The parameter description.
      * @return This builder.
      * @throws IllegalArgumentException if the given name is invalid.
-     * @see Parameter#description()
+     * @see InputParameter#description()
      */
     @Deterministic
     public SELF withDescription( final String description ) throws IllegalArgumentException {
@@ -123,7 +123,7 @@ abstract sealed class ParameterBuilder<
      *
      * @param required The required flag.
      * @return This builder.
-     * @see Parameter#required()
+     * @see InputParameter#required()
      */
     @Deterministic
     public SELF withRequired( final boolean required ) {
@@ -138,7 +138,7 @@ abstract sealed class ParameterBuilder<
      *
      * @param defaultValue The default value.
      * @return This builder.
-     * @see Parameter#defaultValue()
+     * @see InputParameter#defaultValue()
      */
     @Deterministic
     public SELF withDefault( final @Nullable T defaultValue ) {

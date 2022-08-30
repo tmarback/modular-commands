@@ -16,7 +16,7 @@ public class InvalidArgumentException extends CommandException {
     private static final long serialVersionUID = 3840587706158373045L;
 
     /** The parameter that triggered the error. */
-    private final Parameter<?> parameter;
+    private final Parameter<?, ?> parameter;
 
     /**
      * Constructs a new exception.
@@ -24,7 +24,7 @@ public class InvalidArgumentException extends CommandException {
      * @param parameter The parameter that triggered the error.
      * @param message A message detailing why the argument is invalid.
      */
-    public InvalidArgumentException( final Parameter<?> parameter, final String message ) {
+    public InvalidArgumentException( final Parameter<?, ?> parameter, final String message ) {
 
         super( message );
         this.parameter = parameter;
@@ -38,7 +38,7 @@ public class InvalidArgumentException extends CommandException {
      * @param message A message detailing why the argument is invalid.
      * @param cause The exception that caused the value to be invalid.
      */
-    public InvalidArgumentException( final Parameter<?> parameter, final String message,
+    public InvalidArgumentException( final Parameter<?, ?> parameter, final String message,
             final Throwable cause ) {
 
         super( message, cause );
@@ -51,7 +51,7 @@ public class InvalidArgumentException extends CommandException {
      *
      * @return The parameter that triggered the error.
      */
-    public Parameter<?> getParameter() {
+    public Parameter<?, ?> getParameter() {
 
         return parameter;
 
