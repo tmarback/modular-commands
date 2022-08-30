@@ -545,17 +545,15 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         final C command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
 
-        final Mono<CommandResult> execute = context.load()
-                .thenEmpty( Mono.fromRunnable( () -> {
+        return context.initialize()
+                .then( validateCommand( event, chain ) )
+                .switchIfEmpty( Mono.defer( () -> context.load() ) )
+                .switchIfEmpty( Mono.fromRunnable( () -> {
                     context.replyManager()
                             .setPrivate( command.privateReply() )
                             .setEphemeral( command.ephemeralReply() );
                 } ) )
-                .then( invokeCommand( chain, context ) );
-
-        return context.initialize()
-                .then( validateCommand( event, chain ) )
-                .switchIfEmpty( execute )
+                .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
                 .map( result -> Tuples.of( command, context, result ) )
                 .name( "command-execute" ).metrics();
 

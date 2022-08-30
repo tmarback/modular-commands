@@ -322,7 +322,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         return parseArgumentAny( parameter )
                 .map( Argument::new )
                 .defaultIfEmpty( ARG_MISSING )
-                .map( a -> Map.entry( parameter.name(), a ) );
+                .map( a -> Map.entry( parameter.name(), a ) )
+                .doOnError( t -> {
+                    if ( t instanceof ResultException ex ) {
+                        LOGGER.trace( "Arg processing aborted: {}", ex.getResult() );
+                    } else {
+                        LOGGER.error( "Failed to process argument", t );
+                    }
+                } );
 
     }
 
@@ -420,6 +427,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .then()
                 .doOnSuccess( v -> initializeLatch.countDown() )
                 .doOnError( initializeLatch::fail )
+                .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
+                .doOnError( t -> LOGGER.error( "Failed to initialize", t ) )
                 .cache(); // Prevent cancelling
 
     }
@@ -441,6 +450,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                     this.arguments = args;
                 } )
                 .name( "parameter-parse" ).metrics()
+                .doOnSuccess( v -> LOGGER.trace( "Context loaded" ) )
+                .doOnError( t -> {
+                    if ( t instanceof ResultException ex ) {
+                        LOGGER.trace( "Load aborted: {}", ex.getResult() );
+                    } else {
+                        LOGGER.error( "Failed to load", t );
+                    }
+                } )
                 .then( Mono.empty().cast( CommandResult.class ) )
                 .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) );
 
