@@ -1,11 +1,13 @@
 package dev.sympho.modular_commands.api.command.parameter;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.value.qual.IntRange;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.utils.SizeUtils;
 import discord4j.core.object.entity.Attachment;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -43,7 +45,7 @@ public non-sealed interface AttachmentParameter<T extends @NonNull Object>
      * @implSpec The default is {@link Integer#MAX_VALUE}.
      */
     @Pure
-    default int maxSize() {
+    default @IntRange( from = 0 ) int maxSize() {
         return Integer.MAX_VALUE;
     }
 
@@ -72,8 +74,11 @@ public non-sealed interface AttachmentParameter<T extends @NonNull Object>
 
         validate( raw );
 
-        if ( raw.getSize() > maxSize() ) {
-            final var message = "File must be at most %d bytes".formatted( maxSize() );
+        final var size = raw.getSize();
+        if ( size > maxSize() ) {
+            final var max = SizeUtils.format( maxSize() );
+            final var got = SizeUtils.format( size );
+            final var message = "File must be at most %s (got %s)".formatted( max, got );
             throw new InvalidArgumentException( this, message );
         }
 

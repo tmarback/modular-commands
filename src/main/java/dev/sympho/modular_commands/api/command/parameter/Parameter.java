@@ -75,5 +75,32 @@ public sealed interface Parameter<T extends @NonNull Object, R extends @NonNull 
      */
     @SideEffectFree
     Mono<T> parse( CommandContext context, R raw ) throws InvalidArgumentException;
+
+    /**
+     * Constructs a new exception indicating that an argument given for this parameter
+     * is invalid.
+     *
+     * @param message A message detailing why the argument is invalid.
+     * @return The exception.
+     * @apiNote This is a convenience method to use while parsing.
+     */
+    @SideEffectFree
+    default InvalidArgumentException invalid( final String message ) {
+        return new InvalidArgumentException( this, message );
+    }
+
+    /**
+     * Constructs a new exception indicating that an argument given for this parameter
+     * is invalid.
+     *
+     * @param message A message detailing why the argument is invalid.
+     * @param cause The exception that caused the value to be invalid.
+     * @return The exception.
+     * @apiNote This is a convenience method to use while parsing.
+     */
+    @SideEffectFree
+    default InvalidArgumentException invalid( final String message, final Throwable cause ) {
+        return new InvalidArgumentException( this, message, cause );
+    }
     
 }

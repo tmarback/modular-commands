@@ -9,7 +9,7 @@ import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.parameter.InputParameter;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import dev.sympho.modular_commands.utils.builder.Builder;
 
@@ -26,9 +26,10 @@ import dev.sympho.modular_commands.utils.builder.Builder;
 @SuppressWarnings( "checkstyle:hiddenfield" )
 abstract sealed class ParameterBuilder<
             T extends @NonNull Object, 
-            P extends @NonNull InputParameter<T>,
+            P extends @NonNull Parameter<T, ?>,
             SELF extends @NonNull ParameterBuilder<T, P, SELF>
-        > implements Builder<SELF> permits ChoicesParameterBuilder, EntityParameterBuilder {
+        > implements Builder<SELF> 
+        permits ChoicesParameterBuilder, EntityParameterBuilder, AttachmentParameterBuilderBase {
 
     /** The parameter name. */
     protected @MonotonicNonNull String name;
@@ -77,7 +78,7 @@ abstract sealed class ParameterBuilder<
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected ParameterBuilder( final InputParameter<T> base ) {
+    protected ParameterBuilder( final Parameter<T, ?> base ) {
 
         this.name = base.name();
         this.description = base.description();

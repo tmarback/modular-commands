@@ -23,7 +23,7 @@ public interface Builder<SELF extends Builder<SELF>> {
      *          {@code SELF} is set to the appropriate type.
      */
     @Deterministic
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings( { "unchecked", "return" } )
     default SELF self() {
 
         return ( SELF ) this;

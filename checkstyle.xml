@@ -41,6 +41,11 @@
         <property name="files" value="test.*"/>
         <property name="checks" value="MultipleStringLiterals"/>
     </module>
+    <!-- Allow magic numbers in test classes -->
+    <module name="SuppressionSingleFilter">
+        <property name="files" value="test.*"/>
+        <property name="checks" value="MagicNumber"/>
+    </module>
     <!-- required till https://bugs.openjdk.java.net/browse/JDK-8160601 -->
     <module name="SuppressionSingleFilter">
         <property name="checks" value="MissingDeprecatedCheck"/>

@@ -17,9 +17,11 @@ import dev.sympho.modular_commands.execute.MessageCommandExecutor;
 import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
+import dev.sympho.modular_commands.utils.SizeUtils;
 import dev.sympho.modular_commands.utils.builder.command.TextCommandBuilder;
 import dev.sympho.modular_commands.utils.builder.parameter.ChannelParameterBuilder;
 import dev.sympho.modular_commands.utils.builder.parameter.StringParameterBuilder;
+import dev.sympho.modular_commands.utils.builder.parameter.TextFileParameterBuilder;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -206,6 +208,35 @@ public class TestBot {
     }
 
     /**
+     * Creates a text file command.
+     *
+     * @return The command.
+     */
+    private static Command fileTextCommand() {
+
+        final var param = new TextFileParameterBuilder()
+                .withName( "file" )
+                .withDescription( "The file to read" )
+                .withRequired( true )
+                .withMaxSize( SizeUtils.kilo( 1 ) + 100 )
+                .build();
+
+        return new TextCommandBuilder()
+                .withName( "file-text" )
+                .withDisplayName( "Text File Command" )
+                .withDescription( "Reads a text file" )
+                .addParameter( param )
+                .withInvocationHandler( ctx -> {
+
+                    final var content = ctx.requireArgument( param, String.class );
+                    return Results.successMono( content );
+
+                } )
+                .build();
+
+    }
+
+    /**
      * Main runner.
      *
      * @param args Command line arguments.
@@ -225,6 +256,8 @@ public class TestBot {
         registry.registerCommand( "mod", modCommand() );
         registry.registerCommand( "server-owner", serverOwnerCommand() );
         registry.registerCommand( "bot-owner", botOwnerCommand() );
+
+        registry.registerCommand( "file-text", fileTextCommand() );
         
         DiscordClient.create( token )
             .withGateway( client -> {

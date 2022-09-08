@@ -179,7 +179,7 @@ abstract class CommandBuilder<
      * @throws IllegalArgumentException if the given command has invalid values.
      */
     @SideEffectFree
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings( { "unchecked", "assignment" } )
     protected CommandBuilder( final C base ) throws IllegalArgumentException {
 
         CommandUtils.validateCommand( base );
