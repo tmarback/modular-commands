@@ -4,7 +4,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 
 /**
  * Specification for a parameter that receives a numeric value.
@@ -51,12 +51,12 @@ public sealed interface NumberParameter<T extends @NonNull Number & Comparable<T
             if ( minimum().compareTo( value ) <= 0 && maximum().compareTo( value ) >= 0 ) {
                 return value;
             } else {
-                throw new InvalidArgumentException( this, 
+                throw new InvalidArgumentException(
                         String.format( "Value %s is not within the range [%s, %s].", 
                         raw, minimum().toString(), maximum().toString() ) );
             }
         } catch ( final NumberFormatException e ) {
-            throw new InvalidArgumentException( this, 
+            throw new InvalidArgumentException(
                     String.format( "Value '%s' is not a valid number.", raw ), e );
         }
 

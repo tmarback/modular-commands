@@ -5,7 +5,7 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import reactor.core.publisher.Mono;
 

@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.api.command.parameter;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Entity;
@@ -32,7 +32,7 @@ public sealed interface EntityParameter<T extends Entity> extends InputParameter
     @SideEffectFree
     default Mono<T> fromUrl( final GatewayDiscordClient client, final String url ) 
             throws InvalidArgumentException {
-        throw new InvalidArgumentException( this, "Links not supported." );
+        throw new InvalidArgumentException( "Links not supported." );
     }
 
     /**
@@ -48,7 +48,7 @@ public sealed interface EntityParameter<T extends Entity> extends InputParameter
         try {
             return Snowflake.of( raw );
         } catch ( NumberFormatException e ) {
-            throw new InvalidArgumentException( this, 
+            throw new InvalidArgumentException(
                     String.format( "Value '%s' is not a valid snowflake ID.", raw ) );
         }
 
@@ -75,9 +75,9 @@ public sealed interface EntityParameter<T extends Entity> extends InputParameter
             final var id = parseId( raw );
             result = getEntity( context, id );
         }
-        return result.onErrorMap( e -> new InvalidArgumentException( this, "Invalid.", e ) )
+        return result.onErrorMap( e -> new InvalidArgumentException( "Invalid.", e ) )
                 .switchIfEmpty( 
-                    Mono.error( () -> new InvalidArgumentException( this, "Not found." ) )
+                    Mono.error( () -> new InvalidArgumentException( "Not found." ) )
                 );
 
     }

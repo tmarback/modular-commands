@@ -7,7 +7,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -49,7 +49,7 @@ public sealed interface ChoicesParameter<T extends @NonNull Object> extends Inpu
         if ( choices().isEmpty() || choices().containsValue( value ) ) {
             return Mono.just( value );
         } else {
-            throw new InvalidArgumentException( this, 
+            throw new InvalidArgumentException(
                     String.format( "Value '%s' is not a valid choice.", raw ) );
         }
 

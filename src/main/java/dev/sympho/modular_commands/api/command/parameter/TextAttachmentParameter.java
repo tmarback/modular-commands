@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.utils.HttpUtils;
 import discord4j.core.object.entity.Attachment;
 import reactor.core.publisher.Mono;
@@ -36,7 +36,7 @@ public interface TextAttachmentParameter<T extends @NonNull Object>
                 .map( MediaType::parse )
                 .map( t -> t.is( MediaType.ANY_TEXT_TYPE ) )
                 .orElse( false ) ) {
-            throw new InvalidArgumentException( this, "Attachment must be a text file" );
+            throw new InvalidArgumentException( "Attachment must be a text file" );
         }
 
     }
@@ -60,7 +60,7 @@ public interface TextAttachmentParameter<T extends @NonNull Object>
     default Mono<T> parse( final CommandContext context, final HttpClientResponse response, 
             final ByteBufMono body ) throws InvalidArgumentException {
 
-        final Charset encoding = HttpUtils.getCharset( response, this::invalid );
+        final Charset encoding = HttpUtils.getCharset( response, InvalidArgumentException::new );
         return body.asString( encoding ).flatMap( c -> parse( context, c ) );
 
     }

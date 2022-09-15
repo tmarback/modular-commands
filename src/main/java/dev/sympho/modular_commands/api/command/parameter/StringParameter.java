@@ -73,7 +73,7 @@ public record StringParameter(
     }
 
     @Override
-    public String parseValue( final String raw ) throws IllegalArgumentException {
+    public String parseValue( final String raw ) {
 
         return raw;
 

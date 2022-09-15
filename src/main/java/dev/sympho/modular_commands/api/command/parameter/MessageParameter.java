@@ -7,7 +7,7 @@ import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
@@ -61,7 +61,7 @@ public record MessageParameter(
         
         final var matcher = LINK_PATTERN.matcher( url );
         if ( !matcher.matches() ) {
-            throw new InvalidArgumentException( this, "Invalid channel URL: %s".formatted( url ) );
+            throw new InvalidArgumentException( "Invalid channel URL: %s".formatted( url ) );
         }
 
         final String channelString = NullnessUtil.castNonNull( matcher.group( 1 ) );

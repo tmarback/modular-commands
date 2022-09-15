@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.utils.OptionalUtils;
 import dev.sympho.modular_commands.utils.ParameterUtils;
 import discord4j.common.util.Snowflake;
@@ -74,7 +74,7 @@ public record ChannelParameter(
         try {
             return type.cast( channel );
         } catch ( final ClassCastException e ) {
-            throw new InvalidArgumentException( this, "Channel must be a %s".formatted( 
+            throw new InvalidArgumentException( "Channel must be a %s".formatted( 
                     type.getSimpleName() ) );
         }
 
@@ -86,7 +86,7 @@ public record ChannelParameter(
         
         final var matcher = LINK_PATTERN.matcher( url );
         if ( !matcher.matches() ) {
-            throw new InvalidArgumentException( this, "Invalid channel URL: %s".formatted( url ) );
+            throw new InvalidArgumentException( "Invalid channel URL: %s".formatted( url ) );
         }
 
         final String channelString = NullnessUtil.castNonNull( matcher.group( 1 ) );
@@ -108,7 +108,7 @@ public record ChannelParameter(
     public String parseMention( final String mention ) throws InvalidArgumentException {
 
         return OptionalUtils.castPresent( MentionableParameter.parseMention( mention, "#" ) )
-                .orElseThrow( () -> new InvalidArgumentException( this, 
+                .orElseThrow( () -> new InvalidArgumentException(
                         "Not a valid channel mention: <%s>".formatted( mention ) )
                 );
 

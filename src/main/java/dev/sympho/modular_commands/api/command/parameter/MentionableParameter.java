@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Entity;
 
@@ -26,7 +26,8 @@ public sealed interface MentionableParameter<T extends Entity> extends EntityPar
      * @return The ID in the mention.
      * @throws InvalidArgumentException if the mention was invalid.
      */
-    static Optional<String> parseMention( final String mention, final String prefix ) {
+    static Optional<String> parseMention( final String mention, final String prefix ) 
+            throws InvalidArgumentException {
 
         if ( mention.startsWith( prefix ) ) {
             return Optional.of( mention.substring( prefix.length() ) );

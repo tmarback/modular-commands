@@ -7,6 +7,7 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.AttachmentParameter;
+import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
 import dev.sympho.modular_commands.utils.SizeUtils;
 
 
@@ -25,7 +26,8 @@ abstract sealed class AttachmentParameterBuilderBase<
                 T extends @NonNull Object, 
                 P extends @NonNull AttachmentParameter<T>,
                 SELF extends @NonNull AttachmentParameterBuilderBase<T, P, SELF>
-        > extends ParameterBuilder<T, P, SELF> permits TextFileParameterBuilder {
+        > extends ParameterBuilder<T, P, SELF> 
+        permits AttachmentParameterBuilder, TextFileParameterBuilder {
 
     /** The maximum file size. */
     protected @IntRange( from = 0 ) int maxSize;
@@ -73,7 +75,7 @@ abstract sealed class AttachmentParameterBuilderBase<
      *
      * @param maxSize The maximum accepted size (in bytes).
      * @return This builder.
-     * @see AttachmentParameter#maxSize()
+     * @see AttachmentParser#maxSize()
      * @see SizeUtils
      */
     @Deterministic

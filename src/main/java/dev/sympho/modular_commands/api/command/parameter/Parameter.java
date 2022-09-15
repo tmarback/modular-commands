@@ -7,9 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.exception.InvalidArgumentException;
-import reactor.core.publisher.Mono;
+import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 
 // BEGIN LONG LINES
 /**
@@ -27,7 +25,7 @@ import reactor.core.publisher.Mono;
  */
 // END LONG LINES
 public sealed interface Parameter<T extends @NonNull Object, R extends @NonNull Object>
-        extends Serializable permits InputParameter, AttachmentParameter {
+        extends Serializable, ArgumentParser<R, T> permits InputParameter, AttachmentParameter {
 
     /**
      * The name of the parameter.
@@ -63,44 +61,5 @@ public sealed interface Parameter<T extends @NonNull Object, R extends @NonNull 
      */
     @SideEffectFree
     @Nullable T defaultValue();
-
-    /**
-     * Parses the given raw argument from the user into the corresponding value.
-     *
-     * @param context The execution context.
-     * @param raw The raw argument received from the user.
-     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may
-     *         fail with a {@link InvalidArgumentException}.
-     * @throws InvalidArgumentException if the given string is not a valid value.
-     */
-    @SideEffectFree
-    Mono<T> parse( CommandContext context, R raw ) throws InvalidArgumentException;
-
-    /**
-     * Constructs a new exception indicating that an argument given for this parameter
-     * is invalid.
-     *
-     * @param message A message detailing why the argument is invalid.
-     * @return The exception.
-     * @apiNote This is a convenience method to use while parsing.
-     */
-    @SideEffectFree
-    default InvalidArgumentException invalid( final String message ) {
-        return new InvalidArgumentException( this, message );
-    }
-
-    /**
-     * Constructs a new exception indicating that an argument given for this parameter
-     * is invalid.
-     *
-     * @param message A message detailing why the argument is invalid.
-     * @param cause The exception that caused the value to be invalid.
-     * @return The exception.
-     * @apiNote This is a convenience method to use while parsing.
-     */
-    @SideEffectFree
-    default InvalidArgumentException invalid( final String message, final Throwable cause ) {
-        return new InvalidArgumentException( this, message, cause );
-    }
     
 }
