@@ -5,7 +5,6 @@ import java.util.List;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Parses received input arguments, potentially restricting the acceptable values to a
@@ -40,17 +39,23 @@ public sealed interface ChoicesParser<P extends @NonNull Object, T extends @NonN
      * Verifies that the given value is one of the allowed choices.
      *
      * @param value The value to validate.
+     * @return The value.
      * @throws InvalidArgumentException If the value is not a valid choice.
-     * @apiNote Implementations do not need to call this method.
      */
-    @SideEffectFree
-    default void verifyChoice( final P value ) throws InvalidArgumentException {
+    @Pure
+    default P verifyChoice( final P value ) throws InvalidArgumentException {
 
         final var c = choices();
         if ( c != null && !c.stream().map( Choice::value ).anyMatch( value::equals ) ) {
             throw new InvalidArgumentException( "Not a valid choice" );
         }
+        return value;
 
+    }
+
+    @Override
+    default P validateRaw( final P raw ) throws InvalidArgumentException {
+        return verifyChoice( InputParser.super.validateRaw( raw ) );
     }
 
     /**

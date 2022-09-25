@@ -4,7 +4,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Parses string-based input arguments.
@@ -51,11 +50,12 @@ public non-sealed interface StringParser<T extends @NonNull Object>
      * Verifies that the given string is within the allowed length range for this parser.
      *
      * @param raw The string to validate.
+     * @return The given string.
      * @throws InvalidArgumentException If the length is outside the allowed range.
      * @apiNote Implementations do not need to call this method.
      */
-    @SideEffectFree
-    default void verifyLength( final String raw ) throws InvalidArgumentException {
+    @Pure
+    default String verifyLength( final String raw ) throws InvalidArgumentException {
 
         final var min = minLength();
         final var max = maxLength();
@@ -71,6 +71,13 @@ public non-sealed interface StringParser<T extends @NonNull Object>
                     "Must have at most %d characters".formatted( max ) );
         }
 
+        return raw;
+
+    }
+
+    @Override
+    default String validateRaw( final String raw ) throws InvalidArgumentException {
+        return verifyLength( ChoicesParser.super.validateRaw( raw ) );
     }
 
 }

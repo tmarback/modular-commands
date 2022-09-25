@@ -11,11 +11,4 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 @FunctionalInterface
 public non-sealed interface IntegerParser<T extends @NonNull Object> 
-        extends NumberParser<Long, T> {
-
-    @Override
-    default Class<Long> rawType() {
-        return Long.class;
-    }
-
-}
+        extends NumberParser<Long, T> {}

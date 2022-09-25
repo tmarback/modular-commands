@@ -42,16 +42,10 @@ public interface AttachmentDataParser<T extends @NonNull Object>
         return Integer.MAX_VALUE;
     }
 
-    /**
-     * @implSpec Fetches the attachment from the normal (non-proxy) URL using a client obtained
-     *           by {@link HttpClient#create()} then delegates to
-     *           {@link #parse(CommandContext, HttpClientResponse, ByteBufMono)}.
-     */
     @Override
-    default Mono<T> parse( final CommandContext context, final Attachment raw ) 
-            throws InvalidArgumentException {
-
-        validate( raw );
+    default Attachment validateRaw( Attachment raw ) throws InvalidArgumentException {
+    
+        validate( AttachmentParser.super.validateRaw( raw ) );
 
         final var size = raw.getSize();
         if ( size > maxSize() ) {
@@ -61,8 +55,33 @@ public interface AttachmentDataParser<T extends @NonNull Object>
             throw new InvalidArgumentException( message );
         }
 
+        return raw;
+    
+    }
+
+    /**
+     * Obtains the URL to download the attachment from.
+     *
+     * @param value The attachment.
+     * @return The URL to download from.
+     * @implSpec Defaults to the non-proxy URL.
+     */
+    @Pure
+    default String getUrl( final Attachment value ) {
+        return value.getUrl();
+    }
+
+    /**
+     * @implSpec Fetches the attachment from the {@link #getUrl(Attachment) URL} using a 
+     *           client obtained by {@link HttpClient#create()} then delegates to
+     *           {@link #parse(CommandContext, HttpClientResponse, ByteBufMono)}.
+     */
+    @Override
+    default Mono<T> parseArgument( final CommandContext context, final Attachment raw ) 
+            throws InvalidArgumentException {
+
         return HttpClient.create().get()
-                .uri( raw.getUrl() )
+                .uri( getUrl( raw ) )
                 .responseSingle( ( response, body ) -> parse( context, response, body ) );
 
     }

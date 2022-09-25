@@ -998,7 +998,7 @@ public final class Parsers {
     ) implements IntegerParser<T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final Long raw ) 
+        public Mono<T> parseArgument( final CommandContext context, final Long raw ) 
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );
@@ -1024,7 +1024,7 @@ public final class Parsers {
     ) implements FloatParser<T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final Double raw ) 
+        public Mono<T> parseArgument( final CommandContext context, final Double raw ) 
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );
@@ -1047,7 +1047,7 @@ public final class Parsers {
     ) implements StringParser<T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final String raw ) 
+        public Mono<T> parseArgument( final CommandContext context, final String raw ) 
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );
@@ -1068,7 +1068,7 @@ public final class Parsers {
     ) implements AttachmentParser<T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final Attachment raw ) 
+        public Mono<T> parseArgument( final CommandContext context, final Attachment raw ) 
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );
@@ -1160,7 +1160,7 @@ public final class Parsers {
     ) implements SnowflakeParser<T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final Snowflake raw )
+        public Mono<T> parseArgument( final CommandContext context, final Snowflake raw )
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );
@@ -1184,7 +1184,7 @@ public final class Parsers {
     ) implements ChannelArgumentParser<C, T> {
 
         @Override
-        public Mono<T> parse( final CommandContext context, final C raw )
+        public Mono<T> parseArgument( final CommandContext context, final C raw )
                 throws InvalidArgumentException {
 
             return parser.parse( context, raw );

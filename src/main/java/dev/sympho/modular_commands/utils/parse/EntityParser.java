@@ -5,7 +5,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
-import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.ParserFunction;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Entity;
@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public abstract class EntityParser<E extends @NonNull Entity> implements StringParser<E> {
+public abstract class EntityParser<E extends @NonNull Entity> implements ParserFunction<String, E> {
 
     /**
      * Parses a snowflake ID from an argument string.

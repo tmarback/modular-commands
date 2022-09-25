@@ -241,19 +241,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /* Argument parsing */
 
     /**
-     * Validates that a raw argument is appropriate before parsing.
-     *
-     * @param <R> The raw type.
-     * @param parser The parser.
-     * @param raw The raw value.
-     * @return The raw value.
-     * @throws InvalidArgumentException if the raw value is not valid.
-     */
-    @Pure
-    protected abstract <R extends @NonNull Object> R validateRaw( ArgumentParser<R, ?> parser,
-            R raw ) throws InvalidArgumentException;
-
-    /**
      * Parses an argument.
      *
      * @param <R> The raw argument type.
@@ -264,12 +251,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
      *         if it is missing.
+     * @throws InvalidArgumentException if the raw value is invalid.
      */
     @SideEffectFree
     private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseAsyncArgument(
             final Parameter<T> parameter,
             final Function<String, Mono<R>> getter,
-            final ArgumentParser<R, T> parser ) {
+            final ArgumentParser<R, T> parser 
+    ) throws InvalidArgumentException {
 
         return getter.apply( parameter.name() )
                 .flatMap( raw -> parser.parse( this, raw ) );
@@ -287,12 +276,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
      *         if it is missing.
+     * @throws InvalidArgumentException if the raw value is invalid.
      */
     @SideEffectFree
     private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseArgument(
             final Parameter<T> parameter,
             final Function<String, @Nullable R> getter,
-            final ArgumentParser<R, T> parser ) {
+            final ArgumentParser<R, T> parser 
+    ) throws InvalidArgumentException {
 
         final var raw = getter.apply( parameter.name() );
         return raw == null ? Mono.empty() : parser.parse( this, raw );
@@ -309,12 +300,13 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
      *         if it is missing.
+     * @throws InvalidArgumentException if the raw value is invalid.
      * @apiNote Channel gets an additional wrapper in order to carry the C generic.
      */
     private <C extends @NonNull Channel, T extends @NonNull Object> Mono<T> parseArgument(
             final Parameter<T> parameter,
             final ChannelArgumentParser<C, T> parser
-    ) {
+    ) throws InvalidArgumentException {
 
         return parseAsyncArgument(
                 parameter, 
@@ -329,9 +321,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      *
      * @param <T> The parsed argument type.
      * @param parameter The parameter to parse.
-     * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
-     *         if the raw value is invalid or is missing (and is required), and may be empty
-     *         if the argument was not provided (and is not required and has no default).
+     * @return A Mono that issues the parsed argument. May fail with a 
+     *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
+     *         if it is missing.
      */
     @SideEffectFree
     @SuppressWarnings( { "JavadocMethod", "unchecked" } ) // Ignore undeclared exception

@@ -3,7 +3,6 @@ package dev.sympho.modular_commands.api.command.parameter.parse;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * Parses number-based input arguments.
@@ -45,11 +44,11 @@ public sealed interface NumberParser<P extends @NonNull Number & Comparable<P>,
      * Verifies that the given value is within the allowed range for this parser.
      *
      * @param value The value to validate.
+     * @return The value.
      * @throws InvalidArgumentException If the value is outside the allowed range.
-     * @apiNote Implementations do not need to call this method.
      */
-    @SideEffectFree
-    default void verifyInRange( final P value ) throws InvalidArgumentException {
+    @Pure
+    default P verifyInRange( final P value ) throws InvalidArgumentException {
 
         final var min = minimum();
         final var max = maximum();
@@ -62,31 +61,13 @@ public sealed interface NumberParser<P extends @NonNull Number & Comparable<P>,
             throw new InvalidArgumentException( value + " is above the maximum value of " + max );
         }
 
+        return value;
+
     }
 
-    /**
-     * The raw type.
-     *
-     * @return The type.
-     * @apiNote This method exists only for {@link #verifyInRangeCast(Object)}.
-     */
-    @Pure
-    Class<P> rawType();
-
-    /**
-     * Verifies that the given value is one of the allowed choices, casting it to the
-     * raw type first.
-     *
-     * @param value The value to validate.
-     * @throws InvalidArgumentException If the value is not a valid choice.
-     * @throws ClassCastException If given value is not of the correct type.
-     * @apiNote This method should be avoided as much as possible. It exists only because
-     *          Generics interacts incredibly poorly with {@code instanceof} and everything
-     *          is a compiler error that can't be overriden.
-     */
-    default void verifyInRangeCast( final Object value ) 
-            throws ClassCastException, InvalidArgumentException {
-        verifyInRange( rawType().cast( value ) );
+    @Override
+    default P validateRaw( final P raw ) throws InvalidArgumentException {
+        return verifyInRange( ChoicesParser.super.validateRaw( raw ) );
     }
     
 }
