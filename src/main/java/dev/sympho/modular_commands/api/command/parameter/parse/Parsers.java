@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.common.value.qual.IntRange;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.ChoicesParser.Choice;
@@ -42,8 +43,10 @@ public final class Parsers {
      * @param context The context.
      * @param raw The raw value.
      * @return A mono that issues the raw value.
+     * @apiNote This method may be used as a {@link ParserFunction} using a method reference.
      */
-    private static <R extends @NonNull Object> Mono<R> raw( 
+    @SideEffectFree
+    public static <R extends @NonNull Object> Mono<R> raw( 
             final CommandContext context, final R raw ) {
         return Mono.just( raw );
     }
@@ -56,6 +59,7 @@ public final class Parsers {
      * @param maximum The maximum value (inclusive).
      * @throws IllegalArgumentException if the range is invalid.
      */
+    @SideEffectFree
     private static <P extends @NonNull Comparable<? super P>> void validateRange( 
             final P minimum, final P maximum ) throws IllegalArgumentException {
 
@@ -76,6 +80,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The adapted parser.
      */
+    @SideEffectFree
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> global( final Function<R, Mono<T>> parser ) {
         return ( ctx, raw ) -> parser.apply( raw );
@@ -89,6 +94,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The adapted parser.
      */
+    @SideEffectFree
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> sync( final BiFunction<CommandContext, R, T> parser ) {
         return ( ctx, raw ) -> Mono.just( parser.apply( ctx, raw ) );
@@ -103,6 +109,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The adapted parser.
      */
+    @SideEffectFree
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> sync( final Function<R, T> parser ) {
         return global( parser.andThen( Mono::just ) );
@@ -118,6 +125,7 @@ public final class Parsers {
      * @param choices The choice mappings.
      * @return The parser.
      */
+    @SideEffectFree
     private static <P extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<P, T> choiceParser( final List<Map.Entry<Choice<P>, T>> choices ) {
 
@@ -136,6 +144,7 @@ public final class Parsers {
      * @param choices The choice mappings.
      * @return The choices.
      */
+    @SideEffectFree
     private static <P extends @NonNull Object> List<Choice<P>> choiceEntries( 
             final List<? extends Map.Entry<Choice<P>, ?>> choices ) {
 
@@ -152,6 +161,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static IntegerParser<Long> integer() {
         return integer( Parsers::raw );
     }
@@ -163,6 +173,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> integer( 
             final ParserFunction<Long, T> parser ) {
 
@@ -176,6 +187,7 @@ public final class Parsers {
      * @param choices The allowed values.
      * @return The parser.
      */
+    @SideEffectFree
     public static IntegerParser<Long> integer( final List<Choice<Long>> choices ) {
 
         return new IntegerParserImpl<>( 
@@ -193,6 +205,7 @@ public final class Parsers {
      * @param choices The choices.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> choiceInteger( 
             final List<Map.Entry<Choice<Long>, T>> choices ) {
 
@@ -211,6 +224,7 @@ public final class Parsers {
      * @param minimum The minimum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static IntegerParser<Long> integerAbove( final long minimum ) {
         return integerAbove( minimum, Parsers::raw );
     }
@@ -224,6 +238,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> integerAbove( final long minimum, 
             final ParserFunction<Long, T> parser ) {
 
@@ -238,6 +253,7 @@ public final class Parsers {
      * @param maximum The maximum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static IntegerParser<Long> integerBelow( final long maximum ) {
         return integerBelow( maximum, Parsers::raw );
     }
@@ -251,6 +267,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> integerBelow( final long maximum, 
             final ParserFunction<Long, T> parser ) {
 
@@ -266,6 +283,7 @@ public final class Parsers {
      * @param maximum The maximum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static IntegerParser<Long> integerBetween( final long minimum, final long maximum ) {
         return integerBetween( minimum, maximum, Parsers::raw );
     }
@@ -280,6 +298,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> integerBetween( 
             final long minimum, final long maximum, 
             final ParserFunction<Long, T> parser ) {
@@ -297,6 +316,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static FloatParser<Double> number() {
         return number( Parsers::raw );
     }
@@ -308,6 +328,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> number( 
             final ParserFunction<Double, T> parser ) {
 
@@ -321,6 +342,7 @@ public final class Parsers {
      * @param choices The allowed values.
      * @return The parser.
      */
+    @SideEffectFree
     public static FloatParser<Double> number( final List<Choice<Double>> choices ) {
 
         return new FloatParserImpl<>( 
@@ -338,6 +360,7 @@ public final class Parsers {
      * @param choices The choices.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> numberChoice( 
             final List<Map.Entry<Choice<Double>, T>> choices ) {
 
@@ -356,6 +379,7 @@ public final class Parsers {
      * @param minimum The minimum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static FloatParser<Double> numberAbove( final double minimum ) {
         return numberAbove( minimum, Parsers::raw );
     }
@@ -369,6 +393,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> numberAbove( final double minimum, 
             final ParserFunction<Double, T> parser ) {
 
@@ -383,6 +408,7 @@ public final class Parsers {
      * @param maximum The maximum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static FloatParser<Double> numberBelow( final double maximum ) {
         return numberBelow( maximum, Parsers::raw );
     }
@@ -396,6 +422,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> numberBelow( final double maximum, 
             final ParserFunction<Double, T> parser ) {
 
@@ -411,6 +438,7 @@ public final class Parsers {
      * @param maximum The maximum value allowed (inclusive).
      * @return The parser.
      */
+    @SideEffectFree
     public static FloatParser<Double> numberBetween( final double minimum, final double maximum ) {
         return numberBetween( minimum, maximum, Parsers::raw );
     }
@@ -425,6 +453,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> numberBetween( 
             final double minimum, final double maximum, 
             final ParserFunction<Double, T> parser ) {
@@ -441,6 +470,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static StringParser<String> string() {
         return string( Parsers::raw );
     }
@@ -452,6 +482,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> StringParser<T> string( 
             final ParserFunction<String, T> parser ) {
 
@@ -465,6 +496,7 @@ public final class Parsers {
      * @param choices The allowed values.
      * @return The parser.
      */
+    @SideEffectFree
     public static StringParser<String> string( final List<Choice<String>> choices ) {
 
         return new StringParserImpl<>( 
@@ -481,6 +513,7 @@ public final class Parsers {
      * @param choices The choices.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> StringParser<T> stringChoice( 
             final List<Map.Entry<Choice<String>, T>> choices ) {
 
@@ -498,6 +531,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static AttachmentParser<Attachment> attachment() {
         return attachment( Parsers::raw );
     }
@@ -509,6 +543,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> AttachmentParser<T> attachment(
             final ParserFunction<Attachment, T> parser
     ) {
@@ -529,6 +564,7 @@ public final class Parsers {
      * @throws IllegalArgumentException if the size is negative.
      * @apiNote Validation is applied before fetching the attachment data.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> AttachmentDataParser<T> attachment(
             final AttachmentParserStages.Validator validator,
             final @IntRange( from = 0 ) int maxSize,
@@ -557,6 +593,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> AttachmentDataParser<T> attachment(
             final @IntRange( from = 0 ) int maxSize,
             final AttachmentParserStages.Parser<T> parser
@@ -575,6 +612,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> AttachmentDataParser<T> attachment(
             final AttachmentParserStages.Parser<T> parser
     ) {
@@ -592,6 +630,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> TextFileParser<T> textFile(
             final @IntRange( from = 0 ) int maxSize,
             final ParserFunction<String, T> parser
@@ -609,6 +648,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> TextFileParser<T> textFile(
             final ParserFunction<String, T> parser
     ) {
@@ -623,6 +663,7 @@ public final class Parsers {
      * @param maxSize The maximum file size allowed.
      * @return The parser.
      */
+    @SideEffectFree
     public static TextFileParser<String> textFile( final @IntRange( from = 0 ) int maxSize ) {
 
         return textFile( maxSize, Parsers::raw );
@@ -634,6 +675,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static TextFileParser<String> textFile() {
 
         return textFile( Integer.MAX_VALUE );
@@ -653,6 +695,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> SnowflakeParser<T> snowflake( 
             final ParserFunction<Snowflake, T> parser
     ) {
@@ -671,6 +714,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static SnowflakeParser<Snowflake> snowflake() {
 
         return snowflake( Parsers::raw );
@@ -693,6 +737,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> SnowflakeParser<T> userId( 
             final ParserFunction<Snowflake, T> parser
     ) {
@@ -715,6 +760,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static SnowflakeParser<Snowflake> userId() {
 
         return userId( Parsers::raw );
@@ -737,6 +783,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> SnowflakeParser<T> roleId( 
             final ParserFunction<Snowflake, T> parser
     ) {
@@ -759,6 +806,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static SnowflakeParser<Snowflake> roleId() {
 
         return roleId( Parsers::raw );
@@ -781,6 +829,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> SnowflakeParser<T> channelId( 
             final ParserFunction<Snowflake, T> parser
     ) {
@@ -803,6 +852,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static SnowflakeParser<Snowflake> channelId() {
 
         return channelId( Parsers::raw );
@@ -816,6 +866,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static UserArgumentParser<User> user() {
 
         return user( Parsers::raw );
@@ -829,6 +880,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> UserArgumentParser<T> user(
             final ParserFunction<User, T> parser
     ) {
@@ -842,6 +894,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static RoleArgumentParser<Role> role() {
 
         return role( Parsers::raw );
@@ -855,6 +908,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> RoleArgumentParser<T> role(
             final ParserFunction<Role, T> parser
     ) {
@@ -868,6 +922,7 @@ public final class Parsers {
      *
      * @return The parser.
      */
+    @SideEffectFree
     public static MessageArgumentParser<Message> message() {
 
         return message( Parsers::raw );
@@ -881,6 +936,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <T extends @NonNull Object> MessageArgumentParser<T> message(
             final ParserFunction<Message, T> parser
     ) {
@@ -896,6 +952,7 @@ public final class Parsers {
      * @param type The channel type.
      * @return The parser.
      */
+    @SideEffectFree
     public static <C extends @NonNull Channel> ChannelArgumentParser<C, C> channel( 
             final Class<C> type ) {
 
@@ -912,6 +969,7 @@ public final class Parsers {
      * @param parser The parser to use.
      * @return The parser.
      */
+    @SideEffectFree
     public static <C extends @NonNull Channel, T extends @NonNull Object> 
             ChannelArgumentParser<C, T> channel( final Class<C> type,
             final ParserFunction<C, T> parser
