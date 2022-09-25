@@ -132,7 +132,7 @@ public final class InvocationUtils {
      * @param parameter The parameter.
      * @return If the parameter is always satisfied.
      */
-    private static boolean satisfied( final Parameter<?, ?> parameter ) {
+    private static boolean satisfied( final Parameter<?> parameter ) {
 
         return parameter.required() || parameter.defaultValue() != null;
 

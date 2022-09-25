@@ -155,7 +155,7 @@ public sealed interface CommandContext extends AccessValidator
      */
     @Pure
     default <T extends @NonNull Object> @Nullable T getArgument( 
-            Parameter<? extends T, ?> parameter, Class<T> argumentType )
+            Parameter<? extends T> parameter, Class<T> argumentType )
             throws IllegalArgumentException, ClassCastException {
 
         return getArgument( parameter.name(), argumentType );
@@ -210,7 +210,7 @@ public sealed interface CommandContext extends AccessValidator
      */
     @Pure
     default <T extends @NonNull Object> T requireArgument( 
-            Parameter<? extends T, ?> parameter, Class<T> argumentType ) 
+            Parameter<? extends T> parameter, Class<T> argumentType ) 
             throws IllegalArgumentException, ClassCastException, NullPointerException {
 
         return requireArgument( parameter.name(), argumentType );

@@ -92,7 +92,7 @@ abstract class CommandBuilder<
     protected @MonotonicNonNull String description;
 
     /** The command parameters. */
-    protected List<Parameter<?, ?>> parameters;
+    protected List<Parameter<?>> parameters;
 
     /** The group that a user must have access for. */
     protected Group requiredGroup;
@@ -324,7 +324,7 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF withParameters( final @Nullable List<Parameter<?, ?>> parameters ) {
+    public SELF withParameters( final @Nullable List<Parameter<?>> parameters ) {
 
         final var params = new LinkedList<>( 
                 Objects.requireNonNullElse( parameters, Collections.emptyList() )
@@ -343,7 +343,7 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF addParameter( final Parameter<?, ?> parameter ) {
+    public SELF addParameter( final Parameter<?> parameter ) {
 
         this.parameters.add( Objects.requireNonNull( parameter, "Parameter cannot be null." ) );
         return self();

@@ -9,7 +9,7 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
  * @version 1.0
  * @since 1.0
  */
-public record CommandFailureArgumentMissing( Parameter<?, ?> parameter ) 
+public record CommandFailureArgumentMissing( Parameter<?> parameter ) 
         implements CommandFailureArgument {
 
     @Override

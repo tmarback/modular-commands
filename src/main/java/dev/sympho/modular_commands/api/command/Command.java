@@ -149,7 +149,7 @@ public sealed interface Command
      *          make the optional parameter required.
      */
     @Pure
-    List<Parameter<?, ?>> parameters();
+    List<Parameter<?>> parameters();
 
     /**
      * The group that a user must have access for in order to invoke this command.

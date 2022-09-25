@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -20,10 +19,18 @@ import org.slf4j.LoggerFactory;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.context.LazyContext;
-import dev.sympho.modular_commands.api.command.parameter.AttachmentParameter;
-import dev.sympho.modular_commands.api.command.parameter.InputParameter;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.ChannelArgumentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.FloatParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.IntegerParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.MessageArgumentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.RoleArgumentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.UserArgumentParser;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
@@ -31,8 +38,13 @@ import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
+import dev.sympho.modular_commands.utils.parse.MessageParser;
+import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Attachment;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.Role;
+import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
@@ -55,8 +67,11 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /** An argument that is missing. */
     private static final Argument ARG_MISSING = new Argument( null );
 
+    /** Parser for messages. */
+    private static final MessageParser MESSAGE_PARSER = new MessageParser();
+
     /** The command parameters in the order that they should be received. */
-    private final List<? extends Parameter<?, ?>> parameters;
+    private final List<Parameter<?>> parameters;
 
     /** The invocation that triggered this context. */
     private final Invocation invocation;
@@ -89,7 +104,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @param parameters The command parameters.
      * @param access The validator to use for access checks.
      */
-    protected ContextImpl( final Invocation invocation, final List<Parameter<?, ?>> parameters,
+    protected ContextImpl( final Invocation invocation, final List<Parameter<?>> parameters,
             final AccessValidator access ) {
 
         this.parameters = List.copyOf( parameters );
@@ -114,13 +129,105 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      */
     protected abstract Mono<ReplyManager> makeReplyManager();
 
+    /* Argument getters */
+
     /**
-     * Retrieves the input argument associated with the parameter of the given name.
+     * Retrieves the string argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated input argument.
+     * @return The associated string argument.
+     * @throws InvalidArgumentException if the received argument is not a valid string.
      */
-    protected abstract @Nullable A getInputArgument( String name );
+    @SideEffectFree
+    protected abstract @Nullable String getStringArgument( String name ) 
+            throws InvalidArgumentException;
+
+    /**
+     * Retrieves the integer argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated integer argument.
+     * @throws InvalidArgumentException if the received argument is not a valid integer.
+     */
+    @SideEffectFree
+    protected abstract @Nullable Long getIntegerArgument( String name ) 
+            throws InvalidArgumentException;
+
+    /**
+     * Retrieves the float argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated float argument.
+     * @throws InvalidArgumentException if the received argument is not a valid float.
+     */
+    @SideEffectFree
+    protected abstract @Nullable Double getFloatArgument( String name ) 
+            throws InvalidArgumentException;
+
+    /**
+     * Retrieves the snowflake argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @param type The ID type.
+     * @return The associated snowflake argument.
+     * @throws InvalidArgumentException if the received argument is not a valid snowflake.
+     */
+    @SideEffectFree
+    protected abstract @Nullable Snowflake getSnowflakeArgument( String name, 
+            SnowflakeParser.Type type ) throws InvalidArgumentException;
+
+    /**
+     * Retrieves the user argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated user argument. May fail with an {@link InvalidArgumentException}
+     *         if the received argument is not a valid user.
+     */
+    @SideEffectFree
+    protected abstract Mono<User> getUserArgument( String name );
+
+    /**
+     * Retrieves the role argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated role argument. May fail with an {@link InvalidArgumentException}
+     *         if the received argument is not a valid role.
+     */
+    @SideEffectFree
+    protected abstract Mono<Role> getRoleArgument( String name );
+
+    /**
+     * Retrieves the channel argument associated with the parameter of the given name.
+     *
+     * @param <C> The channel type.
+     * @param name The parameter name.
+     * @param type The channel type.
+     * @return The associated channel argument. May fail with an {@link InvalidArgumentException}
+     *         if the received argument is not a valid channel of the given type.
+     */
+    @SideEffectFree
+    protected abstract <C extends @NonNull Channel> Mono<C> getChannelArgument( String name, 
+            Class<C> type );
+
+    /**
+     * Retrieves the message argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated message argument. May fail with an {@link InvalidArgumentException}
+     *         if the received argument is not a valid message.
+     * @implSpec By default, parses a string argument of the same name.
+     */
+    @SideEffectFree
+    protected Mono<Message> getMessageArgument( final String name ) {
+
+        try {
+            final var raw = getStringArgument( name );
+            return raw == null ? Mono.empty() : MESSAGE_PARSER.parse( this, raw );
+        } catch ( final InvalidArgumentException ex ) {
+            return Mono.error( new InvalidArgumentException( "Not a valid channel", ex ) );
+        }
+
+    }
 
     /**
      * Retrieves the attachment argument associated with the parameter of the given name.
@@ -128,39 +235,140 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @param name The parameter name.
      * @return The associated attachment argument.
      */
+    @SideEffectFree
     protected abstract @Nullable Attachment getAttachmentArgument( String name );
 
-    /**
-     * Parses an input argument.
-     *
-     * @param <T> The argument type.
-     * @param parameter The parameter specification.
-     * @param raw The raw argument.
-     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may 
-     *         fail with a {@link InvalidArgumentException}.
-     * @throws InvalidArgumentException if the raw value was invalid.
-     */
-    protected abstract <T extends @NonNull Object> Mono<T> parseInputArgument( 
-            InputParameter<T> parameter, A raw ) 
-            throws InvalidArgumentException;
+    /* Argument parsing */
 
     /**
-     * Parses an attachment argument.
+     * Validates that a raw argument is appropriate before parsing.
      *
-     * @param <T> The argument type.
-     * @param parameter The parameter specification.
-     * @param raw The raw argument.
-     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may 
-     *         fail with a {@link InvalidArgumentException}.
-     * @throws InvalidArgumentException if the raw value was invalid.
-     * @implSpec Delegates to the parameter itself.
+     * @param <R> The raw type.
+     * @param parser The parser.
+     * @param raw The raw value.
+     * @return The raw value.
+     * @throws InvalidArgumentException if the raw value is not valid.
      */
-    protected <T extends @NonNull Object> Mono<T> parseAttachmentArgument( 
-            final AttachmentParameter<T> parameter, final Attachment raw ) 
-            throws InvalidArgumentException {
+    @Pure
+    protected abstract <R extends @NonNull Object> R validateRaw( ArgumentParser<R, ?> parser,
+            R raw ) throws InvalidArgumentException;
 
-        return parameter.parse( this, raw );
-        
+    /**
+     * Parses an argument.
+     *
+     * @param <R> The raw argument type.
+     * @param <T> The parsed argument type.
+     * @param parameter The parameter specification.
+     * @param getter The function to use to get the raw argument.
+     * @param parser The parser to use.
+     * @return A Mono that issues the parsed argument. May fail with a 
+     *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
+     *         if it is missing.
+     */
+    @SideEffectFree
+    private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseAsyncArgument(
+            final Parameter<T> parameter,
+            final Function<String, Mono<R>> getter,
+            final ArgumentParser<R, T> parser ) {
+
+        return getter.apply( parameter.name() )
+                .flatMap( raw -> parser.parse( this, raw ) );
+
+    }
+
+    /**
+     * Parses an argument.
+     *
+     * @param <R> The raw argument type.
+     * @param <T> The parsed argument type.
+     * @param parameter The parameter specification.
+     * @param getter The function to use to get the raw argument.
+     * @param parser The parser to use.
+     * @return A Mono that issues the parsed argument. May fail with a 
+     *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
+     *         if it is missing.
+     */
+    @SideEffectFree
+    private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseArgument(
+            final Parameter<T> parameter,
+            final Function<String, @Nullable R> getter,
+            final ArgumentParser<R, T> parser ) {
+
+        final var raw = getter.apply( parameter.name() );
+        return raw == null ? Mono.empty() : parser.parse( this, raw );
+
+    }
+
+    /**
+     * Parses a channel argument.
+     *
+     * @param <C> The channel type.
+     * @param <T> The parsed argument type.
+     * @param parameter The parameter specification.
+     * @param parser The parser to use.
+     * @return A Mono that issues the parsed argument. May fail with a 
+     *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
+     *         if it is missing.
+     * @apiNote Channel gets an additional wrapper in order to carry the C generic.
+     */
+    private <C extends @NonNull Channel, T extends @NonNull Object> Mono<T> parseArgument(
+            final Parameter<T> parameter,
+            final ChannelArgumentParser<C, T> parser
+    ) {
+
+        return parseAsyncArgument(
+                parameter, 
+                name -> getChannelArgument( name, parser.type() ), 
+                parser 
+        );
+
+    }
+
+    /**
+     * Parses an argument.
+     *
+     * @param <T> The parsed argument type.
+     * @param parameter The parameter to parse.
+     * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
+     *         if the raw value is invalid or is missing (and is required), and may be empty
+     *         if the argument was not provided (and is not required and has no default).
+     */
+    @SideEffectFree
+    @SuppressWarnings( { "JavadocMethod", "unchecked" } ) // Ignore undeclared exception
+    private <T extends @NonNull Object> Mono<T> parseArgument( final Parameter<T> parameter ) {
+
+        // Note: Cannot use <T> directly in the instanceof because Generics
+        // is horribly limited and can't even realize that an ArgumentParser<T, ?> that is an 
+        // instance of AttachmentParser is, by definition, an instance of AttachmentParser<T> 
+        // (same for other types).
+        final var parser = parameter.parser();
+        if ( parser instanceof AttachmentParser<?> p ) {
+            return parseArgument( parameter, this::getAttachmentArgument, 
+                    ( AttachmentParser<T> ) p );
+        } else if ( parser instanceof StringParser<?> p ) {
+            return parseArgument( parameter, this::getStringArgument, ( StringParser<T> ) p );
+        } else if ( parser instanceof IntegerParser<?> p ) {
+            return parseArgument( parameter, this::getIntegerArgument, ( IntegerParser<T> ) p );
+        } else if ( parser instanceof FloatParser<?> p ) {
+            return parseArgument( parameter, this::getFloatArgument, ( FloatParser<T> ) p );
+        } else if ( parser instanceof SnowflakeParser<?> p ) {
+            return parseArgument( parameter, n -> getSnowflakeArgument( n, p.type() ), 
+                    ( SnowflakeParser<T> ) p );
+        } else if ( parser instanceof UserArgumentParser<?> p ) {
+            return parseAsyncArgument( parameter, this::getUserArgument, 
+                    ( UserArgumentParser<T> ) p );
+        } else if ( parser instanceof RoleArgumentParser<?> p ) {
+            return parseAsyncArgument( parameter, this::getRoleArgument, 
+                    ( RoleArgumentParser<T> ) p );
+        } else if ( parser instanceof ChannelArgumentParser<?, ?> p ) {
+            return parseArgument( parameter, ( ChannelArgumentParser<?, T> ) p );
+        } else if ( parser instanceof MessageArgumentParser<?> p ) {
+            return parseAsyncArgument( parameter, this::getMessageArgument, 
+                    ( MessageArgumentParser<T> ) p );
+        } else {
+            throw new IllegalArgumentException( "Unrecognized parser type: " + parser.getClass() );
+        }
+
     }
 
     /**
@@ -171,7 +379,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @return The wrapped result.
      */
     @SideEffectFree
-    private ResultException wrapInvalidParam( final Parameter<?, ?> parameter,
+    private ResultException wrapInvalidParam( final Parameter<?> parameter,
             final InvalidArgumentException exception ) {
 
         LOGGER.trace( "Invalid argument for parameter {}: {}", parameter, exception.getMessage() );
@@ -180,56 +388,22 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         return new ResultException( result );
 
     }
-    
-    /**
-     * Parses an argument, wrapping errors into a result (both in the method itself and
-     * in the resulting Mono).
-     *
-     * @param <R> The raw argument type.
-     * @param <T> The parsed argument type.
-     * @param <P> The parameter type.
-     * @param parameter The parameter specification.
-     * @param argument The raw argument.
-     * @param parser The parser to use.
-     * @return A Mono that issues the parsed argument. If the raw value is invalid, it may 
-     *         fail with a {@link ResultException}.
-     */
-    @SideEffectFree
-    private <R, T extends @NonNull Object, P extends Parameter<T, ?>> Mono<T> parseArgumentWrapped(
-                final P parameter, final R argument, final BiFunction<P, R, Mono<T>> parser ) {
-
-        try {
-            return parser.apply( parameter, argument ).onErrorMap( InvalidArgumentException.class,
-                    e -> wrapInvalidParam( parameter, e ) );
-        } catch ( final InvalidArgumentException e ) {
-            return Mono.error( wrapInvalidParam( parameter, e ) );
-        }
-        
-    }
 
     /**
-     * Parses an argument.
+     * Handles a missing argument by using the default or issuing a result, as specified by
+     * the parameter spec.
      *
-     * @param <R> The raw argument type.
-     * @param <T> The parsed argument type.
-     * @param <P> The parameter type.
-     * @param parameter The parameter specification.
-     * @param argumentGetter The function to use to get the raw argument.
-     * @param parser The parser to use.
-     * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
-     *         if the raw value is invalid or is missing (and is required), and may be empty
-     *         if the argument was not provided (and is not required and has no default).
+     * @param <T> The argument type.
+     * @param parameter The parameter whose argument is missing.
+     * @return A Mono that issues the default value, or fails with a {@link ResultException}
+     *         if the parameter is not allowed to be missing. May also be empty if there is
+     *         no default and the spec allows it.
      */
     @SideEffectFree
-    private <R, T extends @NonNull Object, P extends Parameter<T, ?>> Mono<T> parseArgument( 
-            final P parameter, 
-            final Function<String, @Nullable R> argumentGetter, 
-            final BiFunction<P, R, Mono<T>> parser ) {
+    private <T extends @NonNull Object> Mono<T> handleMissingArgument( 
+            final Parameter<T> parameter ) {
 
-        final var raw = argumentGetter.apply( parameter.name() );
-        if ( raw != null ) {
-            return parseArgumentWrapped( parameter, raw, parser );
-        } else if ( parameter.required() ) {
+        if ( parameter.required() ) {
             final var result = new CommandFailureArgumentMissing( parameter );
             return Mono.error( new ResultException( result ) );
         } else {
@@ -240,72 +414,27 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     /**
-     * Parses an input argument.
+     * Parses an argument, wrapping encountered invalid results and handling missing arguments.
      *
-     * @param <T> The argument type.
-     * @param parameter The parameter specification.
+     * @param <T> The parsed argument type.
+     * @param parameter The parameter to parse.
      * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
      *         if the raw value is invalid or is missing (and is required), and may be empty
      *         if the argument was not provided (and is not required and has no default).
      */
     @SideEffectFree
-    private <T extends @NonNull Object> Mono<T> parseArgument( 
-                final InputParameter<T> parameter ) {
+    private <T extends @NonNull Object> Mono<T> parseArgumentWrapped( 
+            final Parameter<T> parameter ) {
 
-        return parseArgument( parameter, 
-                this::getInputArgument, 
-                this::parseInputArgument 
-        );
-
-    }
-
-    /**
-     * Parses an attachment argument.
-     *
-     * @param <T> The argument type.
-     * @param parameter The parameter specification.
-     * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
-     *         if the raw value is invalid or is missing (and is required), and may be empty
-     *         if the argument was not provided (and is not required and has no default).
-     */
-    @SideEffectFree
-    private <T extends @NonNull Object> Mono<T> parseArgument( 
-                final AttachmentParameter<T> parameter ) {
-
-        return parseArgument( parameter, 
-                this::getAttachmentArgument, 
-                this::parseAttachmentArgument 
-        );
-
-    }
-
-    /**
-     * Parses an argument of any parameter type.
-     *
-     * @param <T> The argument type.
-     * @param parameter The parameter specification.
-     * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
-     *         if the raw value is invalid or is missing (and is required), and may be empty
-     *         if the argument was not provided (and is not required and has no default).
-     */
-    @SideEffectFree
-    @SuppressWarnings( { "JavadocMethod", "unchecked" } ) // Ignore undeclared exception
-    private <T extends @NonNull Object> Mono<T> parseArgumentAny( 
-            final Parameter<T, ?> parameter ) {
-
-        // Note: Cannot use <T> directly in the instanceof because Generics
-        // is horribly limited and can't even realize that a Parameter<T, ?> that is an 
-        // instance of InputParameter is, by definition, an instance of InputParameter<T> 
-        // (same for AttachmentParameter).
-        if ( parameter instanceof InputParameter<?> p ) {
-            return parseArgument( ( InputParameter<T> ) p );
-        } else if ( parameter instanceof AttachmentParameter<?> p ) {
-            return parseArgument( ( AttachmentParameter<T> ) p );
-        } else {
-            // Sanity check rather than an expected error so not declared
-            throw new IllegalArgumentException( "Unrecognized parameter type" );
+        try {
+            final var ex = InvalidArgumentException.class;
+            return parseArgument( parameter )
+                    .onErrorMap( ex, e -> wrapInvalidParam( parameter, e ) )
+                    .switchIfEmpty( Mono.defer( () -> handleMissingArgument( parameter ) ) );
+        } catch ( final InvalidArgumentException e ) {
+            return Mono.error( wrapInvalidParam( parameter, e ) );
         }
-
+        
     }
 
     /**
@@ -317,9 +446,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      *         (and is required).
      */
     @SideEffectFree
-    private Mono<Entry<String, Argument>> processArgument( final Parameter<?, ?> parameter ) {
+    private Mono<Entry<String, Argument>> processArgument( final Parameter<?> parameter ) {
 
-        return parseArgumentAny( parameter )
+        return parseArgumentWrapped( parameter )
                 .map( Argument::new )
                 .defaultIfEmpty( ARG_MISSING )
                 .map( a -> Map.entry( parameter.name(), a ) )
@@ -332,6 +461,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 } );
 
     }
+
+    /* Implementations */
 
     @Override
     public Invocation getInvocation() {

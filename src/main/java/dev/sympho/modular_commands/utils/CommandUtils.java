@@ -165,20 +165,23 @@ public final class CommandUtils {
     /**
      * Validates the parameters of a command.
      *
-     * @param <P> The parameter type.
      * @param parameters The parameters to validate.
      * @return An immutable copy of the validated parameter list, in the same order as given.
      * @throws IllegalArgumentException if the parameter list is not valid.
      */
     @SideEffectFree
-    public static <P extends Parameter<?, ?>> List<P> validateParameters( 
-            final List<P> parameters ) throws IllegalArgumentException {
+    public static List<Parameter<?>> validateParameters( 
+            final List<Parameter<?>> parameters ) throws IllegalArgumentException {
 
         Objects.requireNonNull( parameters, "Parameter list cannot be null." );
         boolean optional = false;
         for ( final var p : parameters ) {
 
             Objects.requireNonNull( p, "Parameter specification cannot be null." );
+            Objects.requireNonNull( p.name(), "Parameter name cannot be null." );
+            Objects.requireNonNull( p.description(), "Parameter description cannot be null." );
+            Objects.requireNonNull( p.parser(), "Parameter parser cannot be null." );
+            
             if ( !p.required() ) {
                 optional = true;
             } else if ( optional ) {

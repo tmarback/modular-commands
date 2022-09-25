@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.permission.Groups;
@@ -18,10 +19,8 @@ import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
+import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
 import dev.sympho.modular_commands.utils.builder.command.TextCommandBuilder;
-import dev.sympho.modular_commands.utils.builder.parameter.ChannelParameterBuilder;
-import dev.sympho.modular_commands.utils.builder.parameter.StringParameterBuilder;
-import dev.sympho.modular_commands.utils.builder.parameter.TextFileParameterBuilder;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -83,18 +82,20 @@ public class TestBot {
      */
     private static Command parrotCommand() {
 
+        final var param = new ParameterBuilder<String>()
+                .withName( "message" )
+                .withDescription( "The message to repeat" )
+                .withRequired( true )
+                .withParser( Parsers.string() )
+                .build();
+
         return new TextCommandBuilder()
                 .withName( "parrot" )
                 .withDisplayName( "Parrot Command" )
                 .withDescription( "Responds with what you said" )
-                .addParameter( new StringParameterBuilder()
-                    .withName( "message" )
-                    .withDescription( "The message to repeat" )
-                    .withRequired( true )
-                    .build()
-                )
+                .addParameter( param )
                 .withInvocationHandler( c -> {
-                    final String message = c.requireArgument( "message", String.class );
+                    final String message = c.requireArgument( param, String.class );
                     final String response = String.format( "You said: %s", message );
                     return sendMessage( c, response );
                 } )
@@ -109,18 +110,20 @@ public class TestBot {
      */
     private static Command tweetCommand() {
 
+        final var param = new ParameterBuilder<Channel>()
+                .withName( "channel" )
+                .withDescription( "The channel to send to" )
+                .withRequired( true )
+                .withParser( Parsers.channel( Channel.class ) )
+                .build();
+
         return new TextCommandBuilder()
                 .withName( "tweet" )
                 .withDisplayName( "Tweet Command" )
                 .withDescription( "Says something in a channel" )
-                .addParameter( new ChannelParameterBuilder()
-                    .withName( "channel" )
-                    .withDescription( "The channel to send to" )
-                    .withRequired( true )
-                    .build()
-                )
+                .addParameter( param )
                 .withInvocationHandler( ctx -> {
-                    final Channel c = ctx.requireArgument( "channel", Channel.class );
+                    final Channel c = ctx.requireArgument( param, Channel.class );
                     if ( c instanceof MessageChannel ch ) {
                         return ch.createMessage( "Tweet" )
                                 .then( Results.successMono( "Sent." ) );
@@ -214,11 +217,11 @@ public class TestBot {
      */
     private static Command fileTextCommand() {
 
-        final var param = new TextFileParameterBuilder()
+        final var param = new ParameterBuilder<String>()
                 .withName( "file" )
                 .withDescription( "The file to read" )
                 .withRequired( true )
-                .withMaxSize( SizeUtils.kilo( 1 ) + 100 )
+                .withParser( Parsers.textFile( SizeUtils.kilo( 1 ) + 100 ) )
                 .build();
 
         return new TextCommandBuilder()

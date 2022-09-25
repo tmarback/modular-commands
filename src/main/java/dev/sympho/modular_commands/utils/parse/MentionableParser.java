@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.api.command.parameter;
+package dev.sympho.modular_commands.utils.parse;
 
 import java.util.Optional;
 
@@ -9,14 +9,13 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Entity;
 
 /**
- * Specification for a parameter that receives Discord entities that can be mentioned.
+ * A parser that extracts a mentionable entity from a string.
  *
- * @param <T> The entity type.
+ * @param <E> The entity type.
  * @version 1.0
  * @since 1.0
  */
-public sealed interface MentionableParameter<T extends Entity> extends EntityParameter<T>
-        permits ChannelParameter, RoleParameter, UserParameter {
+public abstract class MentionableParser<E extends Entity> extends EntityParser<E> {
 
     /**
      * Parses the entity ID from a text mention.
@@ -26,7 +25,8 @@ public sealed interface MentionableParameter<T extends Entity> extends EntityPar
      * @return The ID in the mention.
      * @throws InvalidArgumentException if the mention was invalid.
      */
-    static Optional<String> parseMention( final String mention, final String prefix ) 
+    @SideEffectFree
+    public static Optional<String> parseMention( final String mention, final String prefix ) 
             throws InvalidArgumentException {
 
         if ( mention.startsWith( prefix ) ) {
@@ -45,10 +45,13 @@ public sealed interface MentionableParameter<T extends Entity> extends EntityPar
      * @throws InvalidArgumentException if the mention was invalid.
      */
     @SideEffectFree
-    String parseMention( String mention ) throws InvalidArgumentException;
+    public abstract String parseMention( String mention ) throws InvalidArgumentException;
 
+    /**
+     * @implSpec Supports both plain IDs and mentions by default.
+     */
     @Override
-    default Snowflake parseId( final String raw ) throws InvalidArgumentException {
+    public Snowflake extractId( final String raw ) throws InvalidArgumentException {
 
         final String id;
         if ( raw.startsWith( "<" ) && raw.endsWith( ">" ) ) {
@@ -57,7 +60,7 @@ public sealed interface MentionableParameter<T extends Entity> extends EntityPar
             id = raw;
         }
 
-        return EntityParameter.super.parseId( id );
+        return super.extractId( id );
 
     }
     

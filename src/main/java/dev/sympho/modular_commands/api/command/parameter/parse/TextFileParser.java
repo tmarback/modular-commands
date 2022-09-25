@@ -22,7 +22,7 @@ import reactor.netty.http.client.HttpClientResponse;
  * @since 1.0
  */
 @FunctionalInterface
-public interface TextFileParser<T extends @NonNull Object> extends AttachmentParser<T> {
+public interface TextFileParser<T extends @NonNull Object> extends AttachmentDataParser<T> {
 
     /**
      * @implSpec Verifies that the attachment is a text file (any type of MIME text file,

@@ -1,11 +1,7 @@
 package dev.sympho.modular_commands.api.command.parameter;
 
-import java.io.Serializable;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 
@@ -19,47 +15,19 @@ import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
  * Discord API specification</a> for command parameters.
  *
  * @param <T> The type of argument that is provided.
- * @param <R> The type of raw argument that is received.
+ * @param name The name of the parameter.
+ * @param description The description of the parameter.
+ * @param required Whether the parameter must be provided to invoke the command.
+ * @param defaultValue The default value for the parameter.
+ * @param parser The parser to use to process received arguments.
  * @version 1.0
  * @since 1.0
  */
 // END LONG LINES
-public sealed interface Parameter<T extends @NonNull Object, R extends @NonNull Object>
-        extends Serializable, ArgumentParser<R, T> permits InputParameter, AttachmentParameter {
-
-    /**
-     * The name of the parameter.
-     *
-     * @return The name.
-     */
-    @Pure
-    String name();
-
-    /**
-     * The description of the parameter.
-     *
-     * @return The description.
-     * @apiNote The description must have between 1 and 100 characters.
-     */
-    @Pure
-    String description();
-
-    /**
-     * Whether the parameter must be provided to invoke the command.
-     *
-     * @return {@code true} if the parameter is required, {@code false} otherwise.
-     */
-    @Pure
-    boolean required();
-
-    /**
-     * The default value for the parameter.
-     *
-     * @return The default value, or {@code null} if no default.
-     * @apiNote If the parameter is {@link #required() required}, then this
-     *          value has no effect.
-     */
-    @SideEffectFree
-    @Nullable T defaultValue();
-    
-}
+public record Parameter<T extends @NonNull Object>(
+        String name,
+        String description,
+        boolean required,
+        @Nullable T defaultValue,
+        ArgumentParser<?, T> parser
+) {}
