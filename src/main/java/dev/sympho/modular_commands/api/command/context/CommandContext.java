@@ -32,8 +32,7 @@ import reactor.util.function.Tuple2;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface CommandContext extends AccessValidator 
-        permits LazyContext, MessageCommandContext, InteractionCommandContext {
+public interface CommandContext extends AccessValidator {
 
     /**
      * Retrieves the event that triggered the command.

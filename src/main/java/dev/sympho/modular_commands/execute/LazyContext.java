@@ -1,5 +1,6 @@
-package dev.sympho.modular_commands.api.command.context;
+package dev.sympho.modular_commands.execute;
 
+import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import reactor.core.publisher.Mono;
 
@@ -14,7 +15,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public non-sealed interface LazyContext extends CommandContext {
+public interface LazyContext extends CommandContext {
 
     /**
      * Partially initializes internal state, making the context minimally ready for

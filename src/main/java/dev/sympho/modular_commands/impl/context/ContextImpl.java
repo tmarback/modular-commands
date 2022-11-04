@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
-import dev.sympho.modular_commands.api.command.context.LazyContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
@@ -37,6 +36,7 @@ import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.execute.LazyContext;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
 import dev.sympho.modular_commands.utils.parse.MessageParser;
 import discord4j.common.util.Snowflake;

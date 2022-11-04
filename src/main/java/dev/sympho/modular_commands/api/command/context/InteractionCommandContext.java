@@ -11,8 +11,7 @@ import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEven
  * @version 1.0
  * @since 1.0
  */
-public sealed interface InteractionCommandContext extends CommandContext
-        permits SlashCommandContext {
+public interface InteractionCommandContext extends CommandContext {
 
     /**
      * Same as {@link #getEvent()}. This method only exists because

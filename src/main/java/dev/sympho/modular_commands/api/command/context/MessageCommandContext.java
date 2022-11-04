@@ -13,7 +13,7 @@ import discord4j.core.object.entity.Message;
  * @version 1.0
  * @since 1.0
  */
-public non-sealed interface MessageCommandContext extends CommandContext {
+public interface MessageCommandContext extends CommandContext {
 
     /**
      * Same as {@link #getEvent()}. This method only exists because

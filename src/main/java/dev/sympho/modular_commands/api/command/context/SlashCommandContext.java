@@ -11,7 +11,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
  * @version 1.0
  * @since 1.0
  */
-public non-sealed interface SlashCommandContext extends InteractionCommandContext {
+public interface SlashCommandContext extends InteractionCommandContext {
 
     /**
      * Same as {@link #getInteractionEvent()}. This method only exists because
