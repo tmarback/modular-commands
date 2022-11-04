@@ -2,13 +2,13 @@ package dev.sympho.modular_commands.utils;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
+import reactor.core.publisher.Flux;
 
 /**
  * A function that splits a string into multiple components.
@@ -33,14 +33,62 @@ public interface StringSplitter extends Function<String, List<String>> {
     }
 
     /**
-     * A splitter that uses a shell-like splitting algorithm, where components are separated
-     * by spaces, with the option of one or more components being delimited by quotes (single
-     * or double) to allow for the inclusion of spaces.
+     * A splitter that is capable of processing the split in an asynchoronous manner.
      *
      * @version 1.0
      * @since 1.0
      */
-    class Shell implements StringSplitter {
+    interface Async extends StringSplitter {
+
+        /**
+         * Takes the next element from the current state.
+         *
+         * @param state The current processing state.
+         * @param sink The sink to send the next element into.
+         * @return The new state.
+         */
+        String takeNext( String state, Consumer<String> sink );
+
+        @Override
+        default List<String> split( String raw ) {
+
+            final List<String> components = new LinkedList<>();
+            while ( !raw.isEmpty() ) {
+
+                raw = takeNext( raw, components::add );
+
+            }
+            return List.copyOf( components );
+    
+        }
+
+        /**
+         * Splits the given string into components. Splitting is performed asynchronously
+         * as requests are received from downstream.
+         *
+         * @param raw The string to split.
+         * @return The split components.
+         */
+        @SideEffectFree
+        default Flux<String> splitAsync( final String raw ) {
+
+            return Flux.generate( () -> raw, ( state, sink ) -> takeNext( state, sink::next ) );
+
+        }
+
+    }
+
+    /**
+     * A splitter that uses a shell-like splitting algorithm, where components are separated
+     * by spaces, with the option of one or more components being delimited by quotes (single
+     * or double) to allow for the inclusion of spaces.
+     * 
+     * <p>Leading and trailing whitespace is ignored.
+     *
+     * @version 1.0
+     * @since 1.0
+     */
+    class Shell implements Async {
 
         /** Creates a new instance. */
         public Shell() {}
@@ -48,15 +96,15 @@ public interface StringSplitter extends Function<String, List<String>> {
         /**
          * Finds the index of the next whitespace character in the given string.
          *
-         * @param message The message to look into.
+         * @param value The string to look into.
          * @return The index of the first whitespace, or -1 if none were found.
          * @implSpec This method does not consider extended Unicode.
          */
         @Pure
-        private static int nextWhitespace( final String message ) {
-
-            for ( int i = 0; i < message.length(); i++ ) {
-                if ( Character.isWhitespace( message.charAt( i ) ) ) {
+        private static int nextWhitespace( final String value ) {
+            
+            for ( int i = 0; i < value.length(); i++ ) {
+                if ( Character.isWhitespace( value.charAt( i ) ) ) {
                     return i;
                 }
             }
@@ -65,26 +113,26 @@ public interface StringSplitter extends Function<String, List<String>> {
         }
 
         /**
-         * Finds the index of the next closing delimiter character in the given message.
+         * Finds the index of the next closing delimiter character in the given string.
          * 
          * <p>A closing delimiter must be followed by either a space or the end of the
          * message. The first character is ignored, as it is assumed to be the opening
          * delimiter.
          *
-         * @param message The message to look into.
+         * @param value The string to look into.
          * @param delim The delimiter character to look for.
          * @return The index of the delimiter, or -1 if one was not found.
          * @implSpec This method does not consider extended Unicode.
          */
         @Pure
-        private static int nextClose( final String message, final Character delim ) {
+        private static int nextClose( final String value, final Character delim ) {
 
             int cur = 1;
             while ( cur >= 0 ) {
 
-                cur = message.indexOf( delim, cur );
-                if ( cur >= 0 && ( cur == message.length() - 1
-                        || Character.isWhitespace( message.charAt( cur + 1 ) ) ) ) {
+                cur = value.indexOf( delim, cur );
+                if ( cur >= 0 && ( cur == value.length() - 1
+                        || Character.isWhitespace( value.charAt( cur + 1 ) ) ) ) {
                     return cur;
                 }
 
@@ -93,63 +141,38 @@ public interface StringSplitter extends Function<String, List<String>> {
 
         }
 
-        /**
-         * Parses the next arg from the message.
-         * 
-         * <p>Args are delimited by whitespace characters, unless enclosed by quotes (single
-         * or double).
-         *
-         * @param message The message to parse.
-         * @return A tuple with the next arg, and the remainder of the message (in that
-         *         order).
-         * @implSpec This method does not consider extended Unicode.
-         */
-        @SideEffectFree
-        private static Tuple2<String, String> nextArg( final String message ) {
+        @Override
+        public String takeNext( final String state, final Consumer<String> sink ) {
+
+            final String current = state.trim();
+            if ( current.isEmpty() ) {
+                return current;
+            }
 
             int startIdx = 1;
             int endIdx;
             final int nextStart;
 
-            if ( message.startsWith( "\"" ) ) {
-                endIdx = nextClose( message, '"' );
-            } else if ( message.startsWith( "'" ) ) {
-                endIdx = nextClose( message, '\'' );
+            if ( current.startsWith( "\"" ) ) {
+                endIdx = nextClose( current, '"' );
+            } else if ( current.startsWith( "'" ) ) {
+                endIdx = nextClose( current, '\'' );
             } else {
                 startIdx = 0;
-                endIdx = nextWhitespace( message );
+                endIdx = nextWhitespace( current );
             }
 
             if ( endIdx < 0 ) {
                 startIdx = 0;
-                endIdx = message.length();
-                nextStart = message.length();
+                endIdx = current.length();
+                nextStart = current.length();
             } else {
                 nextStart = endIdx + 1;
             }
 
-            return Tuples.of( message.substring( startIdx, endIdx ),
-                    message.substring( nextStart ).trim() );
+            sink.accept( current.substring( startIdx, endIdx ) );
+            return current.substring( nextStart ).trim();
 
-        }
-    
-        @Override
-        public List<String> split( String raw ) {
-
-            raw = raw.trim();
-            final List<String> args = new LinkedList<>();
-
-            while ( !raw.isEmpty() ) {
-
-                final var next = nextArg( raw );
-
-                args.add( next.getT1() );
-                raw = next.getT2();
-
-            }
-    
-            return List.copyOf( args );
-    
         }
 
     }
