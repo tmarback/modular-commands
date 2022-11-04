@@ -3,14 +3,13 @@ package dev.sympho.modular_commands.api.command.parameter.parse;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.common.value.qual.IntRange;
+import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
@@ -77,13 +76,15 @@ public final class Parsers {
      *
      * @param <R> The raw type received.
      * @param <T> The parsed argument type.
-     * @param parser The parser to use.
-     * @return The adapted parser.
+     * @param parser The parserto use.
+     * @return The parser.
+     * @apiNote This is a convenience for adapting functions that do not quite 
+     *          match the interface.
      */
-    @SideEffectFree
+    @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
-            ParserFunction<R, T> global( final Function<R, Mono<T>> parser ) {
-        return ( ctx, raw ) -> parser.apply( raw );
+            ParserFunction<R, T> functor( final Functor<R, T> parser ) {
+        return parser;
     }
 
     /**
@@ -92,12 +93,14 @@ public final class Parsers {
      * @param <R> The raw type received.
      * @param <T> The parsed argument type.
      * @param parser The parser to use.
-     * @return The adapted parser.
+     * @return The parser.
+     * @apiNote This is a convenience for adapting functions that do not quite 
+     *          match the interface.
      */
-    @SideEffectFree
+    @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
-            ParserFunction<R, T> sync( final BiFunction<CommandContext, R, T> parser ) {
-        return ( ctx, raw ) -> Mono.just( parser.apply( ctx, raw ) );
+            ParserFunction<R, T> sync( final Synchronous<R, T> parser ) {
+        return parser;
     }
 
     /**
@@ -107,12 +110,14 @@ public final class Parsers {
      * @param <R> The raw type received.
      * @param <T> The parsed argument type.
      * @param parser The parser to use.
-     * @return The adapted parser.
+     * @return The parser.
+     * @apiNote This is a convenience for adapting functions that do not quite 
+     *          match the interface.
      */
-    @SideEffectFree
+    @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
-            ParserFunction<R, T> sync( final Function<R, T> parser ) {
-        return global( parser.andThen( Mono::just ) );
+            ParserFunction<R, T> simple( final Simple<R, T> parser ) {
+        return parser;
     }
 
     /* Choices utils */
@@ -133,7 +138,7 @@ public final class Parsers {
                 .collect( Collectors.toMap( e -> e.getKey().value(), Map.Entry::getValue ) );
 
         // System guarantees it will be a valid choice by this point
-        return sync( choice -> NullnessUtil.castNonNull( mapping.get( choice ) ) );
+        return simple( choice -> NullnessUtil.castNonNull( mapping.get( choice ) ) );
 
     }
 
@@ -976,6 +981,99 @@ public final class Parsers {
     ) {
 
         return new ChannelParserImpl<>( type, parser );
+
+    }
+
+    /* Parser adapters */
+
+    /**
+     * A parser that does not depend on the invocation context.
+     *
+     * @param <T> The type of argument that is provided.
+     * @param <R> The type of raw argument that is received.
+     * @version 1.0
+     * @since 1.0
+     */
+    public interface Functor<R extends @NonNull Object, T extends @NonNull Object> 
+            extends ParserFunction<R, T> {
+
+        /**
+         * Parses the given raw argument from the user into the corresponding value.
+         *
+         * @param raw The raw argument received from the user.
+         * @return A Mono that issues the parsed argument. If the raw value is invalid, it may
+         *         fail with a {@link InvalidArgumentException}.
+         * @throws InvalidArgumentException if the given argument is not a valid value.
+         */
+        @SideEffectFree
+        Mono<T> parse( R raw ) throws InvalidArgumentException;
+
+        @Override
+        default Mono<T> parse( final CommandContext context, final R raw ) 
+                throws InvalidArgumentException {
+            return parse( raw );
+        }
+
+    }
+
+    /**
+     * A parser that executes synchronously.
+     *
+     * @param <T> The type of argument that is provided.
+     * @param <R> The type of raw argument that is received.
+     * @version 1.0
+     * @since 1.0
+     */
+    public interface Synchronous<R extends @NonNull Object, T extends @NonNull Object> 
+            extends ParserFunction<R, T> {
+
+        /**
+         * Parses the given raw argument from the user into the corresponding value.
+         *
+         * @param context The execution context.
+         * @param raw The raw argument received from the user.
+         * @return The parsed argument. If the raw value is invalid, it may
+         *         fail with a {@link InvalidArgumentException}.
+         * @throws InvalidArgumentException if the given argument is not a valid value.
+         */
+        @SideEffectFree
+        T parseNow( CommandContext context, R raw ) throws InvalidArgumentException;
+
+        @Override
+        default Mono<T> parse( final CommandContext context, final R raw ) 
+                throws InvalidArgumentException {
+            return Mono.just( parseNow( context, raw ) );
+        }
+
+    }
+
+    /**
+     * A parser that executes synchronously and does not depend on the invocation context.
+     *
+     * @param <T> The type of argument that is provided.
+     * @param <R> The type of raw argument that is received.
+     * @version 1.0
+     * @since 1.0
+     */
+    public interface Simple<R extends @NonNull Object, T extends @NonNull Object> 
+            extends ParserFunction<R, T> {
+
+        /**
+         * Parses the given raw argument from the user into the corresponding value.
+         *
+         * @param raw The raw argument received from the user.
+         * @return The parsed argument. If the raw value is invalid, it may
+         *         fail with a {@link InvalidArgumentException}.
+         * @throws InvalidArgumentException if the given argument is not a valid value.
+         */
+        @SideEffectFree
+        T parseNow( R raw ) throws InvalidArgumentException;
+
+        @Override
+        default Mono<T> parse( final CommandContext context, final R raw ) 
+                throws InvalidArgumentException {
+            return Mono.just( parseNow( raw ) );
+        }
 
     }
 
