@@ -108,7 +108,9 @@ public class MessageCommandExecutor extends CommandExecutor {
             final String message = event.getMessage().getContent();
             final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
 
-            if ( message.startsWith( prefix ) ) {
+            if ( Character.isWhitespace( message.codePointAt( 0 ) ) ) {
+                return Collections.emptyList();
+            } if ( message.startsWith( prefix ) ) {
                 return splitter.split( message.substring( prefix.length() ).trim() );
             } else {
                 return Collections.emptyList();
