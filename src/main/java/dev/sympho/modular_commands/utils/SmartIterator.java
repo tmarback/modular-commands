@@ -8,8 +8,10 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.checkerframework.checker.nullness.qual.EnsuresNonNullIf;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import reactor.core.publisher.Flux;
@@ -24,13 +26,67 @@ import reactor.core.publisher.Flux;
  */
 public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
 
+    /** Exception message for when there are no more elements. */
+    String NO_MORE_ELEMENTS_ERROR = "No more elements";
+
+    /**
+     * The empty iterator.
+     *
+     * @see #empty()
+     */
+    @SuppressWarnings( "rawtypes" )
+    SmartIterator.Detachable EMPTY = new SmartIterator.Detachable() {
+
+        @Override
+        public Object next() throws NoSuchElementException {
+            throw new NoSuchElementException( NO_MORE_ELEMENTS_ERROR );
+        }
+
+        @Override
+        public @Nullable Object peek() {
+            return null;
+        }
+
+        @Override
+        public Detachable toIterator() {
+            return this;
+        }
+
+        @Override
+        public Spliterator toSpliterator() {
+            return Spliterators.emptySpliterator();
+        }
+
+        @Override
+        public Stream toStream() {
+            return Stream.empty();
+        }
+
+        @Override
+        public Flux toFlux() {
+            return Flux.empty();
+        }
+
+    };
+
+    /**
+     * Returns an empty iterator.
+     *
+     * @param <E> The element type.
+     * @return An empty iterator.
+     */
+    @SuppressWarnings( "unchecked" )
+    static <E extends @NonNull Object> SmartIterator.Detachable<E> empty() {
+        return ( SmartIterator.Detachable<E> ) EMPTY;
+    }
+
     /**
      * Retrives the element that will be returned by the next call to {@link #next()},
      * without advancing the iterator.
      *
      * @return The next element, or {@code null} if there are no elements remaining.
      */
-    @SideEffectFree
+    @Pure
     @Nullable E peek();
 
     /**
@@ -97,6 +153,7 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
     }
 
     @Override
+    @EnsuresNonNullIf( expression = "peek()", result = true )
     default boolean hasNext() {
 
         return peek() != null;
@@ -230,7 +287,7 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
                 next = backing.hasNext() ? backing.next() : null;
                 return res;
             } else {
-                throw new NoSuchElementException( "No more elements" );
+                throw new NoSuchElementException( NO_MORE_ELEMENTS_ERROR );
             }
 
         }

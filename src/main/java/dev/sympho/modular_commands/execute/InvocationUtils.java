@@ -22,6 +22,9 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.registry.Registry;
+import dev.sympho.modular_commands.utils.SmartIterator;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 /**
  * Utility functions for handling invocations.
@@ -35,34 +38,40 @@ public final class InvocationUtils {
     private InvocationUtils() {}
 
     /**
-     * Builds an execution chain from a sequence of args by performing lookups on the given
-     * registry.
+     * Extracts an invocation from a sequence of args by performing lookups on the given
+     * registry, while building the corresponding execution chain.
+     * 
+     * <p>After this method returns, the given {@code args} iterator will be positioned
+     * such that the next element is the first argument that did not match a subcommand
+     * (and thus the first proper argument).
      *
      * @param <C> The command type.
      * @param registry The registry to use for command lookups.
      * @param args The invocation args.
      * @param commandType The command type.
-     * @return The execution chain.
+     * @return The detected invocation and the corresponding execution chain.
      */
     @SideEffectFree
-    public static <C extends Command> List<C> makeChain( final Registry registry,
-            final List<String> args, final Class<? extends C> commandType ) {
+    public static <C extends Command> Tuple2<Invocation, List<C>> parseInvocation( 
+            final Registry registry, final SmartIterator<String> args, 
+            final Class<? extends C> commandType ) {
 
         final List<C> chain = new LinkedList<>();
         Invocation current = Invocation.of();
-        for ( final String arg : args ) {
+        while ( args.hasNext() ) {
 
-            final var next = current.child( arg );
+            final var next = current.child( args.peek() );
             final C command = registry.findCommand( next, commandType );
             if ( command == null ) {
                 break;
             } else {
                 chain.add( command );
                 current = current.child( command.name() );
+                args.next();
             }
 
         }
-        return new ArrayList<>( chain );
+        return Tuples.of( current, List.copyOf( chain ) );
 
     }
 

@@ -41,6 +41,22 @@ public interface StringSplitter extends Function<String, List<String>> {
     }
 
     /**
+     * Creates a smart iterator that iterates over the components obtained by splitting
+     * the given raw string. The returned iterator is functionally equivalent to calling
+     * {@link SmartIterator#from(List)} on the result of {@link #split(String)}, but
+     * may (depending on implementation) split components lazily on demand.
+     *
+     * @param raw The string to split.
+     * @return A smart iterator over the split components.
+     * @implSpec The default implementation delegates to {@link #split(String)} and
+                 {@link SmartIterator#from(List)}.
+     */
+    @SideEffectFree
+    default SmartIterator.Detachable<String> iterate( final String raw ) {
+        return SmartIterator.from( split( raw ) );
+    }
+
+    /**
      * A splitter that is capable of processing the split in an asynchoronous manner.
      *
      * @version 1.0
@@ -93,15 +109,9 @@ public interface StringSplitter extends Function<String, List<String>> {
         }
 
         /**
-         * Creates a smart iterator that iterates over the components obtained by splitting
-         * the given raw string. The returned iterator is functionally equivalent to calling
-         * {@link SmartIterator#from(List)} on the result of {@link #split(String)}, but
-         * splits components lazily on demand.
-         *
-         * @param raw The string to split.
-         * @return A smart iterator over the split components.
+         * @implNote Elements are split lazily on demand.
          */
-        @SideEffectFree
+        @Override
         default SmartIterator.Detachable<String> iterate( final String raw ) {
 
             // Reference to the next item to be retrieved

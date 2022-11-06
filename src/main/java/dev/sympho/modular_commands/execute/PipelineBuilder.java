@@ -24,6 +24,7 @@ import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
+import dev.sympho.modular_commands.utils.SmartIterator;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -224,11 +225,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * and subcommands, as well as any additional args, {@link #fullMatch() if allowed}.
      *
      * @param event The event to parse args from.
-     * @return The parsed args. The list may be empty if the message should not be handled
+     * @return The parsed args. May have no elements if the event should not be handled
      *         as a command.
      */
     @SideEffectFree
-    protected abstract List<String> parse( E event );
+    protected abstract SmartIterator<String> parse( E event );
 
     /**
      * Creates a command context from a parsed invocation.
@@ -419,25 +420,26 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
 
         return Mono.just( event )
                 .map( e -> Tuples.of( e, parse( e ) ) )
-                .filter( ctx -> !ctx.getT2().isEmpty() )
+                .filter( ctx -> ctx.getT2().hasNext() )
                 .map( ctx -> {
                     final E e = ctx.getT1();
-                    final List<String> args = ctx.getT2();
+                    final SmartIterator<String> args = ctx.getT2();
 
                     LOGGER.trace( "Parsed args {}", args );
 
-                    final List<C> chain = InvocationUtils.makeChain( 
+                    final var parsed = InvocationUtils.parseInvocation( 
                             registry, args, commandType() );
 
-                    final Invocation invocation = new Invocation( args.subList( 0, chain.size() ) );
+                    final Invocation invocation = parsed.getT1();
+                    final List<C> chain = parsed.getT2();
 
-                    final var remainder = args.subList( chain.size(), args.size() );
-                    if ( fullMatch() && !remainder.isEmpty() ) {
+                    if ( fullMatch() && args.hasNext() ) {
                         throw new IllegalStateException( 
-                            "No full match found: " + remainder.toString() 
-                            + " was leftover from " + args.toString()
+                            "No full match found: " + args.toStream().toList().toString()
+                            + " was leftover after " + invocation.toString()
                         );
                     }
+                    final var remainder = args.toStream().toList();
 
                     LOGGER.trace( "Matched invocation {}", invocation );
 

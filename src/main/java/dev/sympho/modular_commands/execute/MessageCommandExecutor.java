@@ -1,6 +1,5 @@
 package dev.sympho.modular_commands.execute;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +13,7 @@ import dev.sympho.modular_commands.api.command.handler.MessageResultHandler;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.impl.context.MessageContextImpl;
+import dev.sympho.modular_commands.utils.SmartIterator;
 import dev.sympho.modular_commands.utils.StringSplitter;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
@@ -109,18 +109,18 @@ public class MessageCommandExecutor extends CommandExecutor {
         }
     
         @Override
-        protected List<String> parse( final MessageCreateEvent event ) {
+        protected SmartIterator<String> parse( final MessageCreateEvent event ) {
 
             final String message = event.getMessage().getContent();
             if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
-                return Collections.emptyList();
+                return SmartIterator.empty();
             }
 
             final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
             if ( message.startsWith( prefix ) ) {
-                return splitter.split( message.substring( prefix.length() ).trim() );
+                return splitter.iterate( message.substring( prefix.length() ).trim() );
             } else {
-                return Collections.emptyList();
+                return SmartIterator.empty();
             }
     
         }
