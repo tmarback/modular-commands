@@ -21,6 +21,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -128,7 +129,7 @@ public class MessageCommandExecutor extends CommandExecutor {
         @Override
         protected MessageContextImpl makeContext( final MessageCreateEvent event,
                 final MessageCommand command, final Invocation invocation, 
-                final List<String> args ) {
+                final Flux<String> args ) {
 
             final var access = accessValidator( event );
             return new MessageContextImpl( event, invocation, command.parameters(), args, access );

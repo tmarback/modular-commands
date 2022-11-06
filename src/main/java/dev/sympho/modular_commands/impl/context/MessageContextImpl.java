@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Streams;
 
-import org.apache.commons.collections4.ListUtils;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -40,6 +40,7 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -60,7 +61,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     private final MessageCreateEvent event;
 
     /** The received inline arguments. */
-    private final List<String> args;
+    private final Flux<String> arguments;
 
     /** The arguments received as text. */
     private @MonotonicNonNull Map<String, String> inputArgs;
@@ -80,13 +81,13 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      *                         arguments.
      */
     public MessageContextImpl( final MessageCreateEvent event, final Invocation invocation,
-            final List<Parameter<?>> parameters, final List<String> args,
+            final List<Parameter<?>> parameters, final Flux<String> args,
             final AccessValidator access ) throws ResultException {
 
         super( invocation, parameters, access );
 
         this.event = event;
-        this.args = args;
+        this.arguments = args;
 
     }
 
@@ -105,10 +106,15 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     private static <T> Map<String, T> assign( final List<? extends Parameter<?>> parameters,
             final List<T> arguments, final Function<T, String> toString ) throws ResultException {
 
-        final var pairs = Streams.zip( parameters.stream().map( Parameter::name ),
-                arguments.stream(), Map::entry );
-
-        final var merged = pairs.collect( Collectors.toMap( Entry::getKey, Entry::getValue ) );
+        final var merged = Streams.zip( 
+                    parameters.stream().map( Parameter::name ),
+                    arguments.stream(), 
+                    Map::entry 
+                )
+                .collect( Collectors.toMap( 
+                    Entry::getKey, 
+                    Entry::getValue 
+                ) );
 
         if ( merged.size() < arguments.size() ) {
 
@@ -118,6 +124,32 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
         }
 
         return merged;
+
+    }
+
+    /**
+     * Merges a group of string arguments into one, if allowed.
+     *
+     * @param group The group of arguments.
+     * @param param The corresponding parameter.
+     * @return The merged group. If the parameter is not a string parameter,
+     *         the group is not merged and is returned as-is.
+     */
+    @SideEffectFree
+    private static Flux<String> merge( final Flux<String> group, final Parameter<?> param ) {
+
+        if ( !( param.parser() instanceof StringParser<?> ) ) {
+            return group;
+        }
+
+        return group.defaultIfEmpty( "" ) // Default should never happen but just in case
+                .log()
+                .reduceWith( 
+                        StringBuilder::new, 
+                        ( builder, next ) -> builder.append( " " ).append( next )
+                )
+                .map( b -> b.substring( 1 ) )
+                .flux();
 
     }
 
@@ -132,32 +164,20 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @return The adjusted raw arguments.
      */
     @SideEffectFree
-    private static List<String> adjustArgs( final List<Parameter<?>> parameters,
-            final List<String> args ) {
+    private static Flux<String> adjustArgs( final List<Parameter<?>> parameters,
+            final Flux<String> args ) {
 
-        if ( args.size() <= parameters.size() ) {
-
-            return args;
-
-        }
-
-        if ( parameters.isEmpty() ) {
-
-            return args;
-
-        }
-
-        final var last = parameters.size() - 1;
-        if ( parameters.get( last ).parser() instanceof StringParser<?> ) {
-
-            final List<String> head = args.subList( 0, last );
-            final List<String> tail = args.subList( last, args.size() );
-            final String expandedLast = String.join( " ", tail );
-            return ListUtils.union( head, List.of( expandedLast ) );
-
-        }
-
-        return args;
+        final AtomicInteger count = new AtomicInteger();
+        return args.log().windowUntil( 
+                        arg -> count.incrementAndGet() == parameters.size(),
+                        true 
+                )
+                .log()
+                .index()
+                .flatMapSequential( g -> g.getT1() == 0 
+                    ? g.getT2() 
+                    : merge( g.getT2(), parameters.get( parameters.size() - 1 ) )
+                );
 
     }
 
@@ -171,13 +191,16 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
             final var attachmentParams = parameters.stream()
                     .filter( p -> p.parser() instanceof AttachmentParser<?> ).toList();
 
-            final var adjustedArgs = adjustArgs( inputParams, args );
-            this.inputArgs = assign( inputParams, adjustedArgs, Function.identity() );
-
             final var attachments = event.getMessage().getAttachments();
             this.attachmentArgs = assign( attachmentParams, attachments, Attachment::getFilename );
 
-            return Mono.empty();
+            return adjustArgs( inputParams, arguments )
+                    .collectList()
+                    .map( args -> assign( inputParams, args, Function.identity() ) )
+                    .doOnNext( args -> { 
+                        this.inputArgs = args; 
+                    } )
+                    .then();
 
         } );
 

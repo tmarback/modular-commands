@@ -245,7 +245,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      */
     @SideEffectFree
     protected abstract CTX makeContext( E event, C command, Invocation invocation, 
-            List<String> args );
+            Flux<String> args );
 
     /**
      * Retrieves the ID of the guild where the command was invoked, if any, from the
@@ -376,7 +376,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return {@code true} if the invocation is valid and the command should be executed.
      */
     @Pure
-    private boolean checkScope( final Tuple4<E, List<C>, Invocation, List<String>> payload ) {
+    private boolean checkScope( final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
 
         final E event = payload.getT1();
         final List<C> chain = payload.getT2();
@@ -394,7 +394,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return {@code true} if the invocation is valid and the command should be executed.
      */
     @Pure
-    private boolean checkCallable( final Tuple4<E, List<C>, Invocation, List<String>> payload ) {
+    private boolean checkCallable( final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
 
         final List<C> chain = payload.getT2();
 
@@ -415,7 +415,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return A Mono that issues the parsed command, if any. 
      */
     @SideEffectFree
-    private Mono<Tuple4<E, List<C>, Invocation, List<String>>> parseEvent( 
+    private Mono<Tuple4<E, List<C>, Invocation, Flux<String>>> parseEvent( 
             final E event, final Registry registry ) {
 
         return Mono.just( event )
@@ -439,7 +439,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                             + " was leftover after " + invocation.toString()
                         );
                     }
-                    final var remainder = args.toStream().toList();
+                    final var remainder = args.toFlux();
 
                     LOGGER.trace( "Matched invocation {}", invocation );
 
@@ -536,12 +536,12 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return A Mono that issues the invocation result once execution has completed.
      */
     private Mono<Tuple3<C, CTX, CommandResult>> executeCommand( 
-            final Tuple4<E, List<C>, Invocation, List<String>> payload ) {
+            final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
 
         final E event = payload.getT1();
         final List<C> chain = payload.getT2();
         final Invocation invocation = payload.getT3();
-        final List<String> args = payload.getT4();
+        final Flux<String> args = payload.getT4();
 
         final C command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
