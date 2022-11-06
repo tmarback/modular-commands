@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -71,7 +72,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     private static final MessageParser MESSAGE_PARSER = new MessageParser();
 
     /** The command parameters in the order that they should be received. */
-    private final List<Parameter<?>> parameters;
+    protected final List<Parameter<?>> parameters;
 
     /** The invocation that triggered this context. */
     private final Invocation invocation;
@@ -454,6 +455,15 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
     }
 
+    /* Initialization */
+
+    /**
+     * Performs any required initialization at {@link #initialize()} time.
+     *
+     * @return A mono that completes when initialization is done.
+     */
+    protected abstract Mono<Void> init();
+
     /* Implementations */
 
     @Override
@@ -530,6 +540,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     @Override
+    @EnsuresCalledMethods( value = "this", methods = "init" )
     public Mono<Void> initialize() {
 
         if ( initialized.getAndSet( true ) ) {
@@ -547,7 +558,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .doOnNext( manager -> {
                     this.reply = manager;
                 } )
-                .then()
+                .then( init() )
                 .doOnSuccess( v -> initializeLatch.countDown() )
                 .doOnError( initializeLatch::fail )
                 .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
