@@ -2,9 +2,16 @@ package dev.sympho.modular_commands.utils;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -16,6 +23,7 @@ import reactor.core.publisher.Flux;
  * @version 1.0
  * @since 1.0
  */
+@FunctionalInterface
 public interface StringSplitter extends Function<String, List<String>> {
 
     /**
@@ -38,6 +46,7 @@ public interface StringSplitter extends Function<String, List<String>> {
      * @version 1.0
      * @since 1.0
      */
+    @FunctionalInterface
     interface Async extends StringSplitter {
 
         /**
@@ -72,7 +81,125 @@ public interface StringSplitter extends Function<String, List<String>> {
         @SideEffectFree
         default Flux<String> splitAsync( final String raw ) {
 
-            return Flux.generate( () -> raw, ( state, sink ) -> takeNext( state, sink::next ) );
+            return Flux.generate( () -> raw, ( state, sink ) -> {
+                if ( state.isEmpty() ) {
+                    sink.complete();
+                    return "";
+                } else {
+                    return takeNext( state, sink::next );
+                }
+            } );
+
+        }
+
+        /**
+         * Creates a smart iterator that iterates over the components obtained by splitting
+         * the given raw string. The returned iterator is functionally equivalent to calling
+         * {@link SmartIterator#from(List)} on the result of {@link #split(String)}, but
+         * splits components lazily on demand.
+         *
+         * @param raw The string to split.
+         * @return A smart iterator over the split components.
+         */
+        @SideEffectFree
+        default SmartIterator.Detachable<String> iterate( final String raw ) {
+
+            // Reference to the next item to be retrieved
+            // Didn't want to make it an instance variable of the anonymous class because
+            // of the dependency on the reference to initialize the state variable
+            final AtomicReference<@Nullable String> next = new AtomicReference<>();
+
+            return new SmartIterator.Detachable<String>() {
+
+                /** The current state (remaining content). */
+                private String state = takeNext( raw, next::set );
+
+                @Override
+                public String next() throws NoSuchElementException {
+
+                    final var n = next.getAndSet( null );
+                    if ( n == null ) {
+                        throw new NoSuchElementException( "No more elements" );
+                    }
+
+                    state = takeNext( state, next::set );
+                    return n;
+
+                }
+
+                @Override
+                public @Nullable String peek() {
+
+                    return next.get();
+
+                }
+
+                // Just delegate to splitter methods using current state
+
+                @Override
+                public SmartIterator.Detachable<String> toIterator() {
+
+                    return iterate( state );
+            
+                }
+
+                @Override
+                public Spliterator<String> toSpliterator() {
+
+                    return spliterate( state );
+            
+                }
+
+                @Override
+                public Stream<String> toStream() {
+
+                    return splitStream( state );
+
+                }
+
+                @Override
+                public Flux<String> toFlux() {
+
+                    return splitAsync( state );
+
+                }
+
+            };
+
+        }
+
+        /**
+         * Creates a spliterator that iterates over the components obtained by splitting
+         * the given raw string. The returned iterator is functionally equivalent to calling
+         * {@link List#spliterator()} on the result of {@link #split(String)}, but splits 
+         * components lazily on demand.
+         *
+         * @param raw The string to split.
+         * @return A spliterator over the split components.
+         */
+        @SideEffectFree
+        default Spliterator<String> spliterate( final String raw ) {
+
+            return Spliterators.spliteratorUnknownSize( 
+                    iterate( raw ), 
+                    Spliterator.IMMUTABLE | Spliterator.NONNULL | Spliterator.ORDERED 
+            );
+
+        }
+
+        /**
+         * Creates a stream that contains over the components obtained by splitting
+         * the given raw string. The returned iterator is functionally equivalent to calling
+         * {@link List#stream()} on the result of {@link #split(String)}, but splits 
+         * components lazily on demand.
+         *
+         * @param raw The string to split.
+         * @return A stream of the split components.
+         */
+        @SideEffectFree
+        default Stream<String> splitStream( final String raw ) {
+
+            return StreamSupport.stream( spliterate( raw ), false );
 
         }
 
