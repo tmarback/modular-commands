@@ -97,7 +97,7 @@ public class TestBot {
                 .withInvocationHandler( c -> {
                     final String message = c.requireArgument( param, String.class );
                     final String response = String.format( "You said: %s", message );
-                    return sendMessage( c, response );
+                    return c.reply( response ).thenReturn( Results.ok() );
                 } )
                 .build();
 

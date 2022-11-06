@@ -119,6 +119,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <version>3.4.24</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Make the compiler shut up about JSR305 tags -->
 
         <dependency>
@@ -315,7 +322,7 @@
                     <dependency>
                         <groupId>me.fabriciorby</groupId>
                         <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
-                        <version>0.2.0</version>
+                        <version>1.1.0</version>
                     </dependency>
 
                 </dependencies>
@@ -339,7 +346,7 @@
                     <dependency>
                         <groupId>me.fabriciorby</groupId>
                         <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
-                        <version>0.2.0</version>
+                        <version>1.1.0</version>
                     </dependency>
 
                 </dependencies>

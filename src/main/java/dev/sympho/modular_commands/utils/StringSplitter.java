@@ -116,13 +116,15 @@ public interface StringSplitter extends Function<String, List<String>> {
 
             // Reference to the next item to be retrieved
             // Didn't want to make it an instance variable of the anonymous class because
-            // of the dependency on the reference to initialize the state variable
+            // of the dependency on the reference to initialize the state variables
             final AtomicReference<@Nullable String> next = new AtomicReference<>();
 
             return new SmartIterator.Detachable<String>() {
 
-                /** The current state (remaining content). */
-                private String state = takeNext( raw, next::set );
+                /** The current state (not traversed yet) */
+                private String state = raw;
+                /** The next state (remaining to parse). */
+                private String nextState = takeNext( raw, next::set );
 
                 @Override
                 public String next() throws NoSuchElementException {
@@ -132,7 +134,8 @@ public interface StringSplitter extends Function<String, List<String>> {
                         throw new NoSuchElementException( "No more elements" );
                     }
 
-                    state = takeNext( state, next::set );
+                    state = nextState;
+                    nextState = takeNext( state, next::set );
                     return n;
 
                 }
