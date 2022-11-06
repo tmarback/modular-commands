@@ -110,7 +110,7 @@ public class MessageCommandExecutor extends CommandExecutor {
 
             if ( Character.isWhitespace( message.codePointAt( 0 ) ) ) {
                 return Collections.emptyList();
-            } if ( message.startsWith( prefix ) ) {
+            } else if ( message.startsWith( prefix ) ) {
                 return splitter.split( message.substring( prefix.length() ).trim() );
             } else {
                 return Collections.emptyList();
