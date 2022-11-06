@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.checkerframework.checker.optional.qual.Present;
 
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -94,7 +95,12 @@ public class MessageCommandExecutor extends CommandExecutor {
     
         @Override
         protected boolean eventFilter( final MessageCreateEvent event ) {
-            return event.getMessage().getAuthor().isPresent();
+            final var selfId = event.getClient().getSelfId();
+            return event.getMessage().getAuthor()
+                    .map( User::getId )
+                    .map( selfId::equals )
+                    .map( BooleanUtils::negate )
+                    .orElse( false );
         }
     
         @Override
@@ -106,11 +112,12 @@ public class MessageCommandExecutor extends CommandExecutor {
         protected List<String> parse( final MessageCreateEvent event ) {
 
             final String message = event.getMessage().getContent();
-            final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
-
-            if ( Character.isWhitespace( message.codePointAt( 0 ) ) ) {
+            if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
                 return Collections.emptyList();
-            } else if ( message.startsWith( prefix ) ) {
+            }
+
+            final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
+            if ( message.startsWith( prefix ) ) {
                 return splitter.split( message.substring( prefix.length() ).trim() );
             } else {
                 return Collections.emptyList();
