@@ -48,7 +48,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
-        <checker.version>3.25.0</checker.version> <!-- Version of the Checker framework used -->
+        <checker.version>3.27.0</checker.version> <!-- Version of the Checker framework used -->
         <d4j.version>3.2.2</d4j.version> <!-- Version of Discord4J used -->
     </properties>
 

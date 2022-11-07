@@ -34,7 +34,7 @@ public class CommandExecutor {
      * @param builder The builder to use for constructing the event processing pipeline.
      */
     protected CommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final PipelineBuilder<?, ?, ?, ?, ?> builder ) {
+            final PipelineBuilder<?, ?, ?> builder ) {
 
         pipeline = builder.buildPipeline( client, registry );
 

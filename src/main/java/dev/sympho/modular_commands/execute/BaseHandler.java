@@ -3,7 +3,7 @@ package dev.sympho.modular_commands.execute;
 import java.util.Objects;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.api.command.handler.AnyResultHandler;
+import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandFailureMessage;
@@ -27,10 +27,10 @@ import reactor.core.publisher.Mono;
 public final class BaseHandler {
 
     /** The initial/default base handler. */
-    public static final AnyResultHandler DEFAULT = BaseHandler::defaultHandler;
+    public static final ResultHandler<CommandContext> DEFAULT = BaseHandler::defaultHandler;
 
     /** The current base handler. */
-    private static AnyResultHandler base = DEFAULT;
+    private static ResultHandler<CommandContext> base = DEFAULT;
 
     /** The color to use for success embeds. */
     private static final Color COLOR_SUCCESS = Color.GREEN;
@@ -49,7 +49,7 @@ public final class BaseHandler {
      *
      * @return The base handler.
      */
-    public static AnyResultHandler get() {
+    public static ResultHandler<CommandContext> get() {
         return base;
     }
 
@@ -58,7 +58,7 @@ public final class BaseHandler {
      *
      * @param handler The new base handler.
      */
-    public static void set( final AnyResultHandler handler ) {
+    public static void set( final ResultHandler<CommandContext> handler ) {
         base = Objects.requireNonNull( handler );
     }
 

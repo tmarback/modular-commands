@@ -1,46 +1,44 @@
-package dev.sympho.modular_commands.utils.builder.command;
+package dev.sympho.modular_commands.utils.builder;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.dataflow.qual.Deterministic;
+import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
-import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
-import dev.sympho.modular_commands.api.command.handler.ResultHandler;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.handler.InteractionHandlers;
+import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
+import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
+import dev.sympho.modular_commands.api.command.handler.TextHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.permission.Groups;
+import dev.sympho.modular_commands.impl.CommandImpl;
 import dev.sympho.modular_commands.utils.CommandUtils;
-import dev.sympho.modular_commands.utils.builder.Builder;
 
 /**
- * Base for a command builder.
+ * Builder for commands.
  *
- * @param <C> The command type.
- * @param <IH> The command handler type.
- * @param <RH> The result handler type.
- * @param <SELF> The self type.
+ * @param <H> The handler type.
  * @see Command
  * @version 1.0
  * @since 1.0
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
-abstract class CommandBuilder<
-            C extends @NonNull Command,
-            IH extends @NonNull InvocationHandler,
-            RH extends @NonNull ResultHandler,
-            SELF extends @NonNull CommandBuilder<C, IH, RH, SELF>
-        > implements Builder<SELF> {
+public class CommandBuilder<H extends Handlers> {
 
     /* Defaults */
 
@@ -52,6 +50,9 @@ abstract class CommandBuilder<
 
     /** Default for {@link #requireGroup(Group)} ({@link Groups#EVERYONE}). */
     public static final Group DEFAULT_GROUP = Groups.EVERYONE;
+
+    /** Default for {@link #setSkipGroupCheckOnInteraction(boolean)}. */
+    public static final boolean DEFAULT_SKIP = true;
 
     /** Default for {@link #setRequireParentGroups(boolean)}. */
     public static final boolean DEFAULT_REQUIRE_PARENT_GROUPS = true;
@@ -85,6 +86,9 @@ abstract class CommandBuilder<
     /** The command name. */
     protected @MonotonicNonNull String name;
 
+    /** The command aliases. */
+    protected Set<String> aliases;
+
     /** The display name. */
     protected @MonotonicNonNull String displayName;
 
@@ -96,6 +100,9 @@ abstract class CommandBuilder<
 
     /** The group that a user must have access for. */
     protected Group requiredGroup;
+
+    /** Whether group access checking should be skipped. */
+    protected boolean skipGroupCheckOnInteraction;
 
     /** Whether to also require the parent command's groups. */
     protected boolean requireParentGroups;
@@ -115,33 +122,31 @@ abstract class CommandBuilder<
     /** Whether to execute the parent. */
     protected boolean invokeParent;
 
-    /** The handler to process invocations with. */
-    protected @MonotonicNonNull IH invocationHandler;
-
-    /** The handlers to process results with. */
-    protected List<RH> resultHandlers;
+    /** The handlers to process invocations with. */
+    protected @MonotonicNonNull H handlers;
 
     /**
      * Constructs a new builder with default values.
      */
     @SideEffectFree
-    protected CommandBuilder() {
+    public CommandBuilder() {
 
         this.scope = DEFAULT_SCOPE;
         this.callable = DEFAULT_CALLABLE;
         this.parent = Invocation.of();
         this.name = null;
+        this.aliases = new HashSet<>();
         this.displayName = null;
         this.parameters = new LinkedList<>();
         this.requiredGroup = DEFAULT_GROUP;
+        this.skipGroupCheckOnInteraction = DEFAULT_SKIP;
         this.requireParentGroups = DEFAULT_REQUIRE_PARENT_GROUPS;
         this.nsfw = DEFAULT_NSFW;
         this.privateReply = DEFAULT_PRIVATE;
         this.ephemeralReply = DEFAULT_EPHEMERAL;
         this.inheritSettings = DEFAULT_INHERIT;
         this.invokeParent = DEFAULT_INVOKE_PARENT;
-        this.invocationHandler = null;
-        this.resultHandlers = new LinkedList<>();
+        this.handlers = null;
 
     }
 
@@ -151,23 +156,24 @@ abstract class CommandBuilder<
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected CommandBuilder( final CommandBuilder<?, ? extends IH, ? extends RH, ?> base ) {
+    public CommandBuilder( final CommandBuilder<? extends H> base ) {
 
         this.scope = base.scope;
         this.callable = base.callable;
         this.parent = base.parent;
         this.name = base.name;
+        this.aliases = new HashSet<>( base.aliases );
         this.displayName = base.displayName;
         this.parameters = new LinkedList<>( base.parameters );
         this.requiredGroup = base.requiredGroup;
+        this.skipGroupCheckOnInteraction = base.skipGroupCheckOnInteraction;
         this.requireParentGroups = base.requireParentGroups;
         this.nsfw = base.nsfw;
         this.privateReply = base.privateReply;
         this.ephemeralReply = base.ephemeralReply;
         this.inheritSettings = base.inheritSettings;
         this.invokeParent = base.invokeParent;
-        this.invocationHandler = base.invocationHandler;
-        this.resultHandlers = new LinkedList<>( base.resultHandlers );
+        this.handlers = base.handlers;
 
     }
 
@@ -179,8 +185,7 @@ abstract class CommandBuilder<
      * @throws IllegalArgumentException if the given command has invalid values.
      */
     @SideEffectFree
-    @SuppressWarnings( { "unchecked", "assignment" } )
-    protected CommandBuilder( final C base ) throws IllegalArgumentException {
+    public CommandBuilder( final Command<? extends H> base ) throws IllegalArgumentException {
 
         CommandUtils.validateCommand( base );
 
@@ -188,19 +193,64 @@ abstract class CommandBuilder<
         this.callable = base.callable();
         this.parent = base.parent();
         this.name = base.name();
+        this.aliases = new HashSet<>( base.aliases() );
         this.displayName = base.displayName();
         this.parameters = new LinkedList<>( base.parameters() );
         this.requiredGroup = base.requiredGroup();
+        this.skipGroupCheckOnInteraction = base.skipGroupCheckOnInteraction();
         this.requireParentGroups = base.requireParentGroups();
         this.nsfw = base.nsfw();
         this.privateReply = base.privateReply();
         this.ephemeralReply = base.ephemeralReply();
         this.inheritSettings = base.inheritSettings();
         this.invokeParent = base.invokeParent();
-        this.invocationHandler = ( IH ) base.invocationHandler();
-        this.resultHandlers = new LinkedList<>( ( List<? extends RH> ) base.resultHandlers() );
+        this.handlers = base.handlers();
 
     }
+
+    /* Typed factories */
+
+    /**
+     * Creates a builder for a message-only command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    public static CommandBuilder<MessageHandlers> message() {
+        return new CommandBuilder<>();
+    }
+
+    /**
+     * Creates a builder for a slash-only command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    public static CommandBuilder<SlashHandlers> slash() {
+        return new CommandBuilder<>();
+    }
+
+    /**
+     * Creates a builder for a text (message and slash) command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    public static CommandBuilder<TextHandlers> text() {
+        return new CommandBuilder<>();
+    }
+
+    /**
+     * Creates a builder for an interaction command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    public static CommandBuilder<InteractionHandlers> interaction() {
+        return new CommandBuilder<>();
+    }
+
+    /* Building */
 
     /**
      * Sets the command scope.
@@ -212,10 +262,10 @@ abstract class CommandBuilder<
      * @see Command#scope()
      */
     @Deterministic
-    public SELF withScope( final @Nullable Scope scope ) {
+    public @This CommandBuilder<H> withScope( final @Nullable Scope scope ) {
 
         this.scope = Objects.requireNonNullElse( scope, DEFAULT_SCOPE );
-        return self();
+        return this;
 
     }
 
@@ -229,10 +279,10 @@ abstract class CommandBuilder<
      * @see Command#callable()
      */
     @Deterministic
-    public SELF withCallable( final boolean callable ) {
+    public @This CommandBuilder<H> withCallable( final boolean callable ) {
 
         this.callable = callable;
-        return self();
+        return this;
 
     }
 
@@ -247,11 +297,11 @@ abstract class CommandBuilder<
      * @see Command#parent()
      */
     @Deterministic
-    public SELF withParent( final @Nullable Invocation parent ) {
+    public @This CommandBuilder<H> withParent( final @Nullable Invocation parent ) {
 
         this.parent = CommandUtils.validateParent( 
                 Objects.requireNonNullElse( parent, Invocation.of() ) );
-        return self();
+        return this;
 
     }
 
@@ -267,10 +317,62 @@ abstract class CommandBuilder<
      * @see Command#name()
      */
     @Deterministic
-    public SELF withName( final String name ) {
+    public @This CommandBuilder<H> withName( final String name ) {
 
         this.name = CommandUtils.validateName( name );
-        return self();
+        return this;
+
+    }
+
+    /**
+     * Sets the aliases that a user should support.
+     * 
+     * <p>The default value is an empty set (no aliases).
+     *
+     * @param aliases The command aliases. If {@code null}, restores the default
+     *                value.
+     * @return This builder.
+     * @throws IllegalArgumentException if one of the aliases is not valid.
+     * @see MessageCommand#aliases()
+     */
+    @Deterministic
+    public @This CommandBuilder<H> withAliases( final @Nullable Set<String> aliases ) 
+            throws IllegalArgumentException {
+
+        this.aliases = new HashSet<>( CommandUtils.validateAliases(
+                Objects.requireNonNullElse( aliases, Collections.emptySet() ) ) );
+        return this;
+
+    }
+
+    /**
+     * Adds an alias to the command.
+     *
+     * @param alias The alias to add.
+     * @return This builder.
+     * @throws IllegalArgumentException if the alias is not valid.
+     * @see MessageCommand#aliases()
+     */
+    @Deterministic
+    public @This CommandBuilder<H> addAliases( final String alias ) 
+            throws IllegalArgumentException {
+
+        this.aliases.add( CommandUtils.validateAlias( alias ) );
+        return this;
+
+    }
+
+    /**
+     * Removes all aliases from the command.
+     *
+     * @return This builder.
+     * @see MessageCommand#aliases()
+     */
+    @Deterministic
+    public @This CommandBuilder<H> noAliases() {
+
+        this.aliases.clear();
+        return this;
 
     }
 
@@ -286,10 +388,10 @@ abstract class CommandBuilder<
      * @see Command#displayName()
      */
     @Deterministic
-    public SELF withDisplayName( final String name ) {
+    public @This CommandBuilder<H> withDisplayName( final String name ) {
 
         this.displayName = CommandUtils.validateDisplayName( name );
-        return self();
+        return this;
 
     }
 
@@ -306,10 +408,10 @@ abstract class CommandBuilder<
      * @see Command#description()
      */
     @Deterministic
-    public SELF withDescription( final String description ) {
+    public @This CommandBuilder<H> withDescription( final String description ) {
 
         this.description = CommandUtils.validateDescription( description );
-        return self();
+        return this;
 
     }
 
@@ -324,14 +426,14 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF withParameters( final @Nullable List<Parameter<?>> parameters ) {
+    public @This CommandBuilder<H> withParameters( final @Nullable List<Parameter<?>> parameters ) {
 
         final var params = new LinkedList<>( 
                 Objects.requireNonNullElse( parameters, Collections.emptyList() )
         );
         params.forEach( Objects::requireNonNull );
         this.parameters = params;
-        return self();
+        return this;
 
     }
 
@@ -343,10 +445,10 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF addParameter( final Parameter<?> parameter ) {
+    public @This CommandBuilder<H> addParameter( final Parameter<?> parameter ) {
 
         this.parameters.add( Objects.requireNonNull( parameter, "Parameter cannot be null." ) );
-        return self();
+        return this;
 
     }
 
@@ -357,10 +459,10 @@ abstract class CommandBuilder<
      * @see Command#parameters()
      */
     @Deterministic
-    public SELF noParameters() {
+    public @This CommandBuilder<H> noParameters() {
 
         this.parameters.clear();
-        return self();
+        return this;
 
     }
 
@@ -374,10 +476,28 @@ abstract class CommandBuilder<
      * @see Command#requiredGroup()
      */
     @Deterministic
-    public SELF requireGroup( final @Nullable Group group ) {
+    public @This CommandBuilder<H> requireGroup( final @Nullable Group group ) {
 
         this.requiredGroup = Objects.requireNonNullElse( group, DEFAULT_GROUP );
-        return self();
+        return this;
+
+    }
+
+    /**
+     * Sets whether group access checking should be skipped.
+     * 
+     * <p>The default value is {@value #DEFAULT_SKIP}, as application commands 
+     * should generally avoid clashing with user-set permissions unless necessary.
+     *
+     * @param skip Whether group access checking should be skipped.
+     * @return This builder.
+     * @see Command#skipGroupCheckOnInteraction()
+     */
+    @Deterministic
+    public @This CommandBuilder<H> setSkipGroupCheckOnInteraction( final boolean skip ) {
+
+        this.skipGroupCheckOnInteraction = skip;
+        return this;
 
     }
 
@@ -391,10 +511,10 @@ abstract class CommandBuilder<
      * @see Command#requireParentGroups()
      */
     @Deterministic
-    public SELF setRequireParentGroups( final boolean require ) {
+    public @This CommandBuilder<H> setRequireParentGroups( final boolean require ) {
 
         this.requireParentGroups = require;
-        return self();
+        return this;
 
     }
 
@@ -408,10 +528,10 @@ abstract class CommandBuilder<
      * @see Command#nsfw()
      */
     @Deterministic
-    public SELF setNsfw( final boolean nsfw ) {
+    public @This CommandBuilder<H> setNsfw( final boolean nsfw ) {
 
         this.nsfw = nsfw;
-        return self();
+        return this;
 
     }
 
@@ -425,10 +545,10 @@ abstract class CommandBuilder<
      * @see Command#privateReply()
      */
     @Deterministic
-    public SELF setPrivateReply( final boolean privateReply ) {
+    public @This CommandBuilder<H> setPrivateReply( final boolean privateReply ) {
 
         this.privateReply = privateReply;
-        return self();
+        return this;
 
     }
 
@@ -443,10 +563,11 @@ abstract class CommandBuilder<
      * @see Command#ephemeralReply()
      */
     @Deterministic
-    public SELF setEphemeralReply( final @Nullable EphemeralType ephemeralReply ) {
+    public @This CommandBuilder<H> setEphemeralReply( 
+            final @Nullable EphemeralType ephemeralReply ) {
 
         this.ephemeralReply = Objects.requireNonNullElse( ephemeralReply, DEFAULT_EPHEMERAL );
-        return self();
+        return this;
 
     }
 
@@ -460,10 +581,10 @@ abstract class CommandBuilder<
      * @see Command#inheritSettings()
      */
     @Deterministic
-    public SELF setInheritSettings( final boolean inheritSettings ) {
+    public @This CommandBuilder<H> setInheritSettings( final boolean inheritSettings ) {
 
         this.inheritSettings = inheritSettings;
-        return self();
+        return this;
 
     }
 
@@ -477,80 +598,29 @@ abstract class CommandBuilder<
      * @see Command#invokeParent()
      */
     @Deterministic
-    public SELF setInvokeParent( final boolean invokeParent ) {
+    public @This CommandBuilder<H> setInvokeParent( final boolean invokeParent ) {
 
         this.invokeParent = invokeParent;
-        return self();
+        return this;
 
     }
 
     /**
-     * Sets the invocation handler of the command.
+     * Sets the handlers of the command.
      * 
      * <p>The default value is {@code null}, e.g. no value. It <i>must</i> be
      * specified before calling {@link #build()} (so this method must be called
      * at least once).
      *
-     * @param handler The handler.
+     * @param handlers The handlers.
      * @return This builder.
-     * @see Command#invocationHandler()
+     * @see Command#handlers()
      */
     @Deterministic
-    public SELF withInvocationHandler( final IH handler ) {
+    public @This CommandBuilder<H> withHandlers( final H handlers ) {
 
-        this.invocationHandler = CommandUtils.validateInvocationHandler( handler );
-        return self();
-
-    }
-
-    /**
-     * Sets the handlers that should process the command result before any
-     * registry-defined ones.
-     * 
-     * <p>The default value is an empty list (no handlers).
-     *
-     * @param handlers The result handlers. If {@code null}, restores the default
-     *                 value.
-     * @return This builder.
-     * @see Command#resultHandlers()
-     */
-    @Deterministic
-    public SELF withResultHandlers( final List<? extends RH> handlers ) {
-
-        this.resultHandlers = new LinkedList<>( CommandUtils.validateResultHandlers(
-                Objects.requireNonNullElse( handlers, Collections.emptyList() ) ) );
-        return self();
-
-    }
-
-    /**
-     * Adds a handler that should process the command result after the previously added
-     * handlers but before any registry-defined ones.
-     *
-     * @param handler The handler to add.
-     * @return This builder.
-     * @see Command#resultHandlers()
-     */
-    @Deterministic
-    public SELF addResultHandler( final RH handler ) {
-
-        Objects.requireNonNull( handler, "Result handler cannot be null." );
-        this.resultHandlers.add( handler );
-        return self();
-
-    }
-
-    /**
-     * Removes all result handlers (set to no handlers).
-     *
-     * @return This builder.
-     * @see Command#resultHandlers()
-     */
-    @Deterministic
-    public SELF noResultHandlers() {
-
-        this.resultHandlers.clear();
-        return self();
+        this.handlers = CommandUtils.validateHandlers( handlers );
+        return this;
 
     }
 
@@ -560,7 +630,8 @@ abstract class CommandBuilder<
      * @return The name to build with.
      * @throws IllegalStateException if {@link #name} was not set.
      */
-    protected String buildName() throws IllegalStateException {
+    @Pure
+    private String buildName() throws IllegalStateException {
     
         if ( this.name == null ) {
             throw new IllegalStateException( 
@@ -577,7 +648,8 @@ abstract class CommandBuilder<
      * @return The display name to build with.
      * @throws IllegalStateException if {@link #displayName} was not set.
      */
-    protected String buildDisplayName() throws IllegalStateException {
+    @Pure
+    private String buildDisplayName() throws IllegalStateException {
     
         if ( this.displayName == null ) {
             throw new IllegalStateException( 
@@ -594,7 +666,8 @@ abstract class CommandBuilder<
      * @return The description to build with.
      * @throws IllegalStateException if {@link #description} was not set.
      */
-    protected String buildDescription() throws IllegalStateException {
+    @Pure
+    private String buildDescription() throws IllegalStateException {
     
         if ( this.description == null ) {
             throw new IllegalStateException( 
@@ -606,20 +679,21 @@ abstract class CommandBuilder<
     }
 
     /**
-     * Retrieve the invocation handler to use for building, after error checking.
+     * Retrieve the handlers to use for building, after error checking.
      *
-     * @return The invocation handler to build with.
-     * @throws IllegalStateException if {@link #invocationHandler} was not set.
+     * @return The handlers to build with.
+     * @throws IllegalStateException if {@link #handlers} was not set.
      */
-    protected IH buildInvocationHandler() throws IllegalStateException {
-    
-        if ( this.invocationHandler == null ) {
+    @Pure
+    private H buildHandlers() throws IllegalStateException {
+
+        if ( this.handlers == null ) {
             throw new IllegalStateException( 
-                    "Command invocation handler must be set before building." );
+                    "Command handlers must be set before building." );
         } else {
-            return this.invocationHandler;
+            return this.handlers;
         }
-    
+
     }
 
     /**
@@ -629,6 +703,21 @@ abstract class CommandBuilder<
      * @throws IllegalStateException if the current configuration is invalid.
      */
     @SideEffectFree
-    public abstract C build() throws IllegalStateException;
+    public Command<H> build() throws IllegalStateException {
+
+        try {
+            return new CommandImpl<>( 
+                scope, callable, parent, buildName(), aliases, buildDisplayName(), 
+                buildDescription(), parameters,
+                requiredGroup, skipGroupCheckOnInteraction, requireParentGroups,
+                nsfw, privateReply, ephemeralReply,
+                inheritSettings, invokeParent, 
+                buildHandlers()
+            );
+        } catch ( final IllegalArgumentException e ) {
+            throw new IllegalStateException( "Invalid parameter configuration.", e );
+        }
+
+    }
     
 }

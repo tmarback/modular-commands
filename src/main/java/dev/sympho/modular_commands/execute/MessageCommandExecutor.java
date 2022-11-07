@@ -6,11 +6,11 @@ import java.util.Optional;
 import org.apache.commons.lang3.BooleanUtils;
 import org.checkerframework.checker.optional.qual.Present;
 
+import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.MessageCommand;
-import dev.sympho.modular_commands.api.command.handler.MessageInvocationHandler;
-import dev.sympho.modular_commands.api.command.handler.MessageResultHandler;
-import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
+import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
+import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.impl.context.MessageContextImpl;
 import dev.sympho.modular_commands.utils.SmartIterator;
@@ -57,7 +57,7 @@ public class MessageCommandExecutor extends CommandExecutor {
      * @since 1.0
      */
     private static class Builder extends PipelineBuilder<MessageCreateEvent, 
-            MessageCommand, MessageContextImpl, MessageInvocationHandler, MessageResultHandler> {
+             MessageContextImpl, MessageHandlers> {
 
         /** Splitter to use for separating arguments in received messages. */
         private final StringSplitter splitter = new StringSplitter.Shell();
@@ -85,8 +85,8 @@ public class MessageCommandExecutor extends CommandExecutor {
         }
     
         @Override
-        protected Class<MessageCommand> commandType() {
-            return MessageCommand.class;
+        protected Class<MessageHandlers> commandType() {
+            return MessageHandlers.class;
         }
     
         @Override
@@ -128,7 +128,7 @@ public class MessageCommandExecutor extends CommandExecutor {
     
         @Override
         protected MessageContextImpl makeContext( final MessageCreateEvent event,
-                final MessageCommand command, final Invocation invocation, 
+                final Command<? extends MessageHandlers> command, final Invocation invocation, 
                 final Flux<String> args ) {
 
             final var access = accessValidator( event );
@@ -164,26 +164,17 @@ public class MessageCommandExecutor extends CommandExecutor {
         }
     
         @Override
-        protected MessageInvocationHandler getInvocationHandler( final MessageCommand command ) {
-            return command.invocationHandler();
+        @SuppressWarnings( "override.return" )
+        protected InvocationHandler<? super MessageContextImpl> getInvocationHandler( 
+                final MessageHandlers handlers ) {
+            return handlers.invocation();
         }
-    
+
         @Override
-        protected Mono<CommandResult> invoke( final MessageInvocationHandler handler,
-                final MessageContextImpl context ) throws Exception {
-            return handler.handle( context );
-        }
-    
-        @Override
-        protected List<? extends MessageResultHandler> getResultHandlers( 
-                    final MessageCommand command ) {
-            return command.resultHandlers();
-        }
-    
-        @Override
-        protected Mono<Boolean> handle( final MessageResultHandler handler, 
-                final MessageContextImpl context, final CommandResult result ) {
-            return handler.handle( context, result );
+        @SuppressWarnings( "override.return" )
+        protected List<? extends ResultHandler<? super MessageContextImpl>> getResultHandlers(
+                final MessageHandlers handlers ) {
+            return handlers.result();
         }
 
     }

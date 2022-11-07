@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
@@ -19,8 +20,8 @@ import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
+import dev.sympho.modular_commands.utils.builder.CommandBuilder;
 import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
-import dev.sympho.modular_commands.utils.builder.command.TextCommandBuilder;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -64,13 +65,13 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command pingCommand() {
+    private static Command<?> pingCommand() {
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "ping" )
                 .withDisplayName( "Ping Command" )
                 .withDescription( "Responds with pong" )
-                .withInvocationHandler( c -> sendMessage( c, "Pong!" ) )
+                .withHandlers( Handlers.text( c -> sendMessage( c, "Pong!" ) ) )
                 .build();
 
     }
@@ -80,7 +81,7 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command parrotCommand() {
+    private static Command<?> parrotCommand() {
 
         final var param = new ParameterBuilder<String>()
                 .withName( "message" )
@@ -89,16 +90,16 @@ public class TestBot {
                 .withParser( Parsers.string() )
                 .build();
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "parrot" )
                 .withDisplayName( "Parrot Command" )
                 .withDescription( "Responds with what you said" )
                 .addParameter( param )
-                .withInvocationHandler( c -> {
+                .withHandlers( Handlers.text( c -> {
                     final String message = c.requireArgument( param, String.class );
                     final String response = String.format( "You said: %s", message );
                     return c.reply( response ).thenReturn( Results.ok() );
-                } )
+                } ) )
                 .build();
 
     }
@@ -108,7 +109,7 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command tweetCommand() {
+    private static Command<?> tweetCommand() {
 
         final var param = new ParameterBuilder<Channel>()
                 .withName( "channel" )
@@ -117,12 +118,12 @@ public class TestBot {
                 .withParser( Parsers.channel( Channel.class ) )
                 .build();
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "tweet" )
                 .withDisplayName( "Tweet Command" )
                 .withDescription( "Says something in a channel" )
                 .addParameter( param )
-                .withInvocationHandler( ctx -> {
+                .withHandlers( Handlers.text( ctx -> {
                     final Channel c = ctx.requireArgument( param, Channel.class );
                     if ( c instanceof MessageChannel ch ) {
                         return ch.createMessage( "Tweet" )
@@ -131,7 +132,7 @@ public class TestBot {
                         return Results.failMono();
                     }
 
-                } )
+                } ) )
                 .build();
 
     }
@@ -141,15 +142,15 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command adminCommand() {
+    private static Command<?> adminCommand() {
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "admin" )
                 .withDisplayName( "Admin Command" )
                 .withDescription( "Only works when used by admins" )
                 .setSkipGroupCheckOnInteraction( false )
                 .requireGroup( Groups.ADMINS )
-                .withInvocationHandler( ctx -> Results.successMono( "You are an admin!" ) )
+                .withHandlers( Handlers.text( ctx -> Results.successMono( "You are an admin!" ) ) )
                 .build();
 
     }
@@ -159,9 +160,9 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command modCommand() {
+    private static Command<?> modCommand() {
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "mod" )
                 .withDisplayName( "Mod Command" )
                 .withDescription( "Only works when used by mods" )
@@ -169,7 +170,7 @@ public class TestBot {
                 .requireGroup( Groups.hasGuildPermissions( PermissionSet.of( 
                         Permission.MANAGE_MESSAGES 
                 ) ) )
-                .withInvocationHandler( ctx -> Results.successMono( "You are a mod!" ) )
+                .withHandlers( Handlers.text( ctx -> Results.successMono( "You are a mod!" ) ) )
                 .build();
 
     }
@@ -179,15 +180,17 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command serverOwnerCommand() {
+    private static Command<?> serverOwnerCommand() {
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "server-owner" )
                 .withDisplayName( "Server Owner Command" )
                 .withDescription( "Only works when used by server owners" )
                 .setSkipGroupCheckOnInteraction( false )
                 .requireGroup( Groups.SERVER_OWNER )
-                .withInvocationHandler( ctx -> Results.successMono( "You are the server owner!" ) )
+                .withHandlers( Handlers.text( 
+                        ctx -> Results.successMono( "You are the server owner!" )
+                ) )
                 .build();
 
     }
@@ -197,15 +200,17 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command botOwnerCommand() {
+    private static Command<?> botOwnerCommand() {
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "bot-owner" )
                 .withDisplayName( "Bot Owner Command" )
                 .withDescription( "Only works when used by the bot owner" )
                 .setSkipGroupCheckOnInteraction( false )
                 .requireGroup( Groups.BOT_OWNER )
-                .withInvocationHandler( ctx -> Results.successMono( "You are the bot owner!" ) )
+                .withHandlers( Handlers.text( 
+                        ctx -> Results.successMono( "You are the bot owner!" ) 
+                ) )
                 .build();
 
     }
@@ -215,7 +220,7 @@ public class TestBot {
      *
      * @return The command.
      */
-    private static Command fileTextCommand() {
+    private static Command<?> fileTextCommand() {
 
         final var param = new ParameterBuilder<String>()
                 .withName( "file" )
@@ -224,17 +229,17 @@ public class TestBot {
                 .withParser( Parsers.textFile( SizeUtils.kilo( 1 ) + 100 ) )
                 .build();
 
-        return new TextCommandBuilder()
+        return new CommandBuilder<>()
                 .withName( "file-text" )
                 .withDisplayName( "Text File Command" )
                 .withDescription( "Reads a text file" )
                 .addParameter( param )
-                .withInvocationHandler( ctx -> {
+                .withHandlers( Handlers.text( ctx -> {
 
                     final var content = ctx.requireArgument( param, String.class );
                     return Results.successMono( content );
 
-                } )
+                } ) )
                 .build();
 
     }

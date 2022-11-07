@@ -1,8 +1,5 @@
 package dev.sympho.modular_commands.api.command.context;
 
-import org.checkerframework.dataflow.qual.Pure;
-
-import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEvent;
 
 /**
@@ -13,18 +10,7 @@ import discord4j.core.event.domain.interaction.ApplicationCommandInteractionEven
  */
 public interface InteractionCommandContext extends CommandContext {
 
-    /**
-     * Same as {@link #getEvent()}. This method only exists because
-     * {@link AnyCommandContext} needs to exist.
-     *
-     * @return The trigger event.
-     */
-    @Pure
-    ApplicationCommandInteractionEvent getInteractionEvent();
-
     @Override
-    default Event getEvent() {
-        return getInteractionEvent();
-    }
+    ApplicationCommandInteractionEvent getEvent();
     
 }

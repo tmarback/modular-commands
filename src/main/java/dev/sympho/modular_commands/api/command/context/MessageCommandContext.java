@@ -3,7 +3,6 @@ package dev.sympho.modular_commands.api.command.context;
 import org.checkerframework.dataflow.qual.Pure;
 
 import discord4j.common.util.Snowflake;
-import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 
@@ -15,19 +14,8 @@ import discord4j.core.object.entity.Message;
  */
 public interface MessageCommandContext extends CommandContext {
 
-    /**
-     * Same as {@link #getEvent()}. This method only exists because
-     * {@link AnyCommandContext} needs to exist.
-     *
-     * @return The trigger event.
-     */
-    @Pure
-    MessageCreateEvent getMessageEvent();
-
     @Override
-    default Event getEvent() {
-        return getMessageEvent();
-    }
+    MessageCreateEvent getEvent();
 
     /**
      * Retrieves the message that invoked the command.
@@ -36,7 +24,7 @@ public interface MessageCommandContext extends CommandContext {
      */
     @Pure
     default Message getMessage() {
-        return getMessageEvent().getMessage();
+        return getEvent().getMessage();
     }
 
     /**

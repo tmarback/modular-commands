@@ -1,17 +1,20 @@
 package dev.sympho.modular_commands.api.command.handler;
 
-import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import reactor.core.publisher.Mono;
 
 /**
  * A function that handles the result of a command.
  *
+ * @param <C> The context type.
  * @version 1.0
  * @since 1.0
  */
-public sealed interface ResultHandler
-        permits MessageResultHandler, SlashResultHandler {
+@FunctionalInterface
+public interface ResultHandler<C extends @NonNull CommandContext> {
 
     /**
      * Handles the result of a command.
@@ -27,6 +30,6 @@ public sealed interface ResultHandler
      *          a result handler encounters an error, other than logging the exception.
      *          
      */
-    Mono<Boolean> handle( AnyCommandContext context, CommandResult result );
+    Mono<Boolean> handle( C context, CommandResult result );
     
 }

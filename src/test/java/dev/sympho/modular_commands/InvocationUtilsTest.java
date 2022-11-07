@@ -7,11 +7,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.sympho.modular_commands.api.command.Command;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.execute.InvocationUtils;
-import dev.sympho.modular_commands.utils.builder.command.MessageCommandBuilder;
+import dev.sympho.modular_commands.utils.builder.CommandBuilder;
 import discord4j.common.util.Snowflake;
 
 /**
@@ -34,9 +36,9 @@ public class InvocationUtilsTest {
      *
      * @return The builder.
      */
-    private static MessageCommandBuilder baseBuilder() {
+    private static CommandBuilder<MessageHandlers> baseBuilder() {
 
-        return new MessageCommandBuilder()
+        return CommandBuilder.message()
                 .withName( "test" )
                 .withDisplayName( "test" )
                 .withDescription( "test" );
@@ -50,12 +52,13 @@ public class InvocationUtilsTest {
      * @param parent Whether to require parent groups.
      * @return The command.
      */
-    private static Command groupTestCommand( final Group group, final boolean parent ) {
+    private static Command<MessageHandlers> groupTestCommand( 
+            final Group group, final boolean parent ) {
 
         return baseBuilder()
                 .requireGroup( group )
                 .setRequireParentGroups( parent )
-                .withInvocationHandler( ctx -> Results.okMono() )
+                .withHandlers( Handlers.message( ctx -> Results.okMono() ) )
                 .build();
 
     }

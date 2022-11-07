@@ -23,7 +23,7 @@ public class IncompleteHandlingException extends CommandException {
     private static final long serialVersionUID = -6242043843932336667L;
 
     /** The command chain that was being executed. */
-    private final List<Command> chain;
+    private final List<Command<?>> chain;
 
     /** The invocation that triggered the command. */
     private final Invocation invocation;
@@ -34,7 +34,7 @@ public class IncompleteHandlingException extends CommandException {
      * @param chain The command that was being executed.
      * @param invocation The invocation that triggered the command.
      */
-    public IncompleteHandlingException( final List<? extends Command> chain,
+    public IncompleteHandlingException( final List<? extends Command<?>> chain,
             final Invocation invocation ) {
 
         super( String.format( "Command %s under invocation %s was not completely handled.",
@@ -51,7 +51,7 @@ public class IncompleteHandlingException extends CommandException {
      * @return The command that was invoked.
      */
     @Pure
-    public Command getCommand() {
+    public Command<?> getCommand() {
         return InvocationUtils.getInvokedCommand( chain );
     }
 
@@ -61,7 +61,7 @@ public class IncompleteHandlingException extends CommandException {
      * @return The command chain that was being executed.
      */
     @Pure
-    public List<Command> getExecutionChain() {
+    public List<Command<?>> getExecutionChain() {
         return chain;
     }
 

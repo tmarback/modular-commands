@@ -27,7 +27,7 @@ public class InvalidChainException extends CommandException {
      * @param parent The ancestor that is incompatible.
      * @param message The error message.
      */
-    public InvalidChainException( final Command command, final Command parent, 
+    public InvalidChainException( final Command<?> command, final Command<?> parent, 
             final String message ) {
 
         super( message );

@@ -36,7 +36,7 @@ public interface CommandGroup {
      *           the map should be immutable. 
      */
     @Pure
-    Map<String, Command> commands();
+    Map<String, Command<?>> commands();
 
     /**
      * Retrives the IDs of the commands in this group.
@@ -57,8 +57,8 @@ public interface CommandGroup {
      * @return The equivalent command group.
      */
     @SideEffectFree
-    static CommandGroup of( final Map<String, Command> commands ) {
-        final var copy = Map.copyOf( commands );
+    static CommandGroup of( final Map<String, ? extends Command<?>> commands ) {
+        final Map<String, Command<?>> copy = Map.copyOf( commands );
         return () -> copy;
     }
 

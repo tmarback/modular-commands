@@ -2,12 +2,15 @@ package dev.sympho.modular_commands.api.command;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
-import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
-import dev.sympho.modular_commands.api.command.handler.ResultHandler;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
+import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
@@ -21,12 +24,16 @@ import dev.sympho.modular_commands.api.permission.Group;
  * <a href="https://discord.com/developers/docs/interactions/application-commands#application-command-object">
  * Discord API specification</a> for command parameters.
  *
+ * @param <H> The handler type of this command. The subtype(s) of {@link Handlers} used determine
+ *            what methods of invocation are supported by this command. However, this type
+ *            parameter is used only to facilitate type checking, with actual support being
+ *            determined by the concrete type of the return value of {@link #handlers()}. See
+ *            the description of that method for details.
  * @version 1.0
  * @since 1.0
  */
 // END LONG LINES
-public sealed interface Command 
-        permits MessageCommand, SlashCommand {
+public interface Command<H extends Handlers> {
 
     /**
      * The scopes that a command may be defined in.
@@ -116,6 +123,45 @@ public sealed interface Command
     }
 
     /**
+     * The aliases that may also invoke the command, when invoking through a message.
+     * 
+     * <p>These aliases are only relevant to handling invocations. They may not be
+     * used to specify the command as a parent.
+     * 
+     * <p>Aliases must satisfy the same restrictions as the {@link #name() name}.
+     *
+     * @return The command aliases.
+     * @apiNote This setting is only meaningful for message-based invocations. By extension,
+     *          if the command does not support message invocations, this setting has no
+     *          effect.
+     * @implSpec The default is an empty set.
+     */
+    @Pure
+    default Set<String> aliases() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * The alias invocations that may also invoke the command.
+     *
+     * @return The command aliases as invocations.
+     * @see #aliases()
+     * @apiNote This value is only meaningful for message-based invocations. By extension,
+     *          if the command does not support message invocations, this setting has no
+     *          effect.
+     * @implSpec The invocation is determined by appending each alias to the 
+     *           {@link #parent() parent}. Do not override this.
+     */
+    @Pure
+    default Set<Invocation> aliasInvocations() {
+
+        return aliases().stream()
+                .map( this.parent()::child )
+                .collect( Collectors.toUnmodifiableSet() );
+
+    }
+
+    /**
      * The display name of the command.
      * 
      * <p>This is displayed to the user in documentation-related functionality.
@@ -183,12 +229,14 @@ public sealed interface Command
 
     /**
      * Whether group access checking should be skipped when this command is invoked
-     * through an interaction. This option is only meaningful if the command <i>can</i>
-     * be invoked through interactions.
+     * through an interaction.
      *
      * @return Whether group access checking should be skipped when this command is 
      *         invoked through an interaction.
      * @see #requiredGroup()
+     * @apiNote This value is only meaningful for interaction-based invocations. By extension,
+     *          if the command does not support interaction invocations, this setting has no
+     *          effect.
      * @implSpec The default returns {@code true}, as application commands should generally
      *           avoid clashing with user-set permissions unless necessary.
      */
@@ -300,32 +348,26 @@ public sealed interface Command
     boolean invokeParent();
 
     /**
-     * The handler to use for processing an invocation of the command.
+     * The handlers to use for processing an invocation of the command.
+     * 
+     * <p>Note that the subtype(s) of {@link Handlers} implemented by the returned instance 
+     * determine what methods of invocation are supported by this command. For example, if 
+     * it implements only {@link MessageHandlers}, it will only support message commands;
+     * if it implements both {@link MessageHandlers} and {@link SlashHandlers}, it will
+     * support both message commands and slash commands; and so on.
+     * 
+     * <p>Be careful that, while this interface does have a generic type parameter to constrain 
+     * the allowed return type for this method, it is used only to facilitate type checking
+     * (especially internally). The invocation support is determined by the actual type of
+     * the instance returned by this method. That is, if this method returns an object that
+     * implements both {@link MessageHandlers} and {@link SlashHandlers}, this command will
+     * support both message and slash commands, even if this instance is created as of type 
+     * {@code Command<MessageHandlers>}. There is no way around this due to the nature of
+     * type erasure.
      *
      * @return The handler.
-     * @apiNote Why require the use of a handler object instead of using a plain method, you ask?
-     *          Because the Java compiler is dumb and doesn't automatically deal with widening
-     *          parameter type overloads, which leads to a lot of boilerplate to get this handler
-     *          structure working, and I have to make the separate handler classes anyway, so I'd
-     *          rather not duplicate all of that.
-     *          <br>Making Command extend CommandHandler would also be a solution, except that
-     *          sealed classes don't work across packages without using modules. So yeah.
      */
     @Pure
-    InvocationHandler invocationHandler();
-
-    /**
-     * The handlers to use for processing the result, in order.
-     * 
-     * <p>They are given priority over any handlers defined at the registry
-     * or global level.
-     *
-     * @return The result handlers for this command.
-     * @implSpec The default is to have no handlers.
-     */
-    @Pure
-    default List<? extends ResultHandler> resultHandlers() {
-        return Collections.emptyList();
-    }
+    H handlers();
     
 }

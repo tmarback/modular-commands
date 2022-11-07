@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -94,7 +95,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#name()
      */
     @Deterministic
-    public ParameterBuilder<T> withName( final String name ) throws IllegalArgumentException {
+    public @This ParameterBuilder<T> withName( final String name ) throws IllegalArgumentException {
 
         this.name = ParameterUtils.validateName( name );
         return this;
@@ -110,7 +111,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#description()
      */
     @Deterministic
-    public ParameterBuilder<T> withDescription( final String description ) 
+    public @This ParameterBuilder<T> withDescription( final String description ) 
             throws IllegalArgumentException {
 
         this.description = ParameterUtils.validateDescription( description );
@@ -126,7 +127,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#required()
      */
     @Deterministic
-    public ParameterBuilder<T> withRequired( final boolean required ) {
+    public @This ParameterBuilder<T> withRequired( final boolean required ) {
 
         this.required = required;
         return this;
@@ -141,7 +142,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#defaultValue()
      */
     @Deterministic
-    public ParameterBuilder<T> withDefault( final @Nullable T defaultValue ) {
+    public @This ParameterBuilder<T> withDefault( final @Nullable T defaultValue ) {
 
         this.defaultValue = defaultValue;
         return this;
@@ -156,7 +157,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#parser()
      */
     @Deterministic
-    public ParameterBuilder<T> withParser( final ArgumentParser<?, T> parser ) {
+    public @This ParameterBuilder<T> withParser( final ArgumentParser<?, T> parser ) {
 
         this.parser = parser;
         return this;

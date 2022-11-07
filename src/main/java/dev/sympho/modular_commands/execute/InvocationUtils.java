@@ -12,11 +12,14 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
@@ -45,23 +48,23 @@ public final class InvocationUtils {
      * such that the next element is the first argument that did not match a subcommand
      * (and thus the first proper argument).
      *
-     * @param <C> The command type.
+     * @param <H> The handler type.
      * @param registry The registry to use for command lookups.
      * @param args The invocation args.
      * @param commandType The command type.
      * @return The detected invocation and the corresponding execution chain.
      */
     @SideEffectFree
-    public static <C extends Command> Tuple2<Invocation, List<C>> parseInvocation( 
-            final Registry registry, final SmartIterator<String> args, 
-            final Class<? extends C> commandType ) {
+    public static <H extends Handlers> Tuple2<Invocation, List<Command<? extends H>>> 
+            parseInvocation( final Registry registry, final SmartIterator<String> args, 
+            final Class<H> commandType ) {
 
-        final List<C> chain = new LinkedList<>();
+        final List<Command<? extends H>> chain = new LinkedList<>();
         Invocation current = Invocation.of();
         while ( args.hasNext() ) {
 
             final var next = current.child( args.peek() );
-            final C command = registry.findCommand( next, commandType );
+            final var command = registry.findCommand( next, commandType );
             if ( command == null ) {
                 break;
             } else {
@@ -83,7 +86,7 @@ public final class InvocationUtils {
      * @return The command that was invoked (the last one in the chain).
      */
     @Pure
-    public static <C extends Command> C getInvokedCommand( final List<? extends C> chain ) {
+    public static <C extends Command<?>> C getInvokedCommand( final List<? extends C> chain ) {
 
         return chain.get( chain.size() - 1 );
 
@@ -99,7 +102,7 @@ public final class InvocationUtils {
      * @see Command#inheritSettings()
      */
     @Pure
-    public static <C extends @NonNull Command> C getSettingsSource( final List<C> chain ) {
+    public static <C extends @NonNull Command<?>> C getSettingsSource( final List<C> chain ) {
 
         return Lists.reverse( chain ).stream()
                 .filter( Predicate.not( Command::inheritSettings ) )
@@ -116,7 +119,7 @@ public final class InvocationUtils {
      */
     @SideEffectFree
     public static List<Group> accumulateGroups( 
-            final List<? extends Command> chain ) {
+            final List<? extends Command<?>> chain ) {
 
         // https://github.com/typetools/checker-framework/issues/4048
         @SuppressWarnings( "type.argument" )
@@ -150,8 +153,8 @@ public final class InvocationUtils {
     /**
      * Determines the sequence of invocation handlers to execute.
      *
-     * @param <C> The command type.
-     * @param <IH> The handler type.
+     * @param <H> The handler type.
+     * @param <C> The context type.
      * @param chain The invocation chain.
      * @param getter The getter to use to retrieve handlers.
      * @return The handlers to execute.
@@ -159,16 +162,19 @@ public final class InvocationUtils {
      * @see Command#invokeParent()
      */
     @SideEffectFree
-    public static <C extends Command, IH extends InvocationHandler> List<IH> accumulateHandlers(
-                final List<C> chain, final Function<C, IH> getter ) throws InvalidChainException {
+    public static <H extends Handlers, C extends CommandContext> 
+            List<InvocationHandler<? super C>> accumulateHandlers(
+                final List<? extends Command<? extends H>> chain, 
+                final Function<H, InvocationHandler<? super C>> getter 
+    ) throws InvalidChainException {
 
-        final List<IH> handlers = new LinkedList<>();
+        final List<InvocationHandler<? super C>> handlers = new LinkedList<>();
         final var it = chain.listIterator( chain.size() );
 
-        C source = it.previous();
-        handlers.add( getter.apply( source ) );
+        Command<? extends H> source = it.previous();
+        handlers.add( getter.apply( source.handlers() ) );
 
-        final C target = source;
+        final Command<? extends H> target = source;
         final Set<String> satisfiedParameters = source.parameters().stream()
                 .filter( InvocationUtils::satisfied )
                 .map( Parameter::name )
@@ -202,11 +208,32 @@ public final class InvocationUtils {
 
             }
 
-            handlers.add( 0, getter.apply( source ) );
+            handlers.add( 0, getter.apply( source.handlers() ) );
 
         }
 
         return new ArrayList<>( handlers );
+
+    }
+
+    /**
+     * Determines if a command has handlers compatible with the given type.
+     *
+     * @param <H> The handler type.
+     * @param command The command to check.
+     * @param type The handler type.
+     * @return The command, or {@code null} if the command's handlers are not
+     *         compatible.
+     */
+    @Pure
+    @SuppressWarnings( "unchecked" )
+    public static <H extends Handlers> @Nullable Command<? extends H> checkType(
+            final Command<?> command, final Class<H> type
+    ) {
+
+        return type.isInstance( command.handlers() ) 
+                ? ( Command<? extends H> ) command 
+                : null;
 
     }
     

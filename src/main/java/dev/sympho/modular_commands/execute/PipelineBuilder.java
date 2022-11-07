@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.result.CommandContinue;
@@ -41,10 +41,8 @@ import reactor.util.function.Tuples;
  * Type responsible for building a command processing pipeline.
  *
  * @param <E> The type of event that triggers commands.
- * @param <C> The type of commands executed by the pipeline.
  * @param <CTX> The type of command context.
- * @param <IH> The type of invocation handler.
- * @param <RH> The type of result handler.
+ * @param <H> The type of handlers.
  * @version 1.0
  * @since 1.0
  * @apiNote Note that, for the purposes of this class, there is a distinction between <i>args</i>
@@ -60,9 +58,8 @@ import reactor.util.function.Tuples;
  *                  identification, or directly from the event in some way (or both).</li>
  *          </ul>
  */
-public abstract class PipelineBuilder<E extends Event, C extends Command, 
-        CTX extends CommandContext & LazyContext, 
-        IH extends InvocationHandler, RH extends ResultHandler> {
+public abstract class PipelineBuilder<E extends Event, 
+        CTX extends CommandContext & LazyContext, H extends Handlers> {
 
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( PipelineBuilder.class );
@@ -159,7 +156,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return The command type.
      */
     @Pure
-    protected abstract Class<C> commandType();
+    protected abstract Class<H> commandType();
 
     // BEGIN BUGGED PARAGRAPH
     /**
@@ -244,8 +241,8 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return The context that represents the given invocation.
      */
     @SideEffectFree
-    protected abstract CTX makeContext( E event, C command, Invocation invocation, 
-            Flux<String> args );
+    protected abstract CTX makeContext( E event, Command<? extends H> command, 
+            Invocation invocation, Flux<String> args );
 
     /**
      * Retrieves the ID of the guild where the command was invoked, if any, from the
@@ -305,44 +302,22 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     }
 
     /**
-     * Retreives the invocation handler specified by the given command.
+     * Retrieves the invocation handler specified by the given hander set.
      *
-     * @param command The command.
+     * @param handlers The handler set.
      * @return The invocation handler.
      */
     @Pure
-    protected abstract IH getInvocationHandler( C command );
+    protected abstract InvocationHandler<? super CTX> getInvocationHandler( H handlers );
 
     /**
-     * Invokes the given handler with the given context.
+     * Retrieves the result handlers specified by the given hander set.
      *
-     * @param handler The handler to use.
-     * @param context The context to use.
-     * @return The result of the invocation.
-     * @throws Exception if an error occurred.
-     * @see InvocationHandler#handle(AnyCommandContext)
-     */
-    protected abstract Mono<CommandResult> invoke( IH handler, CTX context ) throws Exception;
-
-    /**
-     * Retreives the result handlers specified by the given command.
-     *
-     * @param command The command.
+     * @param handlers The handler set.
      * @return The result handlers.
      */
     @Pure
-    protected abstract List<? extends RH> getResultHandlers( C command );
-
-    /**
-     * Invokes the given handler with the given context and result.
-     *
-     * @param handler The handler to use.
-     * @param context The context to use.
-     * @param result The result to use.
-     * @return The handling result.
-     * @see ResultHandler#handle(AnyCommandContext, CommandResult)
-     */
-    protected abstract Mono<Boolean> handle( RH handler, CTX context, CommandResult result );
+    protected abstract List<? extends ResultHandler<? super CTX>> getResultHandlers( H handlers );
 
     /* Helpers */
 
@@ -354,10 +329,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return The result of the invocation.
      */
     @SuppressWarnings( "checkstyle:illegalcatch" )
-    private Mono<CommandResult> invokeWrap( final IH handler, final CTX context ) {
+    private Mono<CommandResult> invokeWrap( final InvocationHandler<? super CTX> handler,
+            final CTX context ) {
 
         try {
-            return invoke( handler, context )
+            return handler.handle( context )
                     .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
                     .onErrorResume( e -> Results.exceptionMono( e ) )
                     .defaultIfEmpty( Results.error( "No result issued!" ) );
@@ -376,12 +352,13 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return {@code true} if the invocation is valid and the command should be executed.
      */
     @Pure
-    private boolean checkScope( final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
+    private boolean checkScope( 
+            final Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>> payload ) {
 
         final E event = payload.getT1();
-        final List<C> chain = payload.getT2();
+        final List<Command<? extends H>> chain = payload.getT2();
 
-        final C command = InvocationUtils.getInvokedCommand( chain );
+        final var command = InvocationUtils.getInvokedCommand( chain );
 
         return command.scope() == Scope.GLOBAL || getGuildId( event ).isPresent();
 
@@ -394,11 +371,12 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return {@code true} if the invocation is valid and the command should be executed.
      */
     @Pure
-    private boolean checkCallable( final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
+    private boolean checkCallable( 
+            final Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>> payload ) {
 
-        final List<C> chain = payload.getT2();
+        final List<Command<? extends H>> chain = payload.getT2();
 
-        final C command = InvocationUtils.getInvokedCommand( chain );
+        final var command = InvocationUtils.getInvokedCommand( chain );
 
         return command.callable();
 
@@ -415,7 +393,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return A Mono that issues the parsed command, if any. 
      */
     @SideEffectFree
-    private Mono<Tuple4<E, List<C>, Invocation, Flux<String>>> parseEvent( 
+    private Mono<Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>>> parseEvent( 
             final E event, final Registry registry ) {
 
         return Mono.just( event )
@@ -431,7 +409,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
                             registry, args, commandType() );
 
                     final Invocation invocation = parsed.getT1();
-                    final List<C> chain = parsed.getT2();
+                    final List<Command<? extends H>> chain = parsed.getT2();
 
                     if ( fullMatch() && args.hasNext() ) {
                         throw new IllegalStateException( 
@@ -463,7 +441,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      */
     @SideEffectFree
     private Mono<CommandResult> validateCommand( final E event, 
-            final List<? extends Command> chain ) {
+            final List<? extends Command<? extends H>> chain ) {
 
         final var validator = getValidator();
         final var access = accessValidator( event );
@@ -484,8 +462,9 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @return {@code true} if execution was fully handled.
      * @throws IncompleteHandlingException if the execution was not fully handled.
      */
-    private boolean verifyHandled( final CommandResult result, final List<C> chain, 
-            final CTX context ) throws IncompleteHandlingException {
+    private boolean verifyHandled( final CommandResult result, 
+            final List<? extends Command<? extends H>> chain, final CTX context ) 
+            throws IncompleteHandlingException {
 
         if ( result instanceof CommandContinue ) {
             throw new IncompleteHandlingException( chain, context.getInvocation() );
@@ -502,12 +481,13 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      * @param context The invocation context.
      * @return A Mono that issues the final result once invocation is complete.
      */
-    private Mono<CommandResult> invokeCommand( final List<C> chain, final CTX context ) {
+    private Mono<CommandResult> invokeCommand( final List<? extends Command<? extends H>> chain,
+            final CTX context ) {
 
         final var invocation = InvocationUtils.getInvokedCommand( chain ).invocation();
         LOGGER.debug( "Invoking command {}", invocation );
 
-        final List<IH> handlers = InvocationUtils.accumulateHandlers(
+        final var handlers = InvocationUtils.accumulateHandlers(
                 chain, this::getInvocationHandler );
         LOGGER.trace( "Handlers for {}: {}", invocation, handlers );
 
@@ -532,10 +512,11 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
     /**
      * Executes a command under an invocation.
      *
+     * @param <C> The command type.
      * @param payload The invocation payload.
      * @return A Mono that issues the invocation result once execution has completed.
      */
-    private Mono<Tuple3<C, CTX, CommandResult>> executeCommand( 
+    private <C extends Command<? extends H>> Mono<Tuple3<C, CTX, CommandResult>> executeCommand( 
             final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
 
         final E event = payload.getT1();
@@ -543,7 +524,7 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
         final Invocation invocation = payload.getT3();
         final Flux<String> args = payload.getT4();
 
-        final C command = InvocationUtils.getInvokedCommand( chain );
+        final var command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
 
         return context.initialize()
@@ -568,15 +549,16 @@ public abstract class PipelineBuilder<E extends Event, C extends Command,
      *         handled. If the result handling was not complete for any reason, it
      *         issues the invocation context.
      */
-    private Mono<CTX> handleResult( final Tuple3<C, CTX, CommandResult> payload ) {
+    private Mono<CTX> handleResult( 
+            final Tuple3<Command<? extends H>, CTX, CommandResult> payload ) {
 
-        final C command = payload.getT1();
+        final Command<? extends H> command = payload.getT1();
         final CTX context = payload.getT2();
         final CommandResult result = payload.getT3();
 
         var state = Mono.just( context );
-        for ( final RH handler : getResultHandlers( command ) ) {
-            state = state.filterWhen( c -> handle( handler, c, result ) );
+        for ( final ResultHandler<? super CTX> handler : getResultHandlers( command.handlers() ) ) {
+            state = state.filterWhen( c -> handler.handle( c, result ) );
         }
         state = state.filterWhen( c -> BaseHandler.get().handle( c, result ) );
 

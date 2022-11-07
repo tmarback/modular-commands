@@ -143,7 +143,6 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
         }
 
         return group.defaultIfEmpty( "" ) // Default should never happen but just in case
-                .log()
                 .reduceWith( 
                         StringBuilder::new, 
                         ( builder, next ) -> builder.append( " " ).append( next )
@@ -168,11 +167,10 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
             final Flux<String> args ) {
 
         final AtomicInteger count = new AtomicInteger();
-        return args.log().windowUntil( 
+        return args.windowUntil( 
                         arg -> count.incrementAndGet() == parameters.size(),
                         true 
                 )
-                .log()
                 .index()
                 .flatMapSequential( g -> g.getT1() == 0 
                     ? g.getT2() 
@@ -209,7 +207,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     @Override
     protected Mono<ReplyManager> makeReplyManager() {
 
-        final var message = getMessageEvent().getMessage();
+        final var message = getEvent().getMessage();
         final var caller = getCaller();
         return Mono.zip( getChannel(), caller.getPrivateChannel() ).map( t -> {
 
@@ -396,7 +394,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    public MessageCreateEvent getMessageEvent() {
+    public MessageCreateEvent getEvent() {
 
         return event;
 

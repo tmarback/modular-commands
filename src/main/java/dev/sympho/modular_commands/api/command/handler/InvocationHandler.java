@@ -1,6 +1,8 @@
 package dev.sympho.modular_commands.api.command.handler;
 
-import dev.sympho.modular_commands.api.command.context.AnyCommandContext;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.ResultException;
@@ -9,11 +11,12 @@ import reactor.core.publisher.Mono;
 /**
  * A function that handles the execution of a command.
  *
+ * @param <C> The context type.
  * @version 1.0
  * @since 1.0
  */
-public sealed interface InvocationHandler 
-        permits MessageInvocationHandler, SlashInvocationHandler {
+@FunctionalInterface
+public interface InvocationHandler<C extends @NonNull CommandContext> {
 
     // BEGIN BUGGED PARAGRAPH
     /**
@@ -50,6 +53,6 @@ public sealed interface InvocationHandler
      *          exception or manually returned as an exception result.
      */
     // END BUGGED PARAGRAPH
-    Mono<CommandResult> handle( AnyCommandContext context ) throws ResultException, Exception;
+    Mono<CommandResult> handle( C context ) throws ResultException, Exception;
     
 }

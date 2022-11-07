@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.impl.registry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -11,8 +12,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.MessageCommand;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.registry.Registry;
+import dev.sympho.modular_commands.execute.InvocationUtils;
 import dev.sympho.modular_commands.utils.CommandUtils;
 
 /**
@@ -28,11 +31,11 @@ import dev.sympho.modular_commands.utils.CommandUtils;
 public final class SimpleRegistry implements Registry {
 
     /** The commands registered to this registry. */
-    private final Map<String, Command> commands = new ConcurrentHashMap<>();
+    private final Map<String, Command<?>> commands = new ConcurrentHashMap<>();
     /** The known invocations. */
-    private final Map<Invocation, Command> invocations = new ConcurrentHashMap<>();
+    private final Map<Invocation, Command<?>> invocations = new ConcurrentHashMap<>();
     /** The known alias invocations. */
-    private final Map<Invocation, Command> aliasInvocations = new ConcurrentHashMap<>();
+    private final Map<Invocation, Command<?>> aliasInvocations = new ConcurrentHashMap<>();
 
     /**
      * Creates an empty registry.
@@ -40,43 +43,45 @@ public final class SimpleRegistry implements Registry {
     public SimpleRegistry() {}
 
     @Override
-    public <C extends Command> @Nullable C findCommand( final Invocation invocation, 
-            final Class<? extends C> type ) {
+    public <H extends Handlers> @Nullable Command<? extends H> findCommand( 
+            final Invocation invocation, final Class<H> type ) {
 
-        Command found = invocations.get( invocation );
+        Command<?> found = invocations.get( invocation );
         if ( found == null ) {
             found = aliasInvocations.get( invocation );
-        }
-        return type.isInstance( found ) ? type.cast( found ) : null;
+        } 
+        return found == null ? null : InvocationUtils.checkType( found, type );
 
     }
 
     @Override
-    public <C extends Command> Collection<C> getCommands( final Class<? extends C> type ) {
+    @SuppressWarnings( "return" ) // https://github.com/typetools/checker-framework/issues/5237
+    public <H extends Handlers> Collection<Command<? extends H>> getCommands( 
+            final Class<H> type ) {
 
         return commands.values().stream()
-                .filter( type::isInstance )
-                .map( type::cast )
+                .map( c -> ( Command<? extends H> ) InvocationUtils.checkType( c, type ) )
+                .filter( Objects::nonNull )
                 .collect( Collectors.toUnmodifiableList() );
 
     }
 
     @Override
-    public @Nullable Command getCommand( final String id ) {
+    public @Nullable Command<?> getCommand( final String id ) {
 
         return commands.get( id );
 
     }
 
     @Override
-    public synchronized boolean registerCommand( final String id, final Command command ) 
+    public synchronized boolean registerCommand( final String id, final Command<?> command )
             throws IllegalArgumentException {
 
         CommandUtils.validateCommand( command );
 
         final Invocation invocation = command.invocation();
-        final Set<Invocation> aliases = command instanceof MessageCommand c 
-                ? c.aliasInvocations() : Collections.emptySet();
+        final Set<Invocation> aliases = command.handlers() instanceof MessageHandlers
+                ? command.aliasInvocations() : Collections.emptySet();
 
         if ( invocations.containsKey( invocation ) 
                 || !Collections.disjoint( aliases, aliasInvocations.keySet() ) ) {
@@ -94,15 +99,15 @@ public final class SimpleRegistry implements Registry {
     }
 
     @Override
-    public synchronized @Nullable Command removeCommand( final String id ) {
+    public synchronized @Nullable Command<?> removeCommand( final String id ) {
 
-        final Command command = commands.remove( id );
+        final Command<?> command = commands.remove( id );
         if ( command == null ) {
             return null;
         } else {
             invocations.remove( command.invocation() );
-            if ( command instanceof MessageCommand c ) {
-                c.aliasInvocations().stream().forEach( aliasInvocations::remove );
+            if ( command.handlers() instanceof MessageHandlers ) {
+                command.aliasInvocations().stream().forEach( aliasInvocations::remove );
             }
             return command;
         }

@@ -16,7 +16,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.MessageCommand;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -227,7 +227,7 @@ public final class CommandUtils {
      * @return The validated handler.
      */
     @Pure
-    public static <H extends InvocationHandler> H validateInvocationHandler( final H handler ) {
+    public static <H extends InvocationHandler<?>> H validateInvocationHandler( final H handler ) {
 
         return Objects.requireNonNull( handler, "Invocation handler cannot be null." );
 
@@ -241,12 +241,28 @@ public final class CommandUtils {
      * @return An immutable copy of the validated handler list.
      */
     @SideEffectFree
-    public static <H extends ResultHandler> List<H> validateResultHandlers( 
+    public static <H extends ResultHandler<?>> List<H> validateResultHandlers( 
             final List<? extends H> handlers ) {
 
         return Objects.requireNonNull( handlers, "Result handler list cannot be null." ).stream()
                 .map( h -> Objects.requireNonNull( h, "Result handler cannot be null." ) )
                 .collect( Collectors.toUnmodifiableList() );
+
+    }
+
+    /**
+     * Validates the handlers of a command.
+     *
+     * @param <H> The handler type.
+     * @param handlers The handlers to validate.
+     * @return The handlers.
+     */
+    public static <H extends Handlers> H validateHandlers( final H handlers ) {
+
+        validateInvocationHandler( handlers.invocation() );
+        validateResultHandlers( handlers.result() );
+
+        return handlers;
 
     }
 
@@ -259,20 +275,16 @@ public final class CommandUtils {
      * @throws IllegalArgumentException If one of the components of the command was invalid.
      */
     @Pure
-    public static <C extends Command> C validateCommand( final C command )
+    public static <C extends Command<?>> C validateCommand( final C command )
             throws IllegalArgumentException {
 
         validateName( command.name() );
+        validateAliases( command.aliases() );
         validateDisplayName( command.displayName() );
         validateDescription( command.description() );
         validateParameters( command.parameters() );
         validateGroup( command.requiredGroup() );
-        validateInvocationHandler( command.invocationHandler() );
-        validateResultHandlers( command.resultHandlers() );
-
-        if ( command instanceof MessageCommand c ) {
-            validateAliases( c.aliases() );
-        }
+        validateHandlers( command.handlers() );
 
         return command;
 

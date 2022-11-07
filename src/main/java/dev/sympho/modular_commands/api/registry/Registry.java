@@ -8,6 +8,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
+import dev.sympho.modular_commands.api.command.handler.Handlers;
 
 /**
  * A registry that stores commands that may be invoked by users.
@@ -21,24 +22,25 @@ public interface Registry {
      * Retrieves the best command known to this registry that has the given parent and name,
      * and is compatible with the given type.
      *
-     * @param <C> The type to return as.
+     * @param <H> The handler type that must be supported.
      * @param invocation The invocation of the command.
-     * @param type The type that the command should be compatible with (be a subtype of).
+     * @param type The handler type.
      * @return The best matching command known to this registry, or {@code null} if none were
      *         found.
      */
     @Pure
-    <C extends Command> @Nullable C findCommand( Invocation invocation, Class<? extends C> type );
+    <H extends Handlers> @Nullable Command<? extends H> findCommand( 
+            Invocation invocation, Class<H> type );
 
     /**
      * Retrieves all commands known to this registry that are compatible with the given type.
      *
-     * @param <C> The type to return as.
-     * @param type The type that the returned commands should be compatible with (be a subtype of).
+     * @param <H> The handler type that must be supported.
+     * @param type The handler type.
      * @return The compatible commands known to this registry.
      */
     @SideEffectFree
-    <C extends Command> Collection<C> getCommands( Class<? extends C> type );
+    <H extends Handlers> Collection<Command<? extends H>> getCommands( Class<H> type );
 
     /**
      * Retrieves the command with the given ID that is registered to this registry.
@@ -48,7 +50,7 @@ public interface Registry {
      *         is no such command in this registry.
      */
     @Pure
-    @Nullable Command getCommand( String id );
+    @Nullable Command<?> getCommand( String id );
 
     /**
      * Registers a command into this registry.
@@ -64,7 +66,7 @@ public interface Registry {
      *         no effect.
      * @throws IllegalArgumentException if the given command has an invalid configuration.
      */
-    boolean registerCommand( String id, Command command ) throws IllegalArgumentException;
+    boolean registerCommand( String id, Command<?> command ) throws IllegalArgumentException;
 
     /**
      * Removes a command from this registry that was registered with the given ID.
@@ -73,6 +75,6 @@ public interface Registry {
      * @return The removed command, or {@code null} if there was no command in this registry
      *         registered with the given ID.
      */
-    @Nullable Command removeCommand( String id );
+    @Nullable Command<?> removeCommand( String id );
     
 }

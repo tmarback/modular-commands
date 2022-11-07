@@ -70,11 +70,11 @@ public abstract class InvocationValidator<E extends Event> {
      *         or disabled for that command, otherwise issuing a failure result.
      */
     public Mono<CommandResult> validateSettings( final E event, 
-            final List<? extends Command> chain ) {
+            final List<? extends Command<?>> chain ) {
 
         // https://github.com/typetools/checker-framework/issues/4048
         @SuppressWarnings( "type.argument" )
-        final Command command = InvocationUtils.getSettingsSource( chain );
+        final var command = InvocationUtils.getSettingsSource( chain );
         return Flux.fromIterable( validators )
                 .flatMap( v -> v.validate( command, event ) )
                 .next(); // Return first error
@@ -90,7 +90,7 @@ public abstract class InvocationValidator<E extends Event> {
      *         otherwise issuing a failure result.
      */
     public Mono<CommandResult> validateAccess( final AccessValidator validator, 
-            final List<? extends Command> chain ) {
+            final List<? extends Command<?>> chain ) {
 
         // Defer first step to avoid relatively expensive accumulation until
         // it is known to be necessary
@@ -118,7 +118,7 @@ public abstract class InvocationValidator<E extends Event> {
          * @return {@code true} if the given command specifies that this validator should
          *         be active, {@code false} otherwise. 
          */
-        protected abstract boolean active( Command command );
+        protected abstract boolean active( Command<?> command );
 
         /**
          * Retrives the value necessary for validation from the triggering event.
@@ -146,7 +146,7 @@ public abstract class InvocationValidator<E extends Event> {
          * @return A Mono that completes empty if the requirement was satisfied
          *         or disabled for that command, otherwise issuing a failure result.
          */
-        public Mono<CommandResult> validate( final Command command, final E event ) {
+        public Mono<CommandResult> validate( final Command<?> command, final E event ) {
 
             if ( active( command ) ) {
                 return getValue( event )
@@ -172,7 +172,7 @@ public abstract class InvocationValidator<E extends Event> {
         NsfwValidator() {}
          
         @Override
-        public boolean active( final Command command ) {
+        public boolean active( final Command<?> command ) {
             return command.nsfw();
         }
 
