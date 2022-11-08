@@ -1095,6 +1095,79 @@ public final class Parsers {
 
     }
 
+    /* Lists */
+
+    /**
+     * Creates a list parser with string items.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static ListParser<String> list() {
+
+        return list( Parsers::raw );
+
+    }
+
+    /**
+     * Creates a list parser with string items.
+     *
+     * @param minItems The minimum number of items allowed. Note that, when setting to 0,
+     *                 it is recommended to set the associated parameter to be non-required
+     *                 with an empty list as default value. See {@link ListParser#minItems()}
+     *                 for details.
+     * @param maxItems The maximum number of items allowed.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static ListParser<String> list(
+            final @IntRange( from = 0, to = Integer.MAX_VALUE ) int minItems,
+            final @IntRange( from = 1, to = Integer.MAX_VALUE ) int maxItems
+    ) {
+
+        return list( Parsers::raw, minItems, maxItems );
+
+    }
+
+    /**
+     * Creates a list parser that uses the given function to parse items.
+     *
+     * @param <T> The item type.
+     * @param parser The parser to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ListParser<T> list(
+            final ParserFunction<String, T> parser
+    ) {
+
+        return list( parser, 1, Integer.MAX_VALUE );
+
+    }
+
+    /**
+     * Creates a list parser that uses the given function to parse items.
+     *
+     * @param <T> The item type.
+     * @param parser The parser to use.
+     * @param minItems The minimum number of items allowed. Note that, when setting to 0,
+     *                 it is recommended to set the associated parameter to be non-required
+     *                 with an empty list as default value. See {@link ListParser#minItems()}
+     *                 for details.
+     * @param maxItems The maximum number of items allowed.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ListParser<T> list(
+            final ParserFunction<String, T> parser,
+            final @IntRange( from = 0, to = Integer.MAX_VALUE ) int minItems,
+            final @IntRange( from = 1, to = Integer.MAX_VALUE ) int maxItems
+    ) {
+
+        return new ListParserImpl<>( parser, minItems, maxItems );
+
+    }
+
     /* Parser adapters */
 
     /**
@@ -1243,7 +1316,7 @@ public final class Parsers {
     }
 
     /**
-     * A parser for floating-point values.
+     * A parser for string values.
      *
      * @param <T> The argument type.
      * @param choices The allowed values.
@@ -1401,6 +1474,30 @@ public final class Parsers {
         @Override
         public Mono<T> parseArgument( final CommandContext context, final C raw )
                 throws InvalidArgumentException {
+
+            return parser.parse( context, raw );
+
+        }
+
+    }
+
+    /**
+     * A parser for string values.
+     *
+     * @param <T> The argument type.
+     * @param parser The function to use to parse values.
+     * @param minItems The minimum number of items.
+     * @param maxItems The maximum number of items.
+     * @since 1.0
+     */
+    private record ListParserImpl<T extends @NonNull Object>(
+            ParserFunction<String, T> parser,
+            @IntRange( from = 0, to = Integer.MAX_VALUE ) int minItems,
+            @IntRange( from = 1, to = Integer.MAX_VALUE ) int maxItems
+    ) implements ListParser<T> {
+
+        @Override
+        public Mono<T> parseItem( final CommandContext context, final String raw ) {
 
             return parser.parse( context, raw );
 

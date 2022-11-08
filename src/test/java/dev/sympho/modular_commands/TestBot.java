@@ -138,6 +138,35 @@ public class TestBot {
     }
 
     /**
+     * Creates a list command.
+     *
+     * @return The command.
+     */
+    private static Command<?> listCommand() {
+
+        final var param = new ParameterBuilder<List<Integer>>()
+                .withName( "list" )
+                .withDescription( "The list values" )
+                .withRequired( true )
+                .withParser( Parsers.list( Parsers.simple( Integer::parseInt ) ) )
+                .build();
+
+        return new CommandBuilder<>()
+                .withName( "list" )
+                .withDisplayName( "List Command" )
+                .withDescription( "Parses a list" )
+                .addParameter( param )
+                .withHandlers( Handlers.text( ctx -> {
+                    final List<Integer> l = ctx.requireArgument( param );
+                    return ctx.reply( "Received items: " + l )
+                            .then( Results.okMono() );
+
+                } ) )
+                .build();
+
+    }
+
+    /**
      * Creates an admin command.
      *
      * @return The command.
@@ -259,6 +288,7 @@ public class TestBot {
         registry.registerCommand( "ping", pingCommand() );
         registry.registerCommand( "parrot", parrotCommand() );
         registry.registerCommand( "tweet", tweetCommand() );
+        registry.registerCommand( "list", listCommand() );
 
         registry.registerCommand( "admin", adminCommand() );
         registry.registerCommand( "mod", modCommand() );

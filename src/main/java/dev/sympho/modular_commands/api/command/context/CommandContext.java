@@ -144,7 +144,7 @@ public interface CommandContext extends AccessValidator {
      * @param argumentType The type of the argument.
      * @return The argument value, or {@code null} if the argument was not given by
      *         the caller and does not have a default value.
-     * @throws IllegalArgumentException if there is no parameter with the given name.
+     * @throws IllegalArgumentException if there is no parameter with a matching name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
      * @see #getArgument(String, Class)
@@ -160,6 +160,28 @@ public interface CommandContext extends AccessValidator {
         return getArgument( parameter.name(), argumentType );
 
     }
+
+    /**
+     * Retrieves one of the arguments to the command.
+     *
+     * @param <T> The type of the argument.
+     * @param parameter The corresponding parameter.
+     * @return The argument value, or {@code null} if the argument was not given by
+     *         the caller and does not have a default value.
+     * @throws IllegalArgumentException if the given parameter is not present in the
+     *                                  invoked command.
+     * @apiNote This is functionally equivalent to {@link #getArgument(Parameter, Class)}.
+     *          However, it has a stronger requirement on the {@code parameter} argument
+     *          in that it must be the <i>same instance</i> (i.e., according to {@code ==}) 
+     *          that was used to define the parameter in the original command, instead of
+     *          just needing to match the name. This is necessary as the lack of the class
+     *          parameter means there is no other way to ensure type safety. On the other
+     *          hand, this variant makes it possible to use arguments that have their own
+     *          type parameters in a type-safe manner.
+     */
+    @Pure
+    <T extends @NonNull Object> @Nullable T getArgument( Parameter<? extends T> parameter )
+            throws IllegalArgumentException;
 
     /**
      * Retrieves one of the arguments to the command, assuming it is non-null
@@ -213,6 +235,35 @@ public interface CommandContext extends AccessValidator {
             throws IllegalArgumentException, ClassCastException, NullPointerException {
 
         return requireArgument( parameter.name(), argumentType );
+
+    }
+
+    /**
+     * Retrieves one of the arguments to the command, assuming it is non-null
+     * (so either required or with a default value).
+     *
+     * @param <T> The type of the argument.
+     * @param parameter The name of the corresponding parameter.
+     * @return The argument value, or {@code null} if the argument was not given by
+     *         the caller and does not have a default value.
+     * @throws IllegalArgumentException if the given parameter is not present in the
+     *                                  invoked command.
+     * @throws NullPointerException if the argument was not received and does not have a
+     *                              default value.
+     * @apiNote This is functionally equivalent to {@link #requireArgument(Parameter, Class)}.
+     *          However, it has a stronger requirement on the {@code parameter} argument
+     *          in that it must be the <i>same instance</i> (i.e., according to {@code ==}) 
+     *          that was used to define the parameter in the original command, instead of
+     *          just needing to match the name. This is necessary as the lack of the class
+     *          parameter means there is no other way to ensure type safety. On the other
+     *          hand, this variant makes it possible to use arguments that have their own
+     *          type parameters in a type-safe manner.
+     */
+    @Pure
+    default <T extends @NonNull Object> T requireArgument( final Parameter<? extends T> parameter )
+            throws IllegalArgumentException, NullPointerException {
+
+        return Objects.requireNonNull( getArgument( parameter ) );
 
     }
 

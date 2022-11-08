@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
+import org.checkerframework.checker.interning.qual.FindDistinct;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -65,9 +66,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( ContextImpl.class );
 
-    /** An argument that is missing. */
-    private static final Argument ARG_MISSING = new Argument( null );
-
     /** Parser for messages. */
     private static final MessageParser MESSAGE_PARSER = new MessageParser();
 
@@ -84,7 +82,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     private final Map<String, @Nullable Object> context;
 
     /** The parsed arguments. */
-    private @MonotonicNonNull Map<String, Argument> arguments;
+    private @MonotonicNonNull Map<String, ? extends Argument<?>> arguments;
 
     /** The reply manager. */
     private @MonotonicNonNull ReplyManager reply;
@@ -412,18 +410,19 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @param <T> The parsed argument type.
      * @param parameter The parameter to parse.
      * @return A Mono that issues the parsed argument. May fail with a {@link ResultException}
-     *         if the raw value is invalid or is missing (and is required), and may be empty
-     *         if the argument was not provided (and is not required and has no default).
+     *         if the raw value is invalid or is missing (and is required).
      */
     @SideEffectFree
-    private <T extends @NonNull Object> Mono<T> parseArgumentWrapped( 
+    private <T extends @NonNull Object> Mono<? extends Argument<T>> parseArgumentWrapped( 
             final Parameter<T> parameter ) {
 
         try {
             final var ex = InvalidArgumentException.class;
             return parseArgument( parameter )
                     .onErrorMap( ex, e -> wrapInvalidParam( parameter, e ) )
-                    .switchIfEmpty( Mono.defer( () -> handleMissingArgument( parameter ) ) );
+                    .switchIfEmpty( Mono.defer( () -> handleMissingArgument( parameter ) ) )
+                    .map( v -> new Argument<>( parameter, v ) )
+                    .switchIfEmpty( Mono.fromSupplier( () -> new Argument<>( parameter, null ) ) );
         } catch ( final InvalidArgumentException e ) {
             return Mono.error( wrapInvalidParam( parameter, e ) );
         }
@@ -439,11 +438,11 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      *         (and is required).
      */
     @SideEffectFree
-    private Mono<Entry<String, Argument>> processArgument( final Parameter<?> parameter ) {
+    @SuppressWarnings( "return" ) // Bug with type inference in checker
+    private Mono<? extends Entry<String, ? extends Argument<?>>> 
+            processArgument( final Parameter<?> parameter ) {
 
         return parseArgumentWrapped( parameter )
-                .map( Argument::new )
-                .defaultIfEmpty( ARG_MISSING )
                 .map( a -> Map.entry( parameter.name(), a ) )
                 .doOnError( t -> {
                     if ( t instanceof ResultException ex ) {
@@ -474,20 +473,55 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
     }
 
-    @Override
-    public <T extends @NonNull Object> @Nullable T getArgument( 
-            final String name, final Class<T> argumentType )
-            throws IllegalArgumentException, ClassCastException {
+    /**
+     * Retrieves the argument with the given name.
+     *
+     * @param name The parameter name.
+     * @return The argument.
+     * @throws IllegalStateException if the context is not yet loaded.
+     * @throws IllegalArgumentException if there is no parameter with the given name.
+     */
+    @Pure
+    private Argument<?> getArgument( final String name ) 
+            throws IllegalStateException, IllegalArgumentException {
 
         if ( arguments == null ) {
             throw new IllegalStateException( "Context not loaded yet" );
         }
 
-        if ( !arguments.containsKey( name ) ) {
+        final var arg = arguments.get( name );
+        if ( arg == null ) {
             throw new IllegalArgumentException( String.format( "No parameter named '%s'", name ) );
+        } else {
+            return arg;
         }
 
-        return arguments.get( name ).getValue( argumentType );
+    }
+
+    @Override
+    public <T extends @NonNull Object> @Nullable T getArgument( 
+            final String name, final Class<T> argumentType )
+            throws IllegalArgumentException, ClassCastException {
+
+        return getArgument( name ).getValue( argumentType );
+
+    }
+
+    @Override
+    public <T extends @NonNull Object> @Nullable T getArgument( 
+            final @FindDistinct Parameter<? extends T> parameter ) throws IllegalArgumentException {
+
+        final var argument = getArgument( parameter.name() );
+        if ( argument.parameter() == parameter ) {
+            // Type is determined by the original parameter, so if the given parameter is the
+            // same as the original parameter, the type trivially is the same
+            @SuppressWarnings( "unchecked" )
+            final Argument<T> arg = ( Argument<T> ) argument;
+            return arg.value();
+        } else {
+            throw new IllegalArgumentException( 
+                    "Parameter does not match definition: " + parameter );
+        }
 
     }
 
@@ -613,21 +647,26 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /**
      * An argument that corresponds to one of the command's formal parameters.
      *
+     * @param <T> The argument type.
+     * @param parameter The original parameter this corresponds to.
      * @param value The argument value.
      * @version 1.0
      * @since 1.0
      */
-    private record Argument( @Nullable Object value ) {
+    private record Argument<T extends @NonNull Object>(
+            Parameter<T> parameter,
+            @Nullable T value 
+    ) {
 
         /**
          * Retrieves the argument value.
          *
-         * @param <T> The value type.
+         * @param <E> The value type to receive as.
          * @param argumentType The value type.
          * @return The value.
          * @throws ClassCastException if the value is not compatible with the given type.
          */
-        public <T> @Nullable T getValue( final Class<T> argumentType ) throws ClassCastException {
+        public <E> @Nullable E getValue( final Class<E> argumentType ) throws ClassCastException {
 
             return argumentType.cast( value );
 
