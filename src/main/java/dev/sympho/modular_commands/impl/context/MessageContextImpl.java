@@ -144,7 +144,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         final var lastIdx = parameters.size() - 1;
         final var last = parameters.get( lastIdx ).parser();
-        final var merge = last instanceof StringParser<?>;
+        final var merge = last instanceof StringParser<?> p && p.allowMerge();
         final var index = new AtomicInteger( 0 );
 
         return Flux.generate( sink -> {

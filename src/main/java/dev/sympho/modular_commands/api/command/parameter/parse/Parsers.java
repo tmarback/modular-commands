@@ -481,6 +481,21 @@ public final class Parsers {
     }
 
     /**
+     * Creates a parser that receives plain string values.
+     *
+     * @param minLength The minimum allowed length, or {@code null} if none.
+     * @param maxLength The maximum allowed length, or {@code null} if none.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static StringParser<String> string(
+            final @Nullable @IntRange( from = 0, to = StringParser.MAX_LENGTH ) Integer minLength,
+            final @Nullable @IntRange( from = 1, to = StringParser.MAX_LENGTH ) Integer maxLength
+    ) {
+        return string( Parsers::raw, minLength, maxLength );
+    }
+
+    /**
      * Creates a parser that uses the given function to parse received values.
      *
      * @param <T> The parsed argument type.
@@ -490,8 +505,26 @@ public final class Parsers {
     @SideEffectFree
     public static <T extends @NonNull Object> StringParser<T> string( 
             final ParserFunction<String, T> parser ) {
+        return string( parser, null, null );
+    }
 
-        return new StringParserImpl<>( null, parser );
+    /**
+     * Creates a parser that uses the given function to parse received values.
+     *
+     * @param <T> The parsed argument type.
+     * @param parser The parser to use.
+     * @param minLength The minimum allowed length, or {@code null} if none.
+     * @param maxLength The maximum allowed length, or {@code null} if none.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> StringParser<T> string( 
+            final ParserFunction<String, T> parser,
+            final @Nullable @IntRange( from = 0, to = StringParser.MAX_LENGTH ) Integer minLength,
+            final @Nullable @IntRange( from = 1, to = StringParser.MAX_LENGTH ) Integer maxLength
+    ) {
+
+        return new StringParserImpl<>( null, parser, minLength, maxLength, false );
         
     }
 
@@ -506,7 +539,8 @@ public final class Parsers {
 
         return new StringParserImpl<>( 
                 choices,
-                Parsers::raw
+                Parsers::raw,
+                null, null, false
         );
 
     }
@@ -524,9 +558,86 @@ public final class Parsers {
 
         return new StringParserImpl<>( 
                 choiceEntries( choices ), 
-                choiceParser( choices ) 
+                choiceParser( choices ),
+                null, null, false
         );
 
+    }
+
+    /* Long Strings */
+
+    /**
+     * Creates a parser that receives plain string values.
+     * 
+     * <p>Unlike the {@link #string()} variant, this parser allows 
+     * {@link StringParser#allowMerge() merging}.
+     *
+     * @return The parser.
+     * @see StringParser#allowMerge()
+     */
+    @SideEffectFree
+    public static StringParser<String> text() {
+        return text( Parsers::raw );
+    }
+
+    /**
+     * Creates a parser that receives plain string values.
+     * 
+     * <p>Unlike the {@link #string(Integer, Integer)} variant, this parser allows 
+     * {@link StringParser#allowMerge() merging}.
+     *
+     * @param minLength The minimum allowed length, or {@code null} if none.
+     * @param maxLength The maximum allowed length, or {@code null} if none.
+     * @return The parser.
+     * @see StringParser#allowMerge()
+     */
+    @SideEffectFree
+    public static StringParser<String> text(
+            final @Nullable @IntRange( from = 0, to = StringParser.MAX_LENGTH ) Integer minLength,
+            final @Nullable @IntRange( from = 1, to = StringParser.MAX_LENGTH ) Integer maxLength
+    ) {
+        return text( Parsers::raw, minLength, maxLength );
+    }
+
+    /**
+     * Creates a parser that uses the given function to parse received values.
+     * 
+     * <p>Unlike the {@link #string(ParserFunction)} variant, this parser allows 
+     * {@link StringParser#allowMerge() merging}.
+     *
+     * @param <T> The parsed argument type.
+     * @param parser The parser to use.
+     * @return The parser.
+     * @see StringParser#allowMerge()
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> StringParser<T> text( 
+            final ParserFunction<String, T> parser ) {
+        return text( parser, null, null );
+    }
+
+    /**
+     * Creates a parser that uses the given function to parse received values.
+     * 
+     * <p>Unlike the {@link #string(ParserFunction, Integer, Integer)} variant, this parser allows
+     * {@link StringParser#allowMerge() merging}.
+     *
+     * @param <T> The parsed argument type.
+     * @param parser The parser to use.
+     * @param minLength The minimum allowed length, or {@code null} if none.
+     * @param maxLength The maximum allowed length, or {@code null} if none.
+     * @return The parser.
+     * @see StringParser#allowMerge()
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> StringParser<T> text( 
+            final ParserFunction<String, T> parser,
+            final @Nullable @IntRange( from = 0, to = StringParser.MAX_LENGTH ) Integer minLength,
+            final @Nullable @IntRange( from = 1, to = StringParser.MAX_LENGTH ) Integer maxLength
+    ) {
+
+        return new StringParserImpl<>( null, parser, minLength, maxLength, true );
+        
     }
 
     /* Attachments */
@@ -1137,11 +1248,17 @@ public final class Parsers {
      * @param <T> The argument type.
      * @param choices The allowed values.
      * @param parser The function to use to parse values.
+     * @param minLength The minimum length.
+     * @param maxLength The maximum length.
+     * @param allowMerge Whether to allow merging behavior.
      * @since 1.0
      */
     private record StringParserImpl<T extends @NonNull Object>(
             @Nullable List<Choice<String>> choices,
-            ParserFunction<String, T> parser
+            ParserFunction<String, T> parser,
+            @IntRange( from = 0, to = StringParser.MAX_LENGTH ) @Nullable Integer minLength,
+            @IntRange( from = 1, to = StringParser.MAX_LENGTH ) @Nullable Integer maxLength,
+            boolean allowMerge
     ) implements StringParser<T> {
 
         @Override

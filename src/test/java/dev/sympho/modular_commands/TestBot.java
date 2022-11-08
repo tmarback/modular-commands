@@ -87,7 +87,7 @@ public class TestBot {
                 .withName( "message" )
                 .withDescription( "The message to repeat" )
                 .withRequired( true )
-                .withParser( Parsers.string() )
+                .withParser( Parsers.text() )
                 .build();
 
         return new CommandBuilder<>()

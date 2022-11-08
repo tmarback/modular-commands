@@ -47,6 +47,34 @@ public non-sealed interface StringParser<T extends @NonNull Object>
     }
 
     /**
+     * Whether to allow merge behavior when a parameter using this parser is the last parameter 
+     * of the command.
+     * 
+     * <p>If enabled, whenever an associated parameter is the last parameter of a message-based 
+     * invocation, all content in the message beyond the second-to-last argument is considered 
+     * to correspond to this parameter, and is parsed as-is, rather than being tokenized like 
+     * the preceding arguments.
+     * 
+     * <p>This behavior allows the last argument to contain delimiter characters (such as spaces)
+     * and generally maintain formatting without the user needing to surround it with quotes
+     * (particularly useful when the last parameter is a message or a list). 
+     * 
+     * <p>One consequence of it, however, is that if the user <i>does</i> include quotes
+     * (out of habit, for example), they will not be stripped prior to parsing. It also
+     * disables automatic checking for extra arguments, which may cause parsing errors instead.
+     * 
+     * <p>If this parameter is not the last parameter, or the invocation is not through a
+     * message, this value is ignored.
+     *
+     * @return Whether to enable merge behavior.
+     * @implSpec The default is {@code false}.
+     */
+    @Pure
+    default boolean allowMerge() {
+        return false;
+    }
+
+    /**
      * Verifies that the given string is within the allowed length range for this parser.
      *
      * @param raw The string to validate.
