@@ -57,7 +57,7 @@ public interface StringSplitter extends Function<String, List<String>> {
     }
 
     /**
-     * A splitter that is capable of processing the split in an asynchoronous manner.
+     * A splitter that is capable of processing the split in an asynchronous manner.
      *
      * @version 1.0
      * @since 1.0
@@ -108,75 +108,71 @@ public interface StringSplitter extends Function<String, List<String>> {
 
         }
 
-        /**
-         * @implNote Elements are split lazily on demand.
-         */
         @Override
-        default SmartIterator.Detachable<String> iterate( final String raw ) {
+        default Iterator iterate( final String raw ) {
 
-            // Reference to the next item to be retrieved
-            // Didn't want to make it an instance variable of the anonymous class because
-            // of the dependency on the reference to initialize the state variables
-            final AtomicReference<@Nullable String> next = new AtomicReference<>();
+            return new Iterator() {
 
-            return new SmartIterator.Detachable<String>() {
-
-                /** The current state (not traversed yet) */
-                private String state = raw;
+                /** The next value to be returned. */
+                private final AtomicReference<@Nullable String> next;
+                /** The current state (not traversed yet). */
+                private String state;
                 /** The next state (remaining to parse). */
-                private String nextState = takeNext( raw, next::set );
+                private String nextState;
 
+                {
+    
+                    this.next = new AtomicReference<>();
+    
+                    state = raw;
+                    nextState = takeNext( raw, next::set );
+    
+                }
+    
+                @Override
+                public String remainder() {
+                    return state;
+                }
+    
                 @Override
                 public String next() throws NoSuchElementException {
-
+    
                     final var n = next.getAndSet( null );
                     if ( n == null ) {
                         throw new NoSuchElementException( "No more elements" );
                     }
-
+    
                     state = nextState;
                     nextState = takeNext( state, next::set );
                     return n;
-
+    
                 }
-
+    
                 @Override
                 public @Nullable String peek() {
-
                     return next.get();
-
                 }
-
-                // Just delegate to splitter methods using current state
-
+    
                 @Override
                 public SmartIterator.Detachable<String> toIterator() {
-
                     return iterate( state );
-            
                 }
-
+    
                 @Override
                 public Spliterator<String> toSpliterator() {
-
                     return spliterate( state );
-            
                 }
-
+    
                 @Override
                 public Stream<String> toStream() {
-
                     return splitStream( state );
-
                 }
-
+    
                 @Override
                 public Flux<String> toFlux() {
-
                     return splitAsync( state );
-
                 }
-
+    
             };
 
         }
@@ -213,6 +209,32 @@ public interface StringSplitter extends Function<String, List<String>> {
         default Stream<String> splitStream( final String raw ) {
 
             return StreamSupport.stream( spliterate( raw ), false );
+
+        }
+
+        /**
+         * An iterator that splits elements lazily on demand during traversal.
+         *
+         * @since 1.0
+         */
+        interface Iterator extends SmartIterator.Detachable<String> {
+
+            /**
+             * Returns an empty iterator.
+             *
+             * @return An empty iterator.
+             */
+            static Iterator empty() {
+                return EmptyIterators.EmptySplitter.INSTANCE;
+            }
+
+            /**
+             * Retrieves the remainder of the string that has not been parsed yet.
+             *
+             * @return The remainder (not traversed) portion of the string.
+             */
+            @Pure
+            String remainder();
 
         }
 

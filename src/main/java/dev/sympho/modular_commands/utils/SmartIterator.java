@@ -30,46 +30,6 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
     String NO_MORE_ELEMENTS_ERROR = "No more elements";
 
     /**
-     * The empty iterator.
-     *
-     * @see #empty()
-     */
-    @SuppressWarnings( "rawtypes" )
-    SmartIterator.Detachable EMPTY = new SmartIterator.Detachable() {
-
-        @Override
-        public Object next() throws NoSuchElementException {
-            throw new NoSuchElementException( NO_MORE_ELEMENTS_ERROR );
-        }
-
-        @Override
-        public @Nullable Object peek() {
-            return null;
-        }
-
-        @Override
-        public Detachable toIterator() {
-            return this;
-        }
-
-        @Override
-        public Spliterator toSpliterator() {
-            return Spliterators.emptySpliterator();
-        }
-
-        @Override
-        public Stream toStream() {
-            return Stream.empty();
-        }
-
-        @Override
-        public Flux toFlux() {
-            return Flux.empty();
-        }
-
-    };
-
-    /**
      * Returns an empty iterator.
      *
      * @param <E> The element type.
@@ -77,7 +37,7 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
      */
     @SuppressWarnings( "unchecked" )
     static <E extends @NonNull Object> SmartIterator.Detachable<E> empty() {
-        return ( SmartIterator.Detachable<E> ) EMPTY;
+        return ( SmartIterator.Detachable<E> ) EmptyIterators.EmptyDetachable.INSTANCE;
     }
 
     /**

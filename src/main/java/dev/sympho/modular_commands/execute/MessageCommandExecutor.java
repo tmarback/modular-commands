@@ -13,15 +13,14 @@ import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.impl.context.MessageContextImpl;
-import dev.sympho.modular_commands.utils.SmartIterator;
 import dev.sympho.modular_commands.utils.StringSplitter;
+import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -57,10 +56,10 @@ public class MessageCommandExecutor extends CommandExecutor {
      * @since 1.0
      */
     private static class Builder extends PipelineBuilder<MessageCreateEvent, 
-             MessageContextImpl, MessageHandlers> {
+             MessageContextImpl, MessageHandlers, Iterator> {
 
         /** Splitter to use for separating arguments in received messages. */
-        private final StringSplitter splitter = new StringSplitter.Shell();
+        private final StringSplitter.Async splitter = new StringSplitter.Shell();
 
         /** Provides the prefixes that commands should have. */
         private final PrefixProvider prefixProvider;
@@ -110,18 +109,18 @@ public class MessageCommandExecutor extends CommandExecutor {
         }
     
         @Override
-        protected SmartIterator<String> parse( final MessageCreateEvent event ) {
+        protected Iterator parse( final MessageCreateEvent event ) {
 
             final String message = event.getMessage().getContent();
             if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
-                return SmartIterator.empty();
+                return Iterator.empty();
             }
 
             final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
             if ( message.startsWith( prefix ) ) {
                 return splitter.iterate( message.substring( prefix.length() ).trim() );
             } else {
-                return SmartIterator.empty();
+                return Iterator.empty();
             }
     
         }
@@ -129,7 +128,7 @@ public class MessageCommandExecutor extends CommandExecutor {
         @Override
         protected MessageContextImpl makeContext( final MessageCreateEvent event,
                 final Command<? extends MessageHandlers> command, final Invocation invocation, 
-                final Flux<String> args ) {
+                final Iterator args ) {
 
             final var access = accessValidator( event );
             return new MessageContextImpl( event, invocation, command.parameters(), args, access );

@@ -43,6 +43,7 @@ import reactor.util.function.Tuples;
  * @param <E> The type of event that triggers commands.
  * @param <CTX> The type of command context.
  * @param <H> The type of handlers.
+ * @param <I> The iterator type used to traverse the received arguments.
  * @version 1.0
  * @since 1.0
  * @apiNote Note that, for the purposes of this class, there is a distinction between <i>args</i>
@@ -59,7 +60,8 @@ import reactor.util.function.Tuples;
  *          </ul>
  */
 public abstract class PipelineBuilder<E extends Event, 
-        CTX extends CommandContext & LazyContext, H extends Handlers> {
+        CTX extends CommandContext & LazyContext, H extends Handlers, 
+        I extends SmartIterator<String>> {
 
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( PipelineBuilder.class );
@@ -226,7 +228,7 @@ public abstract class PipelineBuilder<E extends Event,
      *         as a command.
      */
     @SideEffectFree
-    protected abstract SmartIterator<String> parse( E event );
+    protected abstract I parse( E event );
 
     /**
      * Creates a command context from a parsed invocation.
@@ -242,7 +244,7 @@ public abstract class PipelineBuilder<E extends Event,
      */
     @SideEffectFree
     protected abstract CTX makeContext( E event, Command<? extends H> command, 
-            Invocation invocation, Flux<String> args );
+            Invocation invocation, I args );
 
     /**
      * Retrieves the ID of the guild where the command was invoked, if any, from the
@@ -353,7 +355,7 @@ public abstract class PipelineBuilder<E extends Event,
      */
     @Pure
     private boolean checkScope( 
-            final Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>> payload ) {
+            final Tuple4<E, List<Command<? extends H>>, Invocation, I> payload ) {
 
         final E event = payload.getT1();
         final List<Command<? extends H>> chain = payload.getT2();
@@ -372,7 +374,7 @@ public abstract class PipelineBuilder<E extends Event,
      */
     @Pure
     private boolean checkCallable( 
-            final Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>> payload ) {
+            final Tuple4<E, List<Command<? extends H>>, Invocation, I> payload ) {
 
         final List<Command<? extends H>> chain = payload.getT2();
 
@@ -393,7 +395,7 @@ public abstract class PipelineBuilder<E extends Event,
      * @return A Mono that issues the parsed command, if any. 
      */
     @SideEffectFree
-    private Mono<Tuple4<E, List<Command<? extends H>>, Invocation, Flux<String>>> parseEvent( 
+    private Mono<Tuple4<E, List<Command<? extends H>>, Invocation, I>> parseEvent( 
             final E event, final Registry registry ) {
 
         return Mono.just( event )
@@ -401,7 +403,7 @@ public abstract class PipelineBuilder<E extends Event,
                 .filter( ctx -> ctx.getT2().hasNext() )
                 .map( ctx -> {
                     final E e = ctx.getT1();
-                    final SmartIterator<String> args = ctx.getT2();
+                    final I args = ctx.getT2();
 
                     LOGGER.trace( "Parsed args {}", args );
 
@@ -417,11 +419,10 @@ public abstract class PipelineBuilder<E extends Event,
                             + " was leftover after " + invocation.toString()
                         );
                     }
-                    final var remainder = args.toFlux();
 
                     LOGGER.trace( "Matched invocation {}", invocation );
 
-                    return Tuples.of( e, chain, invocation, remainder );
+                    return Tuples.of( e, chain, invocation, args );
                 } )
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .filter( this::checkScope )
@@ -517,12 +518,12 @@ public abstract class PipelineBuilder<E extends Event,
      * @return A Mono that issues the invocation result once execution has completed.
      */
     private <C extends Command<? extends H>> Mono<Tuple3<C, CTX, CommandResult>> executeCommand( 
-            final Tuple4<E, List<C>, Invocation, Flux<String>> payload ) {
+            final Tuple4<E, List<C>, Invocation, I> payload ) {
 
         final E event = payload.getT1();
         final List<C> chain = payload.getT2();
         final Invocation invocation = payload.getT3();
-        final Flux<String> args = payload.getT4();
+        final I args = payload.getT4();
 
         final var command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );

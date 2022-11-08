@@ -28,6 +28,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.ChannelParser;
 import dev.sympho.modular_commands.utils.parse.RoleParser;
 import dev.sympho.modular_commands.utils.parse.UserParser;
@@ -61,7 +62,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     private final MessageCreateEvent event;
 
     /** The received inline arguments. */
-    private final Flux<String> arguments;
+    private final Iterator arguments;
 
     /** The arguments received as text. */
     private @MonotonicNonNull Map<String, String> inputArgs;
@@ -81,7 +82,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      *                         arguments.
      */
     public MessageContextImpl( final MessageCreateEvent event, final Invocation invocation,
-            final List<Parameter<?>> parameters, final Flux<String> args,
+            final List<Parameter<?>> parameters, final Iterator args,
             final AccessValidator access ) throws ResultException {
 
         super( invocation, parameters, access );
@@ -128,31 +129,6 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     /**
-     * Merges a group of string arguments into one, if allowed.
-     *
-     * @param group The group of arguments.
-     * @param param The corresponding parameter.
-     * @return The merged group. If the parameter is not a string parameter,
-     *         the group is not merged and is returned as-is.
-     */
-    @SideEffectFree
-    private static Flux<String> merge( final Flux<String> group, final Parameter<?> param ) {
-
-        if ( !( param.parser() instanceof StringParser<?> ) ) {
-            return group;
-        }
-
-        return group.defaultIfEmpty( "" ) // Default should never happen but just in case
-                .reduceWith( 
-                        StringBuilder::new, 
-                        ( builder, next ) -> builder.append( " " ).append( next )
-                )
-                .map( b -> b.substring( 1 ) )
-                .flux();
-
-    }
-
-    /**
      * Adjusts the args received so that trailing arguments are merged into the
      * final argument, if the final parameter is a string.
      * 
@@ -164,18 +140,25 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      */
     @SideEffectFree
     private static Flux<String> adjustArgs( final List<Parameter<?>> parameters,
-            final Flux<String> args ) {
+            final Iterator args ) {
 
-        final AtomicInteger count = new AtomicInteger();
-        return args.windowUntil( 
-                        arg -> count.incrementAndGet() == parameters.size(),
-                        true 
-                )
-                .index()
-                .flatMapSequential( g -> g.getT1() == 0 
-                    ? g.getT2() 
-                    : merge( g.getT2(), parameters.get( parameters.size() - 1 ) )
-                );
+        final var lastIdx = parameters.size() - 1;
+        final var last = parameters.get( lastIdx ).parser();
+        final var merge = last instanceof StringParser<?>;
+        final var index = new AtomicInteger( 0 );
+
+        return Flux.generate( sink -> {
+
+            if ( !args.hasNext() ) {
+                sink.complete();
+            } else if ( merge && index.getAndIncrement() == lastIdx ) {
+                sink.next( args.remainder() );
+                sink.complete();
+            } else {
+                sink.next( args.next() );
+            }
+
+        } );
 
     }
 
