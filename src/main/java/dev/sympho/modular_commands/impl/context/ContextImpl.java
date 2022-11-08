@@ -458,11 +458,12 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /* Initialization */
 
     /**
-     * Performs any required initialization at {@link #initialize()} time.
+     * Performs any required initialization of received arguments before
+     * parsing starts.
      *
      * @return A mono that completes when initialization is done.
      */
-    protected abstract Mono<Void> init();
+    protected abstract Mono<Void> initArgs();
 
     /* Implementations */
 
@@ -540,7 +541,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     @Override
-    @EnsuresCalledMethods( value = "this", methods = "init" )
     public Mono<Void> initialize() {
 
         if ( initialized.getAndSet( true ) ) {
@@ -558,7 +558,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .doOnNext( manager -> {
                     this.reply = manager;
                 } )
-                .then( init() )
+                .then()
                 .doOnSuccess( v -> initializeLatch.countDown() )
                 .doOnError( initializeLatch::fail )
                 .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
@@ -573,11 +573,13 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @return The result.
      * @see #load()
      */
+    @EnsuresCalledMethods( value = "this", methods = "initArgs" )
     public Mono<CommandResult> doLoad() {
 
         LOGGER.trace( "Loading context" );
 
-        return Flux.fromIterable( parameters )
+        return initArgs()
+                .thenMany( Flux.fromIterable( parameters ) )
                 .flatMap( this::processArgument )
                 .collectMap( Entry::getKey, Entry::getValue )
                 .doOnNext( args -> {

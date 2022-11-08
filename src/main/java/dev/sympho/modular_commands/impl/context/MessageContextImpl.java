@@ -163,7 +163,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    protected Mono<Void> init() {
+    protected Mono<Void> initArgs() {
 
         return Mono.defer( () -> {
 
