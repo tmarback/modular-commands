@@ -134,6 +134,10 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     private static Flux<String> adjustArgs( final List<Parameter<?>> parameters,
             final Iterator args ) {
 
+        if ( parameters.isEmpty() ) {
+            return Flux.empty();
+        }
+
         final var lastIdx = parameters.size() - 1;
         final var last = parameters.get( lastIdx ).parser();
         final var merge = last instanceof StringParser<?> p && p.allowMerge();
