@@ -21,10 +21,149 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
+@SuppressWarnings( "DeclarationOrder" )
 public final class ParseUtils {
 
     /** Do not instantiate. */
     private ParseUtils() {}
+
+    /* String to raw */
+
+    /** Parser for integers from strings. */
+    public static final ParserFunction<String, Long> INTEGER = Parsers.functor( 
+            RawParser.INTEGER::parse );
+
+    /** Parser for floats from strings. */
+    public static final ParserFunction<String, Double> FLOAT = Parsers.functor( 
+            RawParser.FLOAT::parse );
+
+    /** Parser for snowflakes from strings. */
+    public static final ParserFunction<String, Snowflake> SNOWFLAKE = Parsers.functor( 
+            RawParser.SNOWFLAKE::parse );
+
+    /** Parser for messages from strings. */
+    public static final MessageParser MESSAGE = new MessageParser();
+
+    /** Parser for users from strings. */
+    public static final UserParser USER = new UserParser();
+
+    /** Parser for roles from strings. */
+    public static final RoleParser ROLE = new RoleParser();
+
+    /**
+     * Creates a parser for channels of the given type.
+     *
+     * @param <C> The channel type.
+     * @param type The type.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <C extends @NonNull Channel> ChannelParser<C> channel( 
+            final Class<C> type ) {
+        // Can't use a static parser due to the generics
+        return new ChannelParser<>( type );
+    }
+    
+    /* Adapters */
+
+    /**
+     * Creates an adapter for an integer parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptInteger(
+            final ParserFunction<Long, T> parser
+    ) {
+        return new StringAdapter<>( INTEGER, parser );
+    }
+
+    /**
+     * Creates an adapter for an float parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptFloat(
+            final ParserFunction<Double, T> parser
+    ) {
+        return new StringAdapter<>( FLOAT, parser );
+    }
+
+    /**
+     * Creates an adapter for a snowflake parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptSnowflake(
+            final ParserFunction<Snowflake, T> parser
+    ) {
+        return new StringAdapter<>( SNOWFLAKE, parser );
+    }
+
+    /**
+     * Creates an adapter for a message parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptMessage(
+            final ParserFunction<Message, T> parser
+    ) {
+        return new StringAdapter<>( MESSAGE, parser );
+    }
+
+    /**
+     * Creates an adapter for an user parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptUser(
+            final ParserFunction<User, T> parser
+    ) {
+        return new StringAdapter<>( USER, parser );
+    }
+
+    /**
+     * Creates an adapter for a role parser to be used with string values.
+     *
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParserFunction<String, T> adaptRole(
+            final ParserFunction<Role, T> parser
+    ) {
+        return new StringAdapter<>( ROLE, parser );
+    }
+
+    /**
+     * Creates an adapter for a channel parser to be used with string values.
+     *
+     * @param <C> The channel type.
+     * @param <T> The parsed value type.
+     * @param parser The parser to use.
+     * @param type The channel type.
+     * @return The adapter parser.
+     */
+    @SideEffectFree
+    public static <C extends Channel, T extends @NonNull Object> ParserFunction<String, T>
+            adaptChannel( final ParserFunction<C, T> parser, final Class<C> type ) {
+        return new StringAdapter<>( channel( type ), parser );
+    }
 
     /* Lists */
 
@@ -48,6 +187,34 @@ public final class ParseUtils {
     }
 
     /**
+     * A parser that parses a list of integers.
+     * 
+     * <p>Values are separated by whitespace.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static ListParser<Long> integers() {
+
+        return Parsers.list( INTEGER );
+
+    }
+
+    /**
+     * A parser that parses a list of floats.
+     * 
+     * <p>Values are separated by whitespace.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static ListParser<Double> floats() {
+
+        return Parsers.list( FLOAT );
+
+    }
+
+    /**
      * A parser that parses a list of snowflake IDs.
      * 
      * <p>IDs are separated by whitespace.
@@ -57,7 +224,21 @@ public final class ParseUtils {
     @SideEffectFree
     public static ListParser<Snowflake> snowflakes() {
 
-        return Parsers.list( Parsers.simple( Snowflake::of ) );
+        return Parsers.list( SNOWFLAKE );
+
+    }
+
+    /**
+     * A parser that parses a list of messages.
+     * 
+     * <p>Messages are separated by whitespace.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static ListParser<Message> messages() {
+
+        return Parsers.list( MESSAGE );
 
     }
 
@@ -71,7 +252,7 @@ public final class ParseUtils {
     @SideEffectFree
     public static ListParser<User> users() {
 
-        return Parsers.list( new UserParser() );
+        return Parsers.list( USER );
 
     }
 
@@ -85,7 +266,7 @@ public final class ParseUtils {
     @SideEffectFree
     public static ListParser<Role> roles() {
 
-        return Parsers.list( new RoleParser() );
+        return Parsers.list( ROLE );
 
     }
 
@@ -101,21 +282,7 @@ public final class ParseUtils {
     @SideEffectFree
     public static <C extends Channel> ListParser<C> channels( final Class<C> type ) {
 
-        return Parsers.list( new ChannelParser<>( type ) );
-
-    }
-
-    /**
-     * A parser that parses a list of messages.
-     * 
-     * <p>Messages are separated by whitespace.
-     *
-     * @return The parser.
-     */
-    @SideEffectFree
-    public static ListParser<Message> messages() {
-
-        return Parsers.list( new MessageParser() );
+        return Parsers.list( channel( type ) );
 
     }
     

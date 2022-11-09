@@ -29,9 +29,7 @@ import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtr
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
-import dev.sympho.modular_commands.utils.parse.ChannelParser;
-import dev.sympho.modular_commands.utils.parse.RoleParser;
-import dev.sympho.modular_commands.utils.parse.UserParser;
+import dev.sympho.modular_commands.utils.parse.RawParser;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Attachment;
@@ -51,12 +49,6 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 public final class MessageContextImpl extends ContextImpl<String> implements MessageCommandContext {
-
-    /** The user parser. */
-    private static final UserParser USER_PARSER = new UserParser();
-
-    /** The channel parser. */
-    private static final RoleParser ROLE_PARSER = new RoleParser();
 
     /** The event that triggered the invocation. */
     private final MessageCreateEvent event;
@@ -221,91 +213,64 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     /**
-     * Parses a raw input argument.
+     * Retrieves an input argument and performs initial parsing on it.
      *
-     * @param <P>          The raw value type.
-     * @param name         The parameter name.
-     * @param parser       The parser function.
-     * @param errorMessage The message to use in case of errors.
-     * @return The argument, or {@code null} if missing.
-     * @throws InvalidArgumentException if the argument is invalid.
+     * @param <P> The raw value type.
+     * @param name The parameter name.
+     * @param parser The parser to use.
+     * @return The pre-parsed raw argument. Will be empty if the argument
+     *         is missing.
      */
-    @SuppressWarnings( "IllegalCatch" )
-    private <P extends @NonNull Object> @Nullable P parseSync( final String name,
-            final Function<String, P> parser, final String errorMessage )
-            throws InvalidArgumentException {
-
-        try {
-
-            final var raw = getInputArgs().get( name );
-            return raw == null ? null : parser.apply( raw );
-
-        } catch ( final RuntimeException ex ) {
-
-            throw new InvalidArgumentException( errorMessage, ex );
-
-        }
-
-    }
-
-    /**
-     * Parses a raw input argument.
-     *
-     * @param <P>    The raw value type.
-     * @param name   The parameter name.
-     * @param parser The parser function.
-     * @return The argument, or empty if missing.
-     */
-    private <P extends @NonNull Object> Mono<P> parseAsync( final String name,
-            final Function<String, Mono<P>> parser ) {
+    private <P extends @NonNull Object> Mono<P> parse( final String name,
+            final RawParser<P> parser ) {
 
         final var raw = getInputArgs().get( name );
-        return raw == null ? Mono.empty() : parser.apply( raw );
+        return raw == null ? Mono.empty() : parser.parse( raw );
 
     }
 
     @Override
-    protected @Nullable String getStringArgument( final String name ) {
+    protected Mono<String> getStringArgument( final String name ) {
 
-        return getInputArgs().get( name );
+        return parse( name, RawParser.STRING );
 
     }
 
     @Override
-    protected @Nullable Long getIntegerArgument( final String name )
+    protected Mono<Long> getIntegerArgument( final String name )
             throws InvalidArgumentException {
 
-        return parseSync( name, Long::valueOf, "Not a valid integer" );
+        return parse( name, RawParser.INTEGER );
 
     }
 
     @Override
-    protected @Nullable Double getFloatArgument( final String name )
+    protected Mono<Double> getFloatArgument( final String name )
             throws InvalidArgumentException {
 
-        return parseSync( name, Double::valueOf, "Not a valid number" );
+        return parse( name, RawParser.FLOAT );
 
     }
 
     @Override
-    protected @Nullable Snowflake getSnowflakeArgument( final String name,
+    protected Mono<Snowflake> getSnowflakeArgument( final String name,
             final SnowflakeParser.Type type ) throws InvalidArgumentException {
 
-        return parseSync( name, Snowflake::of, "Not a valid snowflake" );
+        return parse( name, RawParser.SNOWFLAKE );
 
     }
 
     @Override
     protected Mono<User> getUserArgument( final String name ) {
 
-        return parseAsync( name, raw -> USER_PARSER.parse( this, raw ) );
+        return parse( name, RawParser.user( this ) );
 
     }
 
     @Override
     protected Mono<Role> getRoleArgument( final String name ) {
 
-        return parseAsync( name, raw -> ROLE_PARSER.parse( this, raw ) );
+        return parse( name, RawParser.role( this ) );
 
     }
 
@@ -313,15 +278,15 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     protected <C extends @NonNull Channel> Mono<C> getChannelArgument( final String name,
             final Class<C> type ) {
 
-        // Can't use a static parser due to the generics
-        return parseAsync( name, raw -> new ChannelParser<>( type ).parse( this, raw ) );
+        return parse( name, RawParser.channel( this, type ) );
 
     }
 
     @Override
-    protected @Nullable Attachment getAttachmentArgument( final String name ) {
+    protected Mono<Attachment> getAttachmentArgument( final String name ) {
 
-        return getAttachmentArgs().get( name );
+        final var attachment = getAttachmentArgs().get( name );
+        return attachment == null ? Mono.empty() : Mono.just( attachment );
 
     }
 
@@ -330,13 +295,9 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         final var author = event.getMessage().getAuthor();
         if ( author.isPresent() ) {
-
             return author.get();
-
         } else {
-
             throw new IllegalStateException( "Message with no author." );
-
         }
 
     }

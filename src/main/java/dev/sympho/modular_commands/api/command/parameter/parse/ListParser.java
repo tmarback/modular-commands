@@ -133,7 +133,7 @@ public interface ListParser<T extends @NonNull Object> extends StringParser<List
             return raws.concatMap( i -> parseItem( context, i ) );
         } else {
             final var parser = TryParser.of( this::parseItem );
-            return raws.concatMap( i -> parser.apply( context, i ) )
+            return raws.concatMap( i -> parser.parse( context, i ) )
                     .collectList()
                     .map( TryParser::split )
                     .flatMap( r -> r.getT2().isEmpty() 

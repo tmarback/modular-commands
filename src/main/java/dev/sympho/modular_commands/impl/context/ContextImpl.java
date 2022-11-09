@@ -40,7 +40,7 @@ import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.execute.LazyContext;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
-import dev.sympho.modular_commands.utils.parse.MessageParser;
+import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Attachment;
 import discord4j.core.object.entity.Message;
@@ -65,9 +65,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( ContextImpl.class );
-
-    /** Parser for messages. */
-    private static final MessageParser MESSAGE_PARSER = new MessageParser();
 
     /** The command parameters in the order that they should be received. */
     protected final List<Parameter<?>> parameters;
@@ -134,33 +131,35 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * Retrieves the string argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated string argument.
+     * @return The associated string argument. May be empty if missing.
      * @throws InvalidArgumentException if the received argument is not a valid string.
      */
     @SideEffectFree
-    protected abstract @Nullable String getStringArgument( String name ) 
+    protected abstract Mono<String> getStringArgument( String name ) 
             throws InvalidArgumentException;
 
     /**
      * Retrieves the integer argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated integer argument.
+     * @return The associated integer argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      * @throws InvalidArgumentException if the received argument is not a valid integer.
      */
     @SideEffectFree
-    protected abstract @Nullable Long getIntegerArgument( String name ) 
+    protected abstract Mono<Long> getIntegerArgument( String name ) 
             throws InvalidArgumentException;
 
     /**
      * Retrieves the float argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated float argument.
+     * @return The associated float argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      * @throws InvalidArgumentException if the received argument is not a valid float.
      */
     @SideEffectFree
-    protected abstract @Nullable Double getFloatArgument( String name ) 
+    protected abstract Mono<Double> getFloatArgument( String name ) 
             throws InvalidArgumentException;
 
     /**
@@ -168,19 +167,20 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      *
      * @param name The parameter name.
      * @param type The ID type.
-     * @return The associated snowflake argument.
+     * @return The associated snowflake argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      * @throws InvalidArgumentException if the received argument is not a valid snowflake.
      */
     @SideEffectFree
-    protected abstract @Nullable Snowflake getSnowflakeArgument( String name, 
+    protected abstract Mono<Snowflake> getSnowflakeArgument( String name, 
             SnowflakeParser.Type type ) throws InvalidArgumentException;
 
     /**
      * Retrieves the user argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated user argument. May fail with an {@link InvalidArgumentException}
-     *         if the received argument is not a valid user.
+     * @return The associated user argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      */
     @SideEffectFree
     protected abstract Mono<User> getUserArgument( String name );
@@ -189,8 +189,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * Retrieves the role argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated role argument. May fail with an {@link InvalidArgumentException}
-     *         if the received argument is not a valid role.
+     * @return The associated role argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      */
     @SideEffectFree
     protected abstract Mono<Role> getRoleArgument( String name );
@@ -201,8 +201,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @param <C> The channel type.
      * @param name The parameter name.
      * @param type The channel type.
-     * @return The associated channel argument. May fail with an {@link InvalidArgumentException}
-     *         if the received argument is not a valid channel of the given type.
+     * @return The associated channel argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      */
     @SideEffectFree
     protected abstract <C extends @NonNull Channel> Mono<C> getChannelArgument( String name, 
@@ -212,19 +212,15 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * Retrieves the message argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated message argument. May fail with an {@link InvalidArgumentException}
-     *         if the received argument is not a valid message.
+     * @return The associated message argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
      * @implSpec By default, parses a string argument of the same name.
      */
     @SideEffectFree
     protected Mono<Message> getMessageArgument( final String name ) {
 
-        try {
-            final var raw = getStringArgument( name );
-            return raw == null ? Mono.empty() : MESSAGE_PARSER.parse( this, raw );
-        } catch ( final InvalidArgumentException ex ) {
-            return Mono.error( new InvalidArgumentException( "Not a valid channel", ex ) );
-        }
+        return getStringArgument( name )
+                .flatMap( raw -> ParseUtils.MESSAGE.parse( this, raw ) );
 
     }
 
@@ -232,10 +228,10 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * Retrieves the attachment argument associated with the parameter of the given name.
      *
      * @param name The parameter name.
-     * @return The associated attachment argument.
+     * @return The associated attachment argument. May be empty if missing.
      */
     @SideEffectFree
-    protected abstract @Nullable Attachment getAttachmentArgument( String name );
+    protected abstract Mono<Attachment> getAttachmentArgument( String name );
 
     /* Argument parsing */
 
@@ -253,7 +249,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      * @throws InvalidArgumentException if the raw value is invalid.
      */
     @SideEffectFree
-    private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseAsyncArgument(
+    private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseArgument(
             final Parameter<T> parameter,
             final Function<String, Mono<R>> getter,
             final ArgumentParser<R, T> parser 
@@ -261,31 +257,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
         return getter.apply( parameter.name() )
                 .flatMap( raw -> parser.parse( this, raw ) );
-
-    }
-
-    /**
-     * Parses an argument.
-     *
-     * @param <R> The raw argument type.
-     * @param <T> The parsed argument type.
-     * @param parameter The parameter specification.
-     * @param getter The function to use to get the raw argument.
-     * @param parser The parser to use.
-     * @return A Mono that issues the parsed argument. May fail with a 
-     *         {@link InvalidArgumentException} if the raw value is invalid, and may be empty
-     *         if it is missing.
-     * @throws InvalidArgumentException if the raw value is invalid.
-     */
-    @SideEffectFree
-    private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseArgument(
-            final Parameter<T> parameter,
-            final Function<String, @Nullable R> getter,
-            final ArgumentParser<R, T> parser 
-    ) throws InvalidArgumentException {
-
-        final var raw = getter.apply( parameter.name() );
-        return raw == null ? Mono.empty() : parser.parse( this, raw );
 
     }
 
@@ -307,7 +278,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
             final ChannelArgumentParser<C, T> parser
     ) throws InvalidArgumentException {
 
-        return parseAsyncArgument(
+        return parseArgument(
                 parameter, 
                 name -> getChannelArgument( name, parser.type() ), 
                 parser 
@@ -329,7 +300,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     private <T extends @NonNull Object> Mono<T> parseArgument( final Parameter<T> parameter ) {
 
         // Note: Cannot use <T> directly in the instanceof because Generics
-        // is horribly limited and can't even realize that an ArgumentParser<T, ?> that is an 
+        // is horribly limited and can't even realize that an ArgumentParser<?, T> that is an 
         // instance of AttachmentParser is, by definition, an instance of AttachmentParser<T> 
         // (same for other types).
         final var parser = parameter.parser();
@@ -346,17 +317,17 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
             return parseArgument( parameter, n -> getSnowflakeArgument( n, p.type() ), 
                     ( SnowflakeParser<T> ) p );
         } else if ( parser instanceof UserArgumentParser<?> p ) {
-            return parseAsyncArgument( parameter, this::getUserArgument, 
+            return parseArgument( parameter, this::getUserArgument, 
                     ( UserArgumentParser<T> ) p );
         } else if ( parser instanceof RoleArgumentParser<?> p ) {
-            return parseAsyncArgument( parameter, this::getRoleArgument, 
+            return parseArgument( parameter, this::getRoleArgument, 
                     ( RoleArgumentParser<T> ) p );
         } else if ( parser instanceof ChannelArgumentParser<?, ?> p ) {
             return parseArgument( parameter, ( ChannelArgumentParser<?, T> ) p );
         } else if ( parser instanceof MessageArgumentParser<?> p ) {
-            return parseAsyncArgument( parameter, this::getMessageArgument, 
+            return parseArgument( parameter, this::getMessageArgument, 
                     ( MessageArgumentParser<T> ) p );
-        } else {
+        } else { // Should never happen
             throw new IllegalArgumentException( "Unrecognized parser type: " + parser.getClass() );
         }
 

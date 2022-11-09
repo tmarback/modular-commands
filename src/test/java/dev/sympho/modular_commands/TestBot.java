@@ -22,6 +22,7 @@ import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
 import dev.sympho.modular_commands.utils.builder.CommandBuilder;
 import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
+import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
@@ -144,11 +145,11 @@ public class TestBot {
      */
     private static Command<?> listCommand() {
 
-        final var param = new ParameterBuilder<List<Integer>>()
+        final var param = new ParameterBuilder<List<Long>>()
                 .withName( "list" )
                 .withDescription( "The list values" )
                 .withRequired( true )
-                .withParser( Parsers.list( Parsers.simple( Integer::parseInt ) ) )
+                .withParser( ParseUtils.integers() )
                 .build();
 
         return new CommandBuilder<>()
@@ -157,7 +158,7 @@ public class TestBot {
                 .withDescription( "Parses a list" )
                 .addParameter( param )
                 .withHandlers( Handlers.text( ctx -> {
-                    final List<Integer> l = ctx.requireArgument( param );
+                    final List<Long> l = ctx.requireArgument( param );
                     return ctx.reply( "Received items: " + l )
                             .then( Results.okMono() );
 
