@@ -89,7 +89,7 @@ public interface ListParser<T extends @NonNull Object> extends StringParser<List
      * The maximum amount of items allowed (inclusive).
      *
      * @return The amount.
-     * @implSpec The default is {@value Integer.MAX_VALUE}. 
+     * @implSpec The default is {@value Integer#MAX_VALUE}. 
      *           Must be between 1 and {@value Integer#MAX_VALUE}.
      */
     @Pure

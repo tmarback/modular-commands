@@ -164,7 +164,7 @@ public abstract class PipelineBuilder<E extends Event,
     /**
      * Determines whether a parsed arg list (as given by {@link #parse(Event)}) must always
      * be fully matched to a command. If {@code true}, the presence of leftover args (as would
-     * be received by {@link #makeContext(Event, Command, Invocation, List)}) triggers an error
+     * be received by {@link #makeContext(Event, Command, Invocation, SmartIterator)}) triggers an error
      * for that event (stopping the processing of that particular event, but without stopping
      * the pipeline).
      *

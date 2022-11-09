@@ -333,7 +333,7 @@ public class CommandBuilder<H extends Handlers> {
      *                value.
      * @return This builder.
      * @throws IllegalArgumentException if one of the aliases is not valid.
-     * @see MessageCommand#aliases()
+     * @see Command#aliases()
      */
     @Deterministic
     public @This CommandBuilder<H> withAliases( final @Nullable Set<String> aliases ) 
@@ -351,7 +351,7 @@ public class CommandBuilder<H extends Handlers> {
      * @param alias The alias to add.
      * @return This builder.
      * @throws IllegalArgumentException if the alias is not valid.
-     * @see MessageCommand#aliases()
+     * @see Command#aliases()
      */
     @Deterministic
     public @This CommandBuilder<H> addAliases( final String alias ) 
@@ -366,7 +366,7 @@ public class CommandBuilder<H extends Handlers> {
      * Removes all aliases from the command.
      *
      * @return This builder.
-     * @see MessageCommand#aliases()
+     * @see Command#aliases()
      */
     @Deterministic
     public @This CommandBuilder<H> noAliases() {
