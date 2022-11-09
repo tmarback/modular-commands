@@ -50,6 +50,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <checker.version>3.27.0</checker.version> <!-- Version of the Checker framework used -->
         <d4j.version>3.2.2</d4j.version> <!-- Version of Discord4J used -->
+        <reporter.version>1.1.0</reporter.version> <!-- Version of the tree reporter used -->
     </properties>
 
     <dependencyManagement>
@@ -361,7 +362,7 @@
                     <dependency>
                         <groupId>me.fabriciorby</groupId>
                         <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
-                        <version>1.1.0</version>
+                        <version>${reporter.version}</version>
                     </dependency>
 
                 </dependencies>
@@ -385,7 +386,7 @@
                     <dependency>
                         <groupId>me.fabriciorby</groupId>
                         <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
-                        <version>1.1.0</version>
+                        <version>${reporter.version}</version>
                     </dependency>
 
                 </dependencies>
