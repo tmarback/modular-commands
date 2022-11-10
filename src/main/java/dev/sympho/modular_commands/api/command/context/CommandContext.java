@@ -190,8 +190,7 @@ public interface CommandContext extends AccessValidator {
      * @param <T> The type of the argument.
      * @param name The name of the corresponding parameter.
      * @param argumentType The type of the argument.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value.
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
@@ -217,8 +216,7 @@ public interface CommandContext extends AccessValidator {
      * @param <T> The type of the argument.
      * @param parameter The name of the corresponding parameter.
      * @param argumentType The type of the argument.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value.
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
@@ -244,8 +242,7 @@ public interface CommandContext extends AccessValidator {
      *
      * @param <T> The type of the argument.
      * @param parameter The name of the corresponding parameter.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value.
      * @throws IllegalArgumentException if the given parameter is not present in the
      *                                  invoked command.
      * @throws NullPointerException if the argument was not received and does not have a
