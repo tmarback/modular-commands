@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.utils.builder;
 
 import java.util.Objects;
 
+import org.checkerframework.checker.calledmethods.qual.CalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -159,7 +160,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
     @Deterministic
     public @This ParameterBuilder<T> withParser( final ArgumentParser<?, T> parser ) {
 
-        this.parser = parser;
+        this.parser = Objects.requireNonNull( parser );
         return this;
 
     }
@@ -171,7 +172,10 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @throws IllegalStateException if the current configuration is invalid.
      */
     @SideEffectFree
-    public Parameter<T> build() throws IllegalStateException {
+    public Parameter<T> build( 
+            @CalledMethods( { "withName", "withDescription", "withParser" } ) 
+            ParameterBuilder<T> this
+    ) throws IllegalStateException {
 
         if ( this.name == null ) {
             throw new IllegalStateException( "Parameter name must be set before building." );
@@ -183,7 +187,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
             throw new IllegalStateException( "Parameter parser must be set before building." );
         }
 
-        return new Parameter<T>( name, description, required, defaultValue, parser );
+        return new Parameter<>( name, description, required, defaultValue, parser );
 
     }
 

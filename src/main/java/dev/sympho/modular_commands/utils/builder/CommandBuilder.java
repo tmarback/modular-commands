@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.checkerframework.checker.calledmethods.qual.CalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.dataflow.qual.Deterministic;
-import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
@@ -625,94 +625,45 @@ public class CommandBuilder<H extends Handlers> {
     }
 
     /**
-     * Retrieve the name to use for building, after error checking.
-     *
-     * @return The name to build with.
-     * @throws IllegalStateException if {@link #name} was not set.
-     */
-    @Pure
-    private String buildName() throws IllegalStateException {
-    
-        if ( this.name == null ) {
-            throw new IllegalStateException( 
-                    "Command name must be set before building." );
-        } else {
-            return this.name;
-        }
-    
-    }
-
-    /**
-     * Retrieve the display name to use for building, after error checking.
-     *
-     * @return The display name to build with.
-     * @throws IllegalStateException if {@link #displayName} was not set.
-     */
-    @Pure
-    private String buildDisplayName() throws IllegalStateException {
-    
-        if ( this.displayName == null ) {
-            throw new IllegalStateException( 
-                    "Command display name must be set before building." );
-        } else {
-            return this.displayName;
-        }
-    
-    }
-
-    /**
-     * Retrieve the description to use for building, after error checking.
-     *
-     * @return The description to build with.
-     * @throws IllegalStateException if {@link #description} was not set.
-     */
-    @Pure
-    private String buildDescription() throws IllegalStateException {
-    
-        if ( this.description == null ) {
-            throw new IllegalStateException( 
-                    "Command description must be set before building." );
-        } else {
-            return this.description;
-        }
-    
-    }
-
-    /**
-     * Retrieve the handlers to use for building, after error checking.
-     *
-     * @return The handlers to build with.
-     * @throws IllegalStateException if {@link #handlers} was not set.
-     */
-    @Pure
-    private H buildHandlers() throws IllegalStateException {
-
-        if ( this.handlers == null ) {
-            throw new IllegalStateException( 
-                    "Command handlers must be set before building." );
-        } else {
-            return this.handlers;
-        }
-
-    }
-
-    /**
      * Builds the configured command.
      *
      * @return The built command.
      * @throws IllegalStateException if the current configuration is invalid.
      */
     @SideEffectFree
-    public Command<H> build() throws IllegalStateException {
+    public Command<H> build(
+            @CalledMethods( { "withName", "withDisplayName", "withDescription", "withHandlers" } ) 
+            CommandBuilder<H> this
+    ) throws IllegalStateException {
+
+        if ( name == null ) {
+            throw new IllegalStateException( 
+                    "Command name must be set before building." );
+        }
+
+        if ( displayName == null ) {
+            throw new IllegalStateException( 
+                    "Command display name must be set before building." );
+        }
+
+        if ( description == null ) {
+            throw new IllegalStateException( 
+                    "Command description must be set before building." );
+        }
+
+        if ( handlers == null ) {
+            throw new IllegalStateException( 
+                    "Command handlers must be set before building." );
+        }
 
         try {
             return new CommandImpl<>( 
-                scope, callable, parent, buildName(), aliases, buildDisplayName(), 
-                buildDescription(), parameters,
+                scope, callable, parent, name, aliases, displayName, 
+                description, parameters,
                 requiredGroup, skipGroupCheckOnInteraction, requireParentGroups,
                 nsfw, privateReply, ephemeralReply,
                 inheritSettings, invokeParent, 
-                buildHandlers()
+                handlers
             );
         } catch ( final IllegalArgumentException e ) {
             throw new IllegalStateException( "Invalid parameter configuration.", e );
