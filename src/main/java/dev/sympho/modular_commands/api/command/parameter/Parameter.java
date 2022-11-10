@@ -2,8 +2,10 @@ package dev.sympho.modular_commands.api.command.parameter;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
+import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
 
 // BEGIN LONG LINES
 /**
@@ -30,4 +32,17 @@ public record Parameter<T extends @NonNull Object>(
         boolean required,
         @Nullable T defaultValue,
         ArgumentParser<?, T> parser
-) {}
+) {
+
+    /**
+     * Creates a new builder.
+     *
+     * @param <T> The argument type.
+     * @return The builder.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> ParameterBuilder<T> builder() {
+        return new ParameterBuilder<>();
+    }
+
+}

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
@@ -84,7 +85,7 @@ public class TestBot {
      */
     private static Command<?> parrotCommand() {
 
-        final var param = new ParameterBuilder<String>()
+        final var param = Parameter.<String>builder()
                 .withName( "message" )
                 .withDescription( "The message to repeat" )
                 .withRequired( true )
@@ -112,7 +113,7 @@ public class TestBot {
      */
     private static Command<?> tweetCommand() {
 
-        final var param = new ParameterBuilder<Channel>()
+        final var param = Parameter.<Channel>builder()
                 .withName( "channel" )
                 .withDescription( "The channel to send to" )
                 .withRequired( true )
@@ -145,7 +146,7 @@ public class TestBot {
      */
     private static Command<?> listCommand() {
 
-        final var param = new ParameterBuilder<List<Long>>()
+        final var param = Parameter.<List<Long>>builder()
                 .withName( "list" )
                 .withDescription( "The list values" )
                 .withRequired( true )
