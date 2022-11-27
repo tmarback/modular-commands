@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.api.command.parameter.parse;
 
 import java.util.List;
+import java.util.Map;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -76,12 +77,30 @@ public sealed interface ChoicesParser<P extends @NonNull Object, T extends @NonN
          *
          * @param <P> The raw value type.
          * @param name The choice name.
-         * @param value The choice value.
+         * @param choice The choice value.
          * @return The choice.
          */
-        static <P extends @NonNull Object> Choice<P> of( final String name, final P value ) {
+        public static <P extends @NonNull Object> Choice<P> of( 
+                final String name, final P choice ) {
 
-            return new Choice<>( name, value );
+            return new Choice<>( name, choice );
+    
+        }
+
+        /**
+         * Creates a new choice mapping.
+         *
+         * @param <P> The raw value type.
+         * @param <V> The mapped value type.
+         * @param name The choice name.
+         * @param choice The choice value.
+         * @param value The mapped value.
+         * @return The choice.
+         */
+        public static <P extends @NonNull Object, V extends @NonNull Object> 
+                Map.Entry<Choice<P>, V> of( final String name, final P choice, final V value ) {
+
+            return Map.entry( of( name, choice ), value );
     
         }
 
