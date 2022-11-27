@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands.api.command.parameter.parse;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -247,6 +248,21 @@ public final class Parsers {
     }
 
     /**
+     * Creates a parser that receives plain integer values from within a set of choices.
+     *
+     * @param choices The allowed values.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static IntegerParser<Long> integer( final Choice<Long>... choices ) {
+
+        return integer( Arrays.asList( choices ) );
+
+    }
+
+    /**
      * Creates a parser that receives a value from within a set of choices.
      *
      * @param <T> The parsed argument type.
@@ -262,6 +278,23 @@ public final class Parsers {
                 null, null, 
                 choiceParser( choices ) 
         );
+
+    }
+
+    /**
+     * Creates a parser that receives a value from within a set of choices.
+     *
+     * @param <T> The parsed argument type.
+     * @param choices The choices.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static <T extends @NonNull Object> IntegerParser<T> choiceInteger( 
+            final Map.Entry<Choice<Long>, T>... choices ) {
+
+        return choiceInteger( Arrays.asList( choices ) );
 
     }
 
@@ -402,6 +435,21 @@ public final class Parsers {
     }
 
     /**
+     * Creates a parser that receives plain floating-point values from within a set of choices.
+     *
+     * @param choices The allowed values.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static FloatParser<Double> number( final Choice<Double>... choices ) {
+
+        return number( Arrays.asList( choices ) );
+
+    }
+
+    /**
      * Creates a parser that receives a value from within a set of choices.
      *
      * @param <T> The parsed argument type.
@@ -417,6 +465,23 @@ public final class Parsers {
                 null, null, 
                 choiceParser( choices ) 
         );
+
+    }
+
+    /**
+     * Creates a parser that receives a value from within a set of choices.
+     *
+     * @param <T> The parsed argument type.
+     * @param choices The choices.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static <T extends @NonNull Object> FloatParser<T> numberChoice( 
+            final Map.Entry<Choice<Double>, T>... choices ) {
+
+        return numberChoice( Arrays.asList( choices ) );
 
     }
 
@@ -589,6 +654,21 @@ public final class Parsers {
     }
 
     /**
+     * Creates a parser that receives plain string values from within a set of choices.
+     *
+     * @param choices The allowed values.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static StringParser<String> string( final Choice<String>... choices ) {
+
+        return string( Arrays.asList( choices ) );
+
+    }
+
+    /**
      * Creates a parser that receives a value from within a set of choices.
      *
      * @param <T> The parsed argument type.
@@ -604,6 +684,23 @@ public final class Parsers {
                 choiceParser( choices ),
                 null, null, false
         );
+
+    }
+
+    /**
+     * Creates a parser that receives a value from within a set of choices.
+     *
+     * @param <T> The parsed argument type.
+     * @param choices The choices.
+     * @return The parser.
+     */
+    @SideEffectFree
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    public static <T extends @NonNull Object> StringParser<T> stringChoice( 
+            final Map.Entry<Choice<String>, T>... choices ) {
+
+        return stringChoice( Arrays.asList( choices ) );
 
     }
 
