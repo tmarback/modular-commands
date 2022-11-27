@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.command.parameter.parse;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.common.value.qual.IntRange;
+import org.checkerframework.common.value.qual.MinLen;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -130,13 +132,20 @@ public final class Parsers {
      * @param <T> The parsed type.
      * @param choices The choice mappings.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     private static <P extends @NonNull Object, T extends @NonNull Object> 
-            ParserFunction<P, T> choiceParser( final List<Map.Entry<Choice<P>, T>> choices ) {
+            ParserFunction<P, T> choiceParser( 
+                final @MinLen( 1 ) List<Entry<Choice<P>, T>> choices )
+                throws IllegalArgumentException {
+
+        if ( choices.isEmpty() ) {
+            throw new IllegalArgumentException( "There must be at least one choice." );
+        }
 
         final Map<P, T> mapping = choices.stream()
-                .collect( Collectors.toMap( e -> e.getKey().value(), Map.Entry::getValue ) );
+                .collect( Collectors.toMap( e -> e.getKey().value(), Entry::getValue ) );
 
         // System guarantees it will be a valid choice by this point
         return simple( choice -> NullnessUtil.castNonNull( mapping.get( choice ) ) );
@@ -152,10 +161,10 @@ public final class Parsers {
      */
     @SideEffectFree
     private static <P extends @NonNull Object> List<Choice<P>> choiceEntries( 
-            final List<? extends Map.Entry<Choice<P>, ?>> choices ) {
+            final List<? extends Entry<Choice<P>, ?>> choices ) {
 
         return choices.stream()
-                .map( Map.Entry::getKey )
+                .map( Entry::getKey )
                 .toList();
 
     }
@@ -235,9 +244,11 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
-    public static IntegerParser<Long> integer( final List<Choice<Long>> choices ) {
+    public static IntegerParser<Long> integer( final @MinLen( 1 ) List<Choice<Long>> choices ) 
+            throws IllegalArgumentException {
 
         return new IntegerParserImpl<>( 
                 choices, 
@@ -252,11 +263,13 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
-    public static IntegerParser<Long> integer( final Choice<Long>... choices ) {
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
+    public static IntegerParser<Long> integer( final Choice<Long> @MinLen( 1 )... choices ) 
+            throws IllegalArgumentException {
 
         return integer( Arrays.asList( choices ) );
 
@@ -268,10 +281,12 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     public static <T extends @NonNull Object> IntegerParser<T> choiceInteger( 
-            final List<Map.Entry<Choice<Long>, T>> choices ) {
+            final @MinLen( 1 ) List<Entry<Choice<Long>, T>> choices ) 
+            throws IllegalArgumentException {
 
         return new IntegerParserImpl<>( 
                 choiceEntries( choices ), 
@@ -287,12 +302,14 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
     public static <T extends @NonNull Object> IntegerParser<T> choiceInteger( 
-            final Map.Entry<Choice<Long>, T>... choices ) {
+            final Entry<Choice<Long>, T> @MinLen( 1 )... choices ) 
+            throws IllegalArgumentException {
 
         return choiceInteger( Arrays.asList( choices ) );
 
@@ -422,9 +439,11 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
-    public static FloatParser<Double> number( final List<Choice<Double>> choices ) {
+    public static FloatParser<Double> number( final @MinLen( 1 ) List<Choice<Double>> choices ) 
+            throws IllegalArgumentException {
 
         return new FloatParserImpl<>( 
                 choices, 
@@ -439,11 +458,13 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
-    public static FloatParser<Double> number( final Choice<Double>... choices ) {
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
+    public static FloatParser<Double> number( final Choice<Double> @MinLen( 1 )... choices ) 
+            throws IllegalArgumentException {
 
         return number( Arrays.asList( choices ) );
 
@@ -455,10 +476,12 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     public static <T extends @NonNull Object> FloatParser<T> numberChoice( 
-            final List<Map.Entry<Choice<Double>, T>> choices ) {
+            final @MinLen( 1 ) List<Entry<Choice<Double>, T>> choices )
+            throws IllegalArgumentException {
 
         return new FloatParserImpl<>( 
                 choiceEntries( choices ), 
@@ -474,12 +497,14 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
     public static <T extends @NonNull Object> FloatParser<T> numberChoice( 
-            final Map.Entry<Choice<Double>, T>... choices ) {
+            final Entry<Choice<Double>, T> @MinLen( 1 )... choices )
+            throws IllegalArgumentException {
 
         return numberChoice( Arrays.asList( choices ) );
 
@@ -641,9 +666,11 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
-    public static StringParser<String> string( final List<Choice<String>> choices ) {
+    public static StringParser<String> string( final @MinLen( 1 ) List<Choice<String>> choices )
+            throws IllegalArgumentException {
 
         return new StringParserImpl<>( 
                 choices,
@@ -658,11 +685,13 @@ public final class Parsers {
      *
      * @param choices The allowed values.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
-    public static StringParser<String> string( final Choice<String>... choices ) {
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
+    public static StringParser<String> string( final Choice<String> @MinLen( 1 )... choices )
+            throws IllegalArgumentException {
 
         return string( Arrays.asList( choices ) );
 
@@ -674,10 +703,12 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     public static <T extends @NonNull Object> StringParser<T> stringChoice( 
-            final List<Map.Entry<Choice<String>, T>> choices ) {
+            final @MinLen( 1 ) List<Entry<Choice<String>, T>> choices )
+            throws IllegalArgumentException {
 
         return new StringParserImpl<>( 
                 choiceEntries( choices ), 
@@ -693,12 +724,14 @@ public final class Parsers {
      * @param <T> The parsed argument type.
      * @param choices The choices.
      * @return The parser.
+     * @throws IllegalArgumentException if the choice list is empty.
      */
     @SideEffectFree
     @SafeVarargs
-    @SuppressWarnings( "varargs" )
+    @SuppressWarnings( { "varargs", "argument" } ) // Idk why the @MinLen doesn't propagate
     public static <T extends @NonNull Object> StringParser<T> stringChoice( 
-            final Map.Entry<Choice<String>, T>... choices ) {
+            final Entry<Choice<String>, T> @MinLen( 1 )... choices )
+            throws IllegalArgumentException {
 
         return stringChoice( Arrays.asList( choices ) );
 
