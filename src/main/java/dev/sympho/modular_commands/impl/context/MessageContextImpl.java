@@ -241,6 +241,13 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
+    protected Mono<Boolean> getBooleanArgument( final String name ) {
+
+        return parse( name, RawParser.BOOLEAN );
+
+    }
+
+    @Override
     protected Mono<Long> getIntegerArgument( final String name )
             throws InvalidArgumentException {
 

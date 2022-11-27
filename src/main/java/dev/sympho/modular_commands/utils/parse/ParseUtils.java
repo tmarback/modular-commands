@@ -29,6 +29,10 @@ public final class ParseUtils {
 
     /* String to raw */
 
+    /** Parser for booleans from strings. */
+    public static final ParserFunction<String, Boolean> BOOLEAN = Parsers.functor(
+            RawParser.BOOLEAN::parse );
+
     /** Parser for integers from strings. */
     public static final ParserFunction<String, Long> INTEGER = Parsers.functor( 
             RawParser.INTEGER::parse );

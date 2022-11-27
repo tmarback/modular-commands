@@ -33,6 +33,16 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     RawParser<String> STRING = Mono::just;
 
+    /** Parser for booleans. */
+    @SuppressWarnings( "switch.expression" ) // Weird issue with the interning checker
+    RawParser<Boolean> BOOLEAN = raw -> switch ( raw.toLowerCase() ) {
+        case "true" -> Mono.just( true );
+        case "false" -> Mono.just( false );
+        default -> Mono.error( new InvalidArgumentException(
+            "Not a valid boolean: " + raw
+        ) );
+    };
+
     /** Parser for integers. */
     RawParser<Long> INTEGER = raw -> {
         try {
@@ -51,7 +61,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
         } catch ( final NumberFormatException ex ) {
             return Mono.error( new InvalidArgumentException( 
                 "Not a valid number: " + raw, ex
-             ) );
+            ) );
         }
     };
 

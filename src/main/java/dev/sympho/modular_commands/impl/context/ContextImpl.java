@@ -23,6 +23,7 @@ import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.BooleanParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.ChannelArgumentParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.FloatParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.IntegerParser;
@@ -136,6 +137,18 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
      */
     @SideEffectFree
     protected abstract Mono<String> getStringArgument( String name ) 
+            throws InvalidArgumentException;
+
+    /**
+     * Retrieves the boolean argument associated with the parameter of the given name.
+     *
+     * @param name The parameter name.
+     * @return The associated boolean argument. May be empty if missing or fail with
+     *         a {@link InvalidArgumentException} if the value received is invalid.
+     * @throws InvalidArgumentException if the received argument is not a valid integer.
+     */
+    @SideEffectFree
+    protected abstract Mono<Boolean> getBooleanArgument( String name ) 
             throws InvalidArgumentException;
 
     /**
@@ -309,6 +322,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                     ( AttachmentParser<T> ) p );
         } else if ( parser instanceof StringParser<?> p ) {
             return parseArgument( parameter, this::getStringArgument, ( StringParser<T> ) p );
+        } else if ( parser instanceof BooleanParser<?> p ) {
+            return parseArgument( parameter, this::getBooleanArgument, ( BooleanParser<T> ) p );
         } else if ( parser instanceof IntegerParser<?> p ) {
             return parseArgument( parameter, this::getIntegerArgument, ( IntegerParser<T> ) p );
         } else if ( parser instanceof FloatParser<?> p ) {

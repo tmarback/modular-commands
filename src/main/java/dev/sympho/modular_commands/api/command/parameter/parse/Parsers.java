@@ -159,6 +159,49 @@ public final class Parsers {
 
     }
 
+    /* Booleans */
+
+    /**
+     * Creates a parser that receives plain boolean values.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static BooleanParser<Boolean> bool() {
+        return bool( Parsers::raw );
+    }
+
+    /**
+     * Creates a parser that receives one of two values depending on the argument.
+     *
+     * @param <T> The parsed argument type.
+     * @param trueValue The value to receive if the argument is {@code true}.
+     * @param falseValue The value to receive if the argument is {@code false}.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> BooleanParser<T> bool( 
+            final T trueValue, final T falseValue ) {
+
+        return bool( simple( v -> v ? trueValue : falseValue ) );
+
+    }
+
+    /**
+     * Creates a parser that uses the given function to parse received values.
+     *
+     * @param <T> The parsed argument type.
+     * @param parser The parser to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> BooleanParser<T> bool( 
+            final ParserFunction<Boolean, T> parser ) {
+
+        return new BooleanParserImpl<>( parser );
+
+    }
+
     /* Integers */
 
     /**
@@ -1264,6 +1307,26 @@ public final class Parsers {
     /* Implementation classes */
 
     /**
+     * A parser for boolean values.
+     *
+     * @param <T> The argument type.
+     * @param parser The function to use to parse values.
+     * @since 1.0
+     */    
+    private record BooleanParserImpl<T extends @NonNull Object>(
+            ParserFunction<Boolean, T> parser
+    ) implements BooleanParser<T> {
+
+        @Override
+        public Mono<T> parseArgument( final CommandContext context, final Boolean raw ) {
+
+            return parser.parse( context, raw );
+
+        }
+
+    }
+
+    /**
      * A parser for integer values.
      *
      * @param <T> The argument type.
@@ -1482,7 +1545,7 @@ public final class Parsers {
     }
 
     /**
-     * A parser for string values.
+     * A parser for list values.
      *
      * @param <T> The argument type.
      * @param parser The function to use to parse values.

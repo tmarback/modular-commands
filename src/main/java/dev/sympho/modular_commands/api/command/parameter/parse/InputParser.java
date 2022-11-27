@@ -11,4 +11,5 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @since 1.0
  */
 public sealed interface InputParser<P extends @NonNull Object, T extends @NonNull Object> 
-        extends ArgumentParser<P, T> permits ChoicesParser, SnowflakeParser, EntityArgumentParser {}
+        extends ArgumentParser<P, T> 
+        permits BooleanParser, ChoicesParser, SnowflakeParser, EntityArgumentParser {}
