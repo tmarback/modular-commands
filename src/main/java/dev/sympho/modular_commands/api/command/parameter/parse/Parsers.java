@@ -1351,6 +1351,7 @@ public final class Parsers {
      * @version 1.0
      * @since 1.0
      */
+    @FunctionalInterface
     public interface Functor<R extends @NonNull Object, T extends @NonNull Object> 
             extends ParserFunction<R, T> {
 
@@ -1381,6 +1382,7 @@ public final class Parsers {
      * @version 1.0
      * @since 1.0
      */
+    @FunctionalInterface
     public interface Synchronous<R extends @NonNull Object, T extends @NonNull Object> 
             extends ParserFunction<R, T> {
 
@@ -1412,6 +1414,7 @@ public final class Parsers {
      * @version 1.0
      * @since 1.0
      */
+    @FunctionalInterface
     public interface Simple<R extends @NonNull Object, T extends @NonNull Object> 
             extends ParserFunction<R, T> {
 
