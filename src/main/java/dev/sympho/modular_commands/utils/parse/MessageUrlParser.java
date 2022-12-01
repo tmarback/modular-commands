@@ -18,7 +18,9 @@ import reactor.core.publisher.Mono;
 public class MessageUrlParser extends EntityUrlParser<Message> {
 
     /** The path pattern. */
-    private static final Pattern PATH_PATTERN = Pattern.compile( "/channels/\\d+/(\\d+)/(\\d+)" );
+    private static final Pattern PATH_PATTERN = Pattern.compile(
+            "/channels/\\d++/(\\d++)/(\\d++)" 
+    );
 
     /** Creates a new instance. */
     public MessageUrlParser() {}

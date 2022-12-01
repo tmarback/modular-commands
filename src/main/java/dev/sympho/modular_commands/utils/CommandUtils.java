@@ -31,13 +31,13 @@ import dev.sympho.modular_commands.api.permission.Group;
 public final class CommandUtils {
 
     /** Pattern for valid slash command names in the Discord API. */
-    private static final @Regex String NAME_REGEX = "^[\\w-]{1,32}$";
+    private static final @Regex String NAME_REGEX = "^[\\w-]{1,32}+$";
     /** Compiled name pattern. */
     private static final Pattern NAME_PATTERN = Pattern.compile( 
             NAME_REGEX, Pattern.UNICODE_CHARACTER_CLASS );
 
     /** Pattern for valid user/message command names in the Discord API. */
-    private static final @Regex String DISPLAY_NAME_REGEX = "^[\\w- ]{1,32}$";
+    private static final @Regex String DISPLAY_NAME_REGEX = "^[\\w- ]{1,32}+$";
     /** Compiled display name pattern. */
     private static final Pattern DISPLAY_NAME_PATTERN = Pattern.compile( 
             DISPLAY_NAME_REGEX, Pattern.UNICODE_CHARACTER_CLASS );
