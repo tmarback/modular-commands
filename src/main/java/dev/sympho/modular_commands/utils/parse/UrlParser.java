@@ -4,11 +4,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -25,6 +22,38 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 public interface UrlParser<T extends @NonNull Object> extends ParserFunction<String, T> {
+
+    /**
+     * Creates a parser that delegates to the given parsers.
+     *
+     * @param <T> The parsed argument type.
+     * @param typeName The aggregate type name, for {@link #typeName()}.
+     * @param parsers The parsers to delegate to.
+     * @return The parser.
+     */
+    static <T extends @NonNull Object> UrlParser<T> choice( final String typeName,
+            final List<? extends UrlParser<T>> parsers ) {
+
+        return new Choice<>( typeName, List.copyOf( parsers ) );
+
+    }
+
+    /**
+     * Creates a parser that delegates to the given parsers.
+     *
+     * @param <T> The parsed argument type.
+     * @param typeName The aggregate type name, for {@link #typeName()}.
+     * @param parsers The parsers to delegate to.
+     * @return The parser.
+     */
+    @SafeVarargs
+    @SuppressWarnings( "varargs" )
+    static <T extends @NonNull Object> UrlParser<T> of( final String typeName, 
+            final UrlParser<T>... parsers ) {
+
+        return choice( typeName, Arrays.asList( parsers ) );
+
+    }
 
     /**
      * Parses the given string into a URL.
@@ -94,7 +123,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
     }
 
     /**
-     * A parser that supports multiple URL types by delegating to one of a list of parsers.
+     * Parser that supports multiple URL types by delegating to one of a list of parsers.
      * 
      * <p>Note that a parser is chosen as the first in the list whose {@link #supported(URL)}
      * method returns {@code true} for the given URL. This implies that the order of the parsers
@@ -102,44 +131,28 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
      * the list.
      *
      * @param <T> The parsed argument type.
-     * @param typeName The aggregate type name, for {@link #typeName()}.
-     * @param parsers The parsers to delegate to.
+     * @param <P> The delegate parser type.
      * @since 1.0
      */
-    record Choice<T extends @NonNull Object>(
-            String typeName,
-            List<UrlParser<T>> parsers
-    ) implements UrlParser<T> {
+    class Choice<T extends @NonNull Object, P extends UrlParser<T>> 
+            implements UrlParser<T> {
+            
+        /** The aggregate type name, for {@link #typeName()}. */
+        private final String typeName;
+            
+        /** The parsers to delegate to. */
+        private final List<P> parsers;
 
         /**
-         * Creates a parser that delegates to the given parsers.
+         * Creates a new instance.
          *
-         * @param <T> The parsed argument type.
          * @param typeName The aggregate type name, for {@link #typeName()}.
          * @param parsers The parsers to delegate to.
-         * @return The parser.
          */
-        public static <T extends @NonNull Object> Choice<T> of( final String typeName,
-                final List<? extends UrlParser<T>> parsers ) {
+        public Choice( final String typeName, final List<P> parsers ) {
 
-            return new Choice<>( typeName, List.copyOf( parsers ) );
-
-        }
-
-        /**
-         * Creates a parser that delegates to the given parsers.
-         *
-         * @param <T> The parsed argument type.
-         * @param typeName The aggregate type name, for {@link #typeName()}.
-         * @param parsers The parsers to delegate to.
-         * @return The parser.
-         */
-        @SafeVarargs
-        @SuppressWarnings( "varargs" )
-        public static <T extends @NonNull Object> Choice<T> of( final String typeName, 
-                final UrlParser<T>... parsers ) {
-
-            return of( typeName, Arrays.asList( parsers ) );
+            this.typeName = typeName;
+            this.parsers = List.copyOf( parsers );
 
         }
 
@@ -158,7 +171,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
          * @throws InvalidArgumentException if none of the parsers support the given URL.
          */
         @Pure
-        private UrlParser<T> getParser( final URL url ) throws InvalidArgumentException {
+        protected P getParser( final URL url ) throws InvalidArgumentException {
 
             return parsers.stream()
                     .filter( p -> p.supported( url ) )
@@ -179,220 +192,15 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
         public Mono<T> parse( final CommandContext context, final String raw ) 
                 throws InvalidArgumentException {
 
-            final URL url = parseUrl( raw );
+            final URL url = UrlParser.parseUrl( raw );
             return getParser( url ).parse( context, url );
 
         }
 
-    }
-
-    /**
-     * A parser that only accepts URLs with HTTP(S) protocol.
-     *
-     * @param <T> The parsed argument type.
-     * @since 1.0
-     */
-    interface Http<T extends @NonNull Object> extends UrlParser<T> {
-
-        /** The accepted protocols. */
-        List<String> PROTOCOLS = List.of(
-                "http",
-                Https.PROTOCOL
-        );
-
-        /**
-         * @apiNote Implementations probably want to add additional validation to this:
-         *     <pre>
-         *     {@code
-         *     @Override
-         *     public boolean supported(final URL url) {
-         *       return super.supported() 
-         *         && somePath.equals( url.getPath() )
-         *         && ...
-         *     }
-         *     }
-         *     </pre>
-         */
         @Override
-        default boolean supported( final URL url ) {
+        public String typeName() {
 
-            return PROTOCOLS.contains( url.getProtocol() );
-
-        }
-
-    }
-
-    /**
-     * A parser that only accepts URLs with HTTPS protocol.
-     *
-     * @param <T> The parsed argument type.
-     * @since 1.0
-     */
-    interface Https<T extends @NonNull Object> extends UrlParser<T> {
-
-        /** The accepted protocol. */
-        String PROTOCOL = "https";
-
-        /**
-         * @apiNote Implementations probably want to add additional validation to this:
-         *     <pre>
-         *     {@code
-         *     @Override
-         *     public boolean supported(final URL url) {
-         *       return super.supported() 
-         *         && somePath.equals( url.getPath() )
-         *         && ...
-         *     }
-         *     }
-         *     </pre>
-         */
-        @Override
-        default boolean supported( final URL url ) {
-
-            return PROTOCOL.equals( url.getProtocol() );
-
-        }
-
-    }
-
-    /**
-     * A parser that accepts URLs from a single host.
-     *
-     * @param <T> The parsed argument type.
-     * @since 1.0
-     */
-    interface Host<T extends @NonNull Object> extends UrlParser<T> {
-
-        /**
-         * Retrieves the supported host.
-         *
-         * @return The host.
-         */
-        @Pure
-        String host();
-
-        /**
-         * @apiNote Implementations probably want to add additional validation to this:
-         *     <pre>
-         *     {@code
-         *     @Override
-         *     public boolean supported(final URL url) {
-         *       return super.supported() 
-         *         && somePath.equals( url.getPath() )
-         *         && ...
-         *     }
-         *     }
-         *     </pre>
-         */
-        @Override
-        default boolean supported( final URL url ) {
-
-            return host().equals( url.getHost() );
-
-        }
-
-    }
-
-    /**
-     * A parser that accepts URLs from a set of hosts that are aliases of each other,
-     * which means that parsing is independent from which of them is used.
-     *
-     * @param <T> The parsed argument type.
-     * @since 1.0
-     */
-    interface HostAlias<T extends @NonNull Object> extends UrlParser<T> {
-
-        /**
-         * Retrieves the supported hosts.
-         *
-         * @return The hosts.
-         */
-        @Pure
-        Set<String> hosts();
-
-        /**
-         * @apiNote Implementations probably want to add additional validation to this:
-         *     <pre>
-         *     {@code
-         *     @Override
-         *     public boolean supported(final URL url) {
-         *       return super.supported() 
-         *         && somePath.equals( url.getPath() )
-         *         && ...
-         *     }
-         *     }
-         *     </pre>
-         */
-        @Override
-        default boolean supported( final URL url ) {
-
-            return hosts().contains( url.getHost() );
-
-        }
-
-    }
-
-    /**
-     * A parser that accepts URLs from a set of hosts that are <i>not</i> aliases of each other,
-     * which means that a host-dependent pre-parsing step is applied.
-     *
-     * @param <T> The parsed argument type.
-     * @param <I> The intermediate type generated by the pre-parsing step.
-     * @since 1.0
-     */
-    interface HostBased<T extends @NonNull Object, I extends @NonNull Object> extends UrlParser<T> {
-
-        /**
-         * Retrieves the pre-parser for the given host.
-         *
-         * @param host The host.
-         * @return The pre-parser for the given host, or {@code null} if the host is
-         *         not supported.
-         */
-        @Pure
-        @Nullable Function<URL, I> preParser( String host );
-
-        /**
-         * @apiNote Implementations probably want to add additional validation to this:
-         *     <pre>
-         *     {@code
-         *     @Override
-         *     public boolean supported(final URL url) {
-         *       return super.supported() 
-         *         && somePath.equals( url.getPath() )
-         *         && ...
-         *     }
-         *     }
-         *     </pre>
-         */
-        @Override
-        default boolean supported( final URL url ) {
-
-            return preParser( url.getHost() ) != null;
-
-        }
-
-        /**
-         * Parses the value generated by the pre-parsing step.
-         *
-         * @param context The invocation context.
-         * @param value The pre-parsed value.
-         * @return The parsed value.
-         */
-        @SideEffectFree
-        Mono<T> parseValue( CommandContext context, I value );
-
-        @Override
-        default Mono<T> parse( final CommandContext context, final URL url ) 
-                throws InvalidArgumentException {
-
-            final var preParser = preParser( url.getHost() );
-            if ( preParser == null ) {
-                throw new InvalidArgumentException( "Unsupported host" );
-            }
-            
-            final var value = preParser.apply( url );
-            return parseValue( context, value );
+            return typeName;
 
         }
 
