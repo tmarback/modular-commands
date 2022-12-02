@@ -350,15 +350,15 @@
             - "t"
           -->
         <module name="CatchParameterName"/>
-        <!-- Class type parameters should be one or two upper case letters, or "SELF" -->
+        <!-- Class type parameters should be 1-3 upper case letters (optionally with numbers at the end), or "SELF" -->
         <module name="ClassTypeParameterName">
-            <property name="format" value="^[A-Z]{1,3}$|^SELF$"/>
+            <property name="format" value="^[A-Z]{1,3}[0-9]*$|^SELF$"/>
         </module>
         <module name="InterfaceTypeParameterName">
-            <property name="format" value="^[A-Z]{1,3}$|^SELF$"/>
+            <property name="format" value="^[A-Z]{1,3}[0-9]*$|^SELF$"/>
         </module>
         <module name="RecordTypeParameterName">
-            <property name="format" value="^[A-Z]{1,3}$|^SELF$"/>
+            <property name="format" value="^[A-Z]{1,3}[0-9]*$|^SELF$"/>
         </module>
         <!-- 
             Variable names must start with a lower case letter, and only 

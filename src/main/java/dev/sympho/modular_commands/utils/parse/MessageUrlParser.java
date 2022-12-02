@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.utils.parse;
 
 import java.util.regex.Pattern;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 
 import discord4j.common.util.Snowflake;
@@ -40,9 +41,13 @@ public class MessageUrlParser extends EntityUrlParser<Message> {
     }
 
     @Override
-    protected Mono<Message> parsePath( final GatewayDiscordClient client, final String path ) {
+    protected @Nullable Mono<Message> parsePath( final GatewayDiscordClient client, 
+            final String path ) {
 
         final var match = PATH_PATTERN.matcher( path );
+        if ( !match.matches() ) {
+            return null;
+        }
 
         final String channelString = NullnessUtil.castNonNull( match.group( 1 ) );
         final String messageString = NullnessUtil.castNonNull( match.group( 2 ) );

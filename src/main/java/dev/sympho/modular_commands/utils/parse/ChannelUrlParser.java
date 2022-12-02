@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 import org.checkerframework.dataflow.qual.Pure;
 
@@ -91,9 +92,12 @@ public class ChannelUrlParser<C extends @NonNull Channel> extends EntityUrlParse
     }
 
     @Override
-    protected Mono<C> parsePath( final GatewayDiscordClient client, final String path ) {
+    protected @Nullable Mono<C> parsePath( final GatewayDiscordClient client, final String path ) {
 
         final var match = PATH_PATTERN.matcher( path );
+        if ( !match.matches() ) {
+            return null;
+        }
 
         final String channelString = NullnessUtil.castNonNull( match.group( 1 ) );
 
