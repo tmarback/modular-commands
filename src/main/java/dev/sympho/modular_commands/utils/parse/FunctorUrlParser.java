@@ -173,15 +173,15 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
     }
 
     /**
-     * Parser that supports multiple URL types by delegating to one of a list of parsers. Note
-     * that this includes {@link #supports(URL) compatibility checks}.
+     * Base for a parser that supports multiple URL types by delegating to one of a list of 
+     * parsers. Note that this includes {@link #supports(URL) compatibility checks}.
      *
      * @param <T> The parsed argument type.
      * @param <P> The delegate parser type.
      * @since 1.0
      */
-    class Choice<T extends @NonNull Object, P extends FunctorUrlParser<T>> 
-            extends UrlParser.Choice<T, P> implements FunctorUrlParser<T> {
+    abstract class ChoiceBase<T extends @NonNull Object, P extends FunctorUrlParser<T>> 
+            extends UrlParser.ChoiceBase<T, P> implements FunctorUrlParser<T> {
 
         /**
          * Creates a new instance.
@@ -189,7 +189,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
          * @param parserMapper The function to use to determine which parser to delegate to for
          *                     a given URL.
          */
-        public Choice( final Function<URL, @Nullable P> parserMapper ) {
+        protected ChoiceBase( final Function<URL, @Nullable P> parserMapper ) {
 
             super( parserMapper );
 
@@ -199,6 +199,31 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
         public Mono<T> parse( final URL url ) throws InvalidArgumentException {
 
             return getParser( url ).parse( url );
+
+        }
+
+    }
+
+    /**
+     * Parser that supports multiple URL types by delegating to one of a list of parsers. Note
+     * that this includes {@link #supports(URL) compatibility checks}.
+     *
+     * @param <T> The parsed argument type.
+     * @since 1.0
+     * @apiNote This is a convenience subtype of {@link FunctorUrlParser.ChoiceBase ChoiceBase} 
+     *          with the second parameter already set.
+     */
+    class Choice<T extends @NonNull Object> extends ChoiceBase<T, FunctorUrlParser<T>> {
+
+        /**
+         * Creates a new instance.
+         *
+         * @param parserMapper The function to use to determine which parser to delegate to for
+         *                     a given URL.
+         */
+        protected Choice( final Function<URL, @Nullable FunctorUrlParser<T>> parserMapper ) {
+
+            super( parserMapper );
 
         }
 
