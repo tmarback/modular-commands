@@ -298,7 +298,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
          * @param parserMapper The function to use to determine which parser to delegate to for
          *                     a given URL.
          */
-        protected Choice( final Function<URL, @Nullable UrlParser<T>> parserMapper ) {
+        public Choice( final Function<URL, @Nullable UrlParser<T>> parserMapper ) {
 
             super( parserMapper );
 

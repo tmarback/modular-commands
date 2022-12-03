@@ -139,16 +139,16 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
      *
      * @param <I> The intermediary type output by the first parser and consumed by the second.
      * @param <T> The final output type.
-     * @param <P> The type of the first parser.
+     * @param <P1> The type of the first parser.
      * @param <P2> The type of the second parser.
      * @since 1.0
      */
     class PostParser<
                     I extends @NonNull Object, 
                     T extends @NonNull Object, 
-                    P extends @NonNull FunctorUrlParser<I>,
+                    P1 extends @NonNull FunctorUrlParser<I>,
                     P2 extends @NonNull Functor<I, T>
-            > extends UrlParser.PostParser<I, T, P, P2> implements FunctorUrlParser<T> {
+            > extends UrlParser.PostParser<I, T, P1, P2> implements FunctorUrlParser<T> {
 
         /**
          * Creates a new instance.
@@ -156,7 +156,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
          * @param parser The first parser to apply.
          * @param postParser The second parser to apply.
          */
-        public PostParser( final P parser, final P2 postParser ) {
+        public PostParser( final P1 parser, final P2 postParser ) {
 
             super( parser, postParser );
 
@@ -221,7 +221,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
          * @param parserMapper The function to use to determine which parser to delegate to for
          *                     a given URL.
          */
-        protected Choice( final Function<URL, @Nullable FunctorUrlParser<T>> parserMapper ) {
+        public Choice( final Function<URL, @Nullable FunctorUrlParser<T>> parserMapper ) {
 
             super( parserMapper );
 
