@@ -65,7 +65,7 @@ public abstract class EntityUrlParser<E extends @NonNull Entity> implements UrlP
     }
 
     @Override
-    public boolean supported( final URL url ) {
+    public boolean supports( final URL url ) {
 
         return baseValid( url ) && validPath( url.getPath() );
 

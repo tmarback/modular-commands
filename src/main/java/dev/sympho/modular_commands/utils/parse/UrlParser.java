@@ -46,7 +46,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
      * Creates a parser that delegates to the given parsers.
      * 
      * <p>The parser choice is defined as the first parser in the iteration order of the given
-     * collection for which {@link #supported(URL)} returns {@code true} for the URL being parsed.
+     * collection for which {@link #supports(URL)} returns {@code true} for the URL being parsed.
      * This implies that the iteration order matters if, and only if, there are URLs that may be
      * supported by more than one of the parsers in the collection.
      *
@@ -65,7 +65,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
      * Creates a parser that delegates to the given parsers.
      * 
      * <p>The parser choice is defined as the first parser in the given order for which 
-     * {@link #supported(URL)} returns {@code true} for the URL being parsed.
+     * {@link #supports(URL)} returns {@code true} for the URL being parsed.
      * This implies that the iteration order matters if, and only if, there are URLs that 
      * may be supported by more than one of the parsers in the collection.
      *
@@ -121,12 +121,18 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
      * Checks if the given URL is supported by this parser. If this returns {@code false},
      * calling {@link #parse(CommandContext, URL)} with the same URL <i>will</i> result in
      * an error.
+     * 
+     * <p>Note that the opposite isn't necessarily true; it is possible for this method to
+     * return {@code true} for a given URL while {@link #parse(CommandContext, URL)} results
+     * in an error. That just means that the basic structure of the URL was detected as being 
+     * <i>compatible</i> with this parser (for example, having a particular host and/or protocol),
+     * but was malformed or a variant that the parser doesn't support.
      *
      * @param url The URL to check.
      * @return Whether the URL is compatible with this parser.
      */
     @Pure
-    boolean supported( URL url );
+    boolean supports( URL url );
 
     /**
      * Parses the given URL.
@@ -170,7 +176,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
      * results to a second parser. If parsing with either parser throws an exception, it is 
      * relayed to the caller of the composed parser.
      * 
-     * <p>Note that {@link #supported(URL) compatibility} is defined only by the first parser.
+     * <p>Note that {@link #supports(URL) compatibility} is defined only by the first parser.
      *
      * @param <I> The intermediary type output by the first parser and consumed by the second.
      * @param <T> The final output type.
@@ -198,8 +204,8 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
         }
 
         @Override
-        public boolean supported( final URL url ) {
-            return parser.supported( url );
+        public boolean supports( final URL url ) {
+            return parser.supports( url );
         }
 
         @Override
@@ -215,7 +221,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
 
     /**
      * Parser that supports multiple URL types by delegating to one of a list of parsers. Note
-     * that this includes {@link #supported(URL) compatibility checks}.
+     * that this includes {@link #supports(URL) compatibility checks}.
      *
      * @param <T> The parsed argument type.
      * @param <P> The delegate parser type.
@@ -240,9 +246,10 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
         }
 
         @Override
-        public boolean supported( final URL url ) {
+        public boolean supports( final URL url ) {
 
-            return parserMapper.apply( url ) != null;
+            final var parser = parserMapper.apply( url );
+            return parser != null && parser.supports( url );
 
         }
 

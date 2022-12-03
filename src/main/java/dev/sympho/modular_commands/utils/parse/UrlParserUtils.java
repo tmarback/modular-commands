@@ -96,7 +96,7 @@ public final class UrlParserUtils {
 
     /**
      * Creates a delegate parser mapper where the parser choice is defined as the first parser 
-     * in the iteration order of the given collection for which {@link UrlParser#supported(URL)} 
+     * in the iteration order of the given collection for which {@link UrlParser#supports(URL)} 
      * returns {@code true} for the URL being parsed. This implies that the iteration order matters 
      * if, and only if, there are URLs that may be supported by more than one of the parsers in the 
      * collection.
@@ -112,7 +112,7 @@ public final class UrlParserUtils {
             Function<URL, @Nullable P> toMapper( final Collection<? extends P> parsers ) {
 
         return url -> parsers.stream()
-                .filter( p -> p.supported( url ) )
+                .filter( p -> p.supports( url ) )
                 .findFirst()
                 .orElse( null );
 

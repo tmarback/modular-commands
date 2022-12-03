@@ -44,7 +44,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
      * Creates a parser that delegates to the given parsers.
      * 
      * <p>The parser choice is defined as the first parser in the iteration order of the given
-     * collection for which {@link #supported(URL)} returns {@code true} for the URL being parsed.
+     * collection for which {@link #supports(URL)} returns {@code true} for the URL being parsed.
      * This implies that the iteration order matters if, and only if, there are URLs that may be
      * supported by more than one of the parsers in the collection.
      *
@@ -63,7 +63,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
      * Creates a parser that delegates to the given parsers.
      * 
      * <p>The parser choice is defined as the first parser in the given order for which 
-     * {@link #supported(URL)} returns {@code true} for the URL being parsed.
+     * {@link #supports(URL)} returns {@code true} for the URL being parsed.
      * This implies that the iteration order matters if, and only if, there are URLs that 
      * may be supported by more than one of the parsers in the collection.
      *
@@ -135,7 +135,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
      * results to a second parser. If parsing with either parser throws an exception, it is 
      * relayed to the caller of the composed parser.
      * 
-     * <p>Note that {@link #supported(URL) compatibility} is defined only by the first parser.
+     * <p>Note that {@link #supports(URL) compatibility} is defined only by the first parser.
      *
      * @param <I> The intermediary type output by the first parser and consumed by the second.
      * @param <T> The final output type.
@@ -174,7 +174,7 @@ public interface FunctorUrlParser<T extends @NonNull Object> extends UrlParser<T
 
     /**
      * Parser that supports multiple URL types by delegating to one of a list of parsers. Note
-     * that this includes {@link #supported(URL) compatibility checks}.
+     * that this includes {@link #supports(URL) compatibility checks}.
      *
      * @param <T> The parsed argument type.
      * @param <P> The delegate parser type.
