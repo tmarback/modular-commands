@@ -737,6 +737,44 @@ public final class Parsers {
 
     }
 
+    /**
+     * Creates a parser that receives an enum value.
+     * 
+     * <p>The enum constants are converted into a choice by calling {@link String#toLowerCase()}
+     * on their {@link Enum#name() name}, with the corresponding choice name being the value
+     * returned by {@link Enum#toString()}.
+     * 
+     * <p>Note that, due to Discord's limit on choice values, this method only accepts enums
+     * that have at most {@value ChoicesParser#MAX_CHOICES} values. If looking to parse an
+     * enum with more values, use a regular {@link #string(ParserFunction) string parser}.
+     *
+     * @param <E> The enum type.
+     * @param enumClass The enum class.
+     * @return The parser.
+     * @throws IllegalArgumentException if the given enum type has no values or more values than
+     *                                  allowed by Discord on choice parameters 
+     *                                  ({@value ChoicesParser#MAX_CHOICES}).
+     */
+    public static <E extends @NonNull Enum<E>> StringParser<E> enums( final Class<E> enumClass ) 
+            throws IllegalArgumentException {
+
+        final var values = NullnessUtil.castNonNull( enumClass.getEnumConstants() );
+        if ( values.length > ChoicesParser.MAX_CHOICES ) {
+            throw new IllegalArgumentException( "Enum type has too many values" );
+        } else if ( values.length <= 0 ) {
+            throw new IllegalArgumentException( "Enum type has no values" );
+        }
+
+        // @MinLen doesn't carry over so need to force it
+        @SuppressWarnings( "value" )
+        final @MinLen( 1 ) List<Map.Entry<Choice<String>, E>> choices = Arrays.stream( values )
+                .map( s -> Map.entry( Choice.of( s.toString(), s.name().toLowerCase() ), s ) )
+                .toList();
+
+        return stringChoice( choices );
+        
+    }
+
     /* Long Strings */
 
     /**
