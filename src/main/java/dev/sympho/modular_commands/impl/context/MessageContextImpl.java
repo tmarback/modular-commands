@@ -316,7 +316,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     @Override
     public @Nullable Member getCallerMember() {
 
-        return null;
+        return event.getMember().orElse( null );
 
     }
 
