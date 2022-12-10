@@ -21,7 +21,6 @@ import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
-import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.utils.SmartIterator;
@@ -324,30 +323,6 @@ public abstract class PipelineBuilder<E extends Event,
     /* Helpers */
 
     /**
-     * Invokes a handler while wrapping any thrown exceptions into a result.
-     *
-     * @param handler The handler to use.
-     * @param context The context to use.
-     * @return The result of the invocation.
-     */
-    @SuppressWarnings( "checkstyle:illegalcatch" )
-    private Mono<CommandResult> invokeWrap( final InvocationHandler<? super CTX> handler,
-            final CTX context ) {
-
-        try {
-            return handler.handle( context )
-                    .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
-                    .onErrorResume( e -> Results.exceptionMono( e ) )
-                    .defaultIfEmpty( Results.error( "No result issued!" ) );
-        } catch ( final ResultException e ) {
-            return Mono.just( e.getResult() );
-        } catch ( final Exception e ) {
-            return Results.exceptionMono( e );
-        }
-
-    }
-
-    /**
      * Verifies that the invocation is valid for the scope that the command is defined in.
      *
      * @param payload The invocation payload.
@@ -497,7 +472,7 @@ public abstract class PipelineBuilder<E extends Event,
             state = state.flatMap( r -> {
                 if ( r instanceof CommandContinue ) {
                     LOGGER.trace( "Invoking command handler for {}", invocation );
-                    return invokeWrap( handler, context );
+                    return handler.handleWrapped( context );
                 } else {
                     LOGGER.trace( "Skipping command handler for {}", invocation );
                     return Mono.just( r );

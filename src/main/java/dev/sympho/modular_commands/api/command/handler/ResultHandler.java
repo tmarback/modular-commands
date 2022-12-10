@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.api.command.handler;
 
+import java.util.function.BiFunction;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
@@ -14,7 +16,8 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 @FunctionalInterface
-public interface ResultHandler<C extends @NonNull CommandContext> {
+public interface ResultHandler<C extends @NonNull CommandContext> 
+        extends BiFunction<C, CommandResult, Mono<Boolean>> {
 
     /**
      * Handles the result of a command.
@@ -31,5 +34,13 @@ public interface ResultHandler<C extends @NonNull CommandContext> {
      *          
      */
     Mono<Boolean> handle( C context, CommandResult result );
+
+    /**
+     * @implSpec Delegates to {@link #handle(CommandContext, CommandResult)}. Do not override.
+     */
+    @Override
+    default Mono<Boolean> apply( final C context, final CommandResult result ) {
+        return handle( context, result );
+    }
     
 }
