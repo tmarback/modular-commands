@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.execute;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -38,7 +39,7 @@ public interface AliasProvider extends UnaryOperator<Iterator> {
     /**
      * Creates an alias provider with the given aliases.
      *
-     * @param aliases The aliases to use in the crated provider.
+     * @param aliases The aliases to use in the created provider.
      * @return The constructed provider.
      */
     static AliasProvider of( final Collection<? extends Entry<Invocation, Invocation>> aliases ) {
@@ -86,7 +87,19 @@ public interface AliasProvider extends UnaryOperator<Iterator> {
     /**
      * Creates an alias provider with the given aliases.
      *
-     * @param aliases The aliases to use in the crated provider.
+     * @param aliases The aliases to use in the created provider.
+     * @return The constructed provider.
+     */
+    static AliasProvider of( final Map<Invocation, Invocation> aliases ) {
+
+        return of( aliases.entrySet() );
+
+    }
+
+    /**
+     * Creates an alias provider with the given aliases.
+     *
+     * @param aliases The aliases to use in the created provider.
      * @return The constructed provider.
      */
     @SafeVarargs
