@@ -1,11 +1,13 @@
 package dev.sympho.modular_commands;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
+import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -15,6 +17,7 @@ import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.execute.AccessManager;
+import dev.sympho.modular_commands.execute.AliasProvider;
 import dev.sympho.modular_commands.execute.CommandExecutor;
 import dev.sympho.modular_commands.execute.MessageCommandExecutor;
 import dev.sympho.modular_commands.execute.PrefixProvider;
@@ -298,12 +301,19 @@ public class TestBot {
         registry.registerCommand( "bot-owner", botOwnerCommand() );
 
         registry.registerCommand( "file-text", fileTextCommand() );
+
+        final AliasProvider aliases = AliasProvider.of(
+                Map.entry( Invocation.of( "pong" ), Invocation.of( "ping" ) )
+        );
         
         DiscordClient.create( token )
             .withGateway( client -> {
 
                 final List<CommandExecutor> executors = List.of(
-                    new MessageCommandExecutor( client, registry, AccessManager.basic(), prefix )
+                    new MessageCommandExecutor( 
+                            client, registry, AccessManager.basic(), 
+                            prefix, aliases 
+                    )
                 );
 
                 executors.forEach( CommandExecutor::start );

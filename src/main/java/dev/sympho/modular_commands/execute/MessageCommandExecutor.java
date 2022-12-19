@@ -41,11 +41,13 @@ public class MessageCommandExecutor extends CommandExecutor {
      * @param registry The registry to use to look up commands.
      * @param accessManager The access manager to use for access checks.
      * @param prefixProvider The provider to get prefixes from.
+     * @param aliases Provides the aliases that should be applied.
      */
     public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final AccessManager accessManager, final PrefixProvider prefixProvider ) {
+            final AccessManager accessManager, final PrefixProvider prefixProvider,
+            final AliasProvider aliases ) {
 
-        super( client, registry, new Builder( accessManager, prefixProvider ) );
+        super( client, registry, new Builder( accessManager, prefixProvider, aliases ) );
 
     }
 
@@ -64,17 +66,23 @@ public class MessageCommandExecutor extends CommandExecutor {
         /** Provides the prefixes that commands should have. */
         private final PrefixProvider prefixProvider;
 
+        /** Provides the aliases that should be applied. */
+        private final AliasProvider aliases;
+
         /** 
          * Creates a new instance. 
          *
          * @param accessManager The access manager to use for access checks.
          * @param prefixProvider Provides the prefixes that commands should have.
+         * @param aliases Provides the aliases that should be applied.
          */
-        Builder( final AccessManager accessManager, final PrefixProvider prefixProvider ) {
+        Builder( final AccessManager accessManager, final PrefixProvider prefixProvider, 
+                final AliasProvider aliases ) {
 
             super( accessManager );
 
             this.prefixProvider = prefixProvider;
+            this.aliases = aliases;
 
         }
 
@@ -113,14 +121,15 @@ public class MessageCommandExecutor extends CommandExecutor {
 
             final String message = event.getMessage().getContent();
             if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
-                return Iterator.empty();
+                return splitter.emptyIterator();
             }
 
             final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
             if ( message.startsWith( prefix ) ) {
-                return splitter.iterate( message.substring( prefix.length() ).trim() );
+                final var iter = splitter.iterate( message.substring( prefix.length() ).trim() );
+                return aliases.apply( iter );
             } else {
-                return Iterator.empty();
+                return splitter.emptyIterator();
             }
     
         }

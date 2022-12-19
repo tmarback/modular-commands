@@ -72,22 +72,66 @@ final class EmptyIterators {
     }
 
     /**
-     * Async string splitter iterator.
+     * String splitter iterator.
      *
+     * @param <S> The splitter type.
      * @since 1.0
      */
-    public static class EmptySplitter extends EmptyDetachable<String> 
+    public static class EmptySplitter<S extends StringSplitter> 
+            extends EmptyDetachable<String> 
+            implements StringSplitter.Iterator {
+
+        /** The source splitter. */
+        private S splitter;
+
+        /** 
+         * Only use global instance. 
+         *
+         * @param splitter The source splitter.
+         */
+        protected EmptySplitter( final S splitter ) {
+            this.splitter = splitter;
+        }
+
+        @Override
+        public StringSplitter.Iterator toIterator() {
+            return this;
+        }
+
+        @Override
+        public S splitter() {
+            return splitter;
+        }
+
+    }
+
+    /**
+     * Async string splitter iterator.
+     *
+     * @param <S> The splitter type.
+     * @since 1.0
+     */
+    public static class EmptyAsyncSplitter<S extends StringSplitter.Async> 
+            extends EmptySplitter<S>
             implements StringSplitter.Async.Iterator {
 
-        /** The global instance. */
-        public static final EmptySplitter INSTANCE = new EmptySplitter();
-
-        /** Only use global instance. */
-        protected EmptySplitter() {}
+        /** 
+         * Only use global instance. 
+         *
+         * @param splitter The source splitter.
+         */
+        protected EmptyAsyncSplitter( final S splitter ) {
+            super( splitter );
+        }
 
         @Override
         public String remainder() {
             return "";
+        }
+
+        @Override
+        public StringSplitter.Async.Iterator toIterator() {
+            return this;
         }
     
     }

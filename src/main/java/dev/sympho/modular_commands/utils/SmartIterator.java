@@ -299,7 +299,7 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
          * @return The remaining items as a list.
          */
         @SideEffectFree
-        private List<E> remaining() {
+        protected List<E> remaining() {
 
             return list.subList( idx, list.size() );
 

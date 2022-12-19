@@ -15,6 +15,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.utils.SmartIterator.ListIterator;
 import reactor.core.publisher.Flux;
 
 /**
@@ -23,7 +24,6 @@ import reactor.core.publisher.Flux;
  * @version 1.0
  * @since 1.0
  */
-@FunctionalInterface
 public interface StringSplitter extends Function<String, List<String>> {
 
     /**
@@ -34,6 +34,29 @@ public interface StringSplitter extends Function<String, List<String>> {
      */
     @SideEffectFree
     List<String> split( String raw );
+
+    /**
+     * Obtains a string that can be used to delimit two elements according to
+     * this splitter.
+     * 
+     * <p>Note that there is no guarantee that the value returned by this method is the
+     * <i>only</i> delimiter supported by this splitter, only that it is <i>a</i> valid
+     * delimiter.
+     * 
+     * <p>In other words, the guarantee offered by this method is that, given some string
+     * {@code str} and splitter {@code spl}, and {@code l = spl.split(str)}, then
+     * {@code spl.split(String.join(spl.delimiter(), l)).equals(l)} is {@code true}.
+     * 
+     * <p>This implies that, for any sequence of strings {@code s1, s2, s3, ...}, then
+     * {@code spl.split(String.join(spl.delimiter(), s1, s2, s3, ...))}
+     * gives the same result as concatenating
+     * {@code spl.split(s1), spl.split(s2), spl.split(s3), ...}
+     *
+     * @return The delimiter.
+     * @apiNote This method 
+     */
+    @Pure
+    String delimiter();
 
     @Override
     default List<String> apply( String raw ) {
@@ -49,11 +72,80 @@ public interface StringSplitter extends Function<String, List<String>> {
      * @param raw The string to split.
      * @return A smart iterator over the split components.
      * @implSpec The default implementation delegates to {@link #split(String)} and
-                 {@link SmartIterator#from(List)}.
+     *           {@link SmartIterator#from(List)}.
      */
     @SideEffectFree
-    default SmartIterator.Detachable<String> iterate( final String raw ) {
-        return SmartIterator.from( split( raw ) );
+    default Iterator iterate( final String raw ) {
+
+        /**
+         * Base iterator implementation.
+         *
+         * @since 1.0
+         */
+        class BaseIterator extends ListIterator<String> implements Iterator {
+
+            /**
+             * Creates a new iterator with the given parsed result.
+             *
+             * @param parsed The parsing result.
+             */
+            BaseIterator( final List<String> parsed ) {
+
+                super( parsed );
+
+            }
+
+            @Override
+            public StringSplitter splitter() {
+
+                return StringSplitter.this;
+
+            }
+
+            @Override
+            public Iterator toIterator() {
+
+                return new BaseIterator( remaining() );
+
+            }
+
+        }
+
+        return new BaseIterator( split( raw ) );
+    }
+
+    /**
+     * Creates an empty iterator for this splitter.
+     *
+     * @return The iterator.
+     */
+    @SideEffectFree
+    default Iterator emptyIterator() {
+
+        return new EmptyIterators.EmptySplitter<>( this );
+
+    }
+
+    /**
+     * An iterator over the elements split by a splitter.
+     * 
+     * <p>May, depending on implementation, split components lazily on demand.
+     *
+     * @since 1.0
+     */
+    interface Iterator extends SmartIterator.Detachable<String> {
+
+        /**
+         * Retrieves the splitter that created this iterator.
+         *
+         * @return The source splitter.
+         */
+        @Pure
+        StringSplitter splitter();
+
+        @Override
+        Iterator toIterator();
+
     }
 
     /**
@@ -62,7 +154,6 @@ public interface StringSplitter extends Function<String, List<String>> {
      * @version 1.0
      * @since 1.0
      */
-    @FunctionalInterface
     interface Async extends StringSplitter {
 
         /**
@@ -154,7 +245,7 @@ public interface StringSplitter extends Function<String, List<String>> {
                 }
     
                 @Override
-                public SmartIterator.Detachable<String> toIterator() {
+                public Iterator toIterator() {
                     return iterate( state );
                 }
     
@@ -171,6 +262,11 @@ public interface StringSplitter extends Function<String, List<String>> {
                 @Override
                 public Flux<String> toFlux() {
                     return splitAsync( state );
+                }
+
+                @Override
+                public StringSplitter.Async splitter() {
+                    return StringSplitter.Async.this;
                 }
     
             };
@@ -213,20 +309,23 @@ public interface StringSplitter extends Function<String, List<String>> {
         }
 
         /**
-         * An iterator that splits elements lazily on demand during traversal.
+         * Creates an empty iterator for this splitter.
+         *
+         * @return The iterator.
+         */
+        @Override
+        default Iterator emptyIterator() {
+
+            return new EmptyIterators.EmptyAsyncSplitter<>( this );
+
+        }
+
+        /**
+         * Iterator that splits elements lazily on demand during traversal.
          *
          * @since 1.0
          */
-        interface Iterator extends SmartIterator.Detachable<String> {
-
-            /**
-             * Returns an empty iterator.
-             *
-             * @return An empty iterator.
-             */
-            static Iterator empty() {
-                return EmptyIterators.EmptySplitter.INSTANCE;
-            }
+        interface Iterator extends StringSplitter.Iterator {
 
             /**
              * Retrieves the remainder of the string that has not been parsed yet.
@@ -235,6 +334,12 @@ public interface StringSplitter extends Function<String, List<String>> {
              */
             @Pure
             String remainder();
+
+            @Override
+            Async splitter();
+
+            @Override
+            Iterator toIterator();
 
         }
 
@@ -254,6 +359,11 @@ public interface StringSplitter extends Function<String, List<String>> {
 
         /** Creates a new instance. */
         public Shell() {}
+
+        @Override
+        public String delimiter() {
+            return " ";
+        }
 
         /**
          * Finds the index of the next whitespace character in the given string.
