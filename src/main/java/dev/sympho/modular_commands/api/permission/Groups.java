@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.api.permission;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.GuildChannel;
@@ -64,6 +66,22 @@ public final class Groups {
             "Bot Owner" 
     );
 
+    /** 
+     * The group that matches a booster in the invoking server. 
+     *
+     * <p>Note that, unlike groups like {@link #ADMINS} or 
+     * {@link #hasGuildPermissions(PermissionSet)}, this group will <i>never</i> match on
+     * a private channel, as usually the goal is paywalling a feature rather than limiting
+     * permissions.
+     */
+    public static final NamedGroup BOOSTER = named(
+            ( guild, channel, user ) -> guild.flatMap( g -> user.asMember( g.getId() ) )
+                    .map( Member::getPremiumTime )
+                    .map( Optional::isPresent )
+                    .defaultIfEmpty( false ),
+            "Boosters"
+    );
+
     /** Do not instantiate. */
     private Groups() {}
 
@@ -108,6 +126,33 @@ public final class Groups {
      * Decorates a group so that membership is always checked in relation to the given guild,
      * rather than the guild where the command was executed in.
      * 
+     * <p>In other words, this overrides the {@code guild} parameter provided to the
+     * {@link Group#belongs(Mono, Mono, User)} method to the given guild, before delegating
+     * to the given group.
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
+     * guild, and thus should be checked in relation to that guild.
+     * 
+     * <p>The {@link NamedGroup#name() name} of the group is passed through.
+     *
+     * @param group The group.
+     * @param guild The guild where group membership should be checked for. The issued value
+     *              may change over time.
+     * @return The decorated group.
+     * @apiNote If the name of the group will be overriden, an explicit cast to the
+     *          non-named variant may be used to avoid an unecessary wrapping layer:
+     *          {@code named(remote((Group) group, guild), "some name")}
+     */
+    public static NamedGroup remote( final NamedGroup group, final Mono<Snowflake> guild ) {
+
+        return named( remote( group, guild ), group.name() );
+
+    }
+
+    /**
+     * Decorates a group so that membership is always checked in relation to the given guild,
+     * rather than the guild where the command was executed in.
+     * 
      * <p>This allows for permission checking on commands that always operate on some remote
      * guild, and thus should be checked in relation to that guild.
      *
@@ -128,12 +173,57 @@ public final class Groups {
      * 
      * <p>This allows for permission checking on commands that always operate on some remote
      * guild, and thus should be checked in relation to that guild.
+     * 
+     * <p>The {@link NamedGroup#name() name} of the group is passed through.
+     *
+     * @param group The group.
+     * @param guild The guild where group membership should be checked for. The issued value
+     *              may change over time.
+     * @return The decorated group.
+     * @apiNote If the name of the group will be overriden, an explicit cast to the
+     *          non-named variant may be used to avoid an unecessary wrapping layer:
+     *          {@code named(remote((Group) group, guild), "some name")}
+     */
+    public static NamedGroup remote( final NamedGroup group, final Supplier<Snowflake> guild ) {
+
+        return remote( group, Mono.fromSupplier( guild ) );
+
+    }
+
+    /**
+     * Decorates a group so that membership is always checked in relation to the given guild,
+     * rather than the guild where the command was executed in.
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
+     * guild, and thus should be checked in relation to that guild.
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for.
      * @return The decorated group.
      */
     public static Group remote( final Group group, final Snowflake guild ) {
+
+        return remote( group, Mono.just( guild ) );
+
+    }
+
+    /**
+     * Decorates a group so that membership is always checked in relation to the given guild,
+     * rather than the guild where the command was executed in.
+     * 
+     * <p>This allows for permission checking on commands that always operate on some remote
+     * guild, and thus should be checked in relation to that guild.
+     * 
+     * <p>The {@link NamedGroup#name() name} of the group is passed through.
+     *
+     * @param group The group.
+     * @param guild The guild where group membership should be checked for.
+     * @return The decorated group.
+     * @apiNote If the name of the group will be overriden, an explicit cast to the
+     *          non-named variant may be used to avoid an unecessary wrapping layer:
+     *          {@code named(remote((Group) group, guild), "some name")}
+     */
+    public static NamedGroup remote( final NamedGroup group, final Snowflake guild ) {
 
         return remote( group, Mono.just( guild ) );
 
