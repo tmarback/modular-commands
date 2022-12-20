@@ -308,8 +308,11 @@ public interface SmartIterator<E extends @NonNull Object> extends Iterator<E> {
         @Override
         public E next() throws NoSuchElementException {
 
+            // Grab value first to make sure index doesn't get
+            // incremented if it fails
+            final var res = super.next();
             idx++;
-            return super.next();
+            return res;
 
         }
 
