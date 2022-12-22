@@ -192,7 +192,7 @@ public final class CommandBuilder<H extends Handlers> {
     public static <H extends Handlers> @CalledMethods( {
             "withScope", "withCallable", 
             "withParent", "withName", "withAliases", "withDisplayName",
-            "withParameters", "requireGroup", 
+            "withDescription", "withParameters", "requireGroup", 
             "setSkipGroupCheckOnInteraction", "setRequireParentGroups",
             "setNsfw", "setPrivateReply", "setEphemeralReply", 
             "setInheritSettings", "setInvokeParent", "withHandlers"
@@ -205,6 +205,7 @@ public final class CommandBuilder<H extends Handlers> {
                 .withName( base.name() )
                 .withAliases( base.aliases() )
                 .withDisplayName( base.displayName() )
+                .withDescription( base.description() )
                 .withParameters( base.parameters() )
                 .requireGroup( base.requiredGroup() )
                 .setSkipGroupCheckOnInteraction( base.skipGroupCheckOnInteraction() )
