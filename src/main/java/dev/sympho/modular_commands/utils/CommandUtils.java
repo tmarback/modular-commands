@@ -8,8 +8,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMultiset;
 
-import org.apache.commons.lang3.Range;
-import org.checkerframework.checker.regex.qual.Regex;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.common.value.qual.StaticallyExecutable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -30,20 +29,17 @@ import dev.sympho.modular_commands.api.permission.Group;
  */
 public final class CommandUtils {
 
-    /** Pattern for valid slash command names in the Discord API. */
-    private static final @Regex String NAME_REGEX = "^[\\w-]{1,32}+$";
     /** Compiled name pattern. */
     private static final Pattern NAME_PATTERN = Pattern.compile( 
-            NAME_REGEX, Pattern.UNICODE_CHARACTER_CLASS );
+            Command.NAME_REGEX );
 
-    /** Pattern for valid user/message command names in the Discord API. */
-    private static final @Regex String DISPLAY_NAME_REGEX = "^[\\w- ]{1,32}+$";
     /** Compiled display name pattern. */
     private static final Pattern DISPLAY_NAME_PATTERN = Pattern.compile( 
-            DISPLAY_NAME_REGEX, Pattern.UNICODE_CHARACTER_CLASS );
+            Command.DISPLAY_NAME_REGEX );
 
-    /** The valid range for description length in the Discord API. */
-    private static final Range<Integer> DESCRIPTION_RANGE = Range.between( 1, 100 );
+    /** Compiled description pattern. */
+    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile( 
+            Command.DESCRIPTION_REGEX );
 
     /** Class should not be instantiated. */
     private CommandUtils() {}
@@ -54,6 +50,7 @@ public final class CommandUtils {
      * @param parent The parent to validate.
      * @return The validated parent.
      */
+    @SuppressWarnings( "methodref.param" )
     public static Invocation validateParent( final Invocation parent ) {
 
         Objects.requireNonNull( parent, "Parent cannot be null." );
@@ -71,7 +68,9 @@ public final class CommandUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateName( final String name ) throws IllegalArgumentException {
+    public static @MatchesRegex( Command.NAME_REGEX ) String validateName( 
+            final @MatchesRegex( Command.NAME_REGEX ) String name ) 
+            throws IllegalArgumentException {
 
         Objects.requireNonNull( name, "Name cannot be null." );
         if ( !NAME_PATTERN.matcher( name ).matches() ) {
@@ -93,7 +92,8 @@ public final class CommandUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateDisplayName( final String name ) 
+    public static @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String validateDisplayName( 
+            final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String name ) 
             throws IllegalArgumentException {
 
         Objects.requireNonNull( name, "Display name cannot be null." );
@@ -113,7 +113,8 @@ public final class CommandUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateAlias( final String alias ) 
+    public static @MatchesRegex( Command.NAME_REGEX ) String validateAlias( 
+            final @MatchesRegex( Command.NAME_REGEX ) String alias ) 
             throws IllegalArgumentException {
 
         Objects.requireNonNull( alias, "Alias cannot be null." );
@@ -132,7 +133,8 @@ public final class CommandUtils {
      * @throws IllegalArgumentException if the alias set is not valid.
      */
     @SideEffectFree
-    public static Set<String> validateAliases( final Set<String> aliases ) 
+    public static Set<@MatchesRegex( Command.NAME_REGEX ) String> validateAliases( 
+            final Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases ) 
             throws IllegalArgumentException {
 
         return Objects.requireNonNull( aliases, "Alias set cannot be null." ).stream()
@@ -150,13 +152,13 @@ public final class CommandUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateDescription( final String description ) 
+    public static @MatchesRegex( Command.DESCRIPTION_REGEX ) String validateDescription( 
+            final @MatchesRegex( Command.DESCRIPTION_REGEX ) String description ) 
             throws IllegalArgumentException {
 
         Objects.requireNonNull( description, "Description cannot be null." );
-        if ( !DESCRIPTION_RANGE.contains( description.length() ) ) {
-            throw new IllegalArgumentException( 
-                    "Description must be between 1 and 100 characters." );
+        if ( !DESCRIPTION_PATTERN.matcher( description ).matches() ) {
+            throw new IllegalArgumentException( "Invalid description." );
         }
         return description;
 
@@ -178,9 +180,7 @@ public final class CommandUtils {
         for ( final var p : parameters ) {
 
             Objects.requireNonNull( p, "Parameter specification cannot be null." );
-            Objects.requireNonNull( p.name(), "Parameter name cannot be null." );
-            Objects.requireNonNull( p.description(), "Parameter description cannot be null." );
-            Objects.requireNonNull( p.parser(), "Parameter parser cannot be null." );
+            ParameterUtils.validate( p );
             
             if ( !p.required() ) {
                 optional = true;

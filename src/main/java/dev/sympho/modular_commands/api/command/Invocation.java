@@ -1,8 +1,6 @@
 package dev.sympho.modular_commands.api.command;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -29,7 +27,7 @@ public record Invocation( List<String> chain ) {
 
         chain.forEach( c -> Objects.requireNonNull( c, 
                 "Invocation chain cannot contain null." ) );
-        this.chain = Collections.unmodifiableList( new ArrayList<>( chain ) );
+        this.chain = List.copyOf( chain );
 
     }
 
@@ -43,8 +41,9 @@ public record Invocation( List<String> chain ) {
     @Pure
     public Invocation child( final String command ) {
 
-        final List<String> childChain = List.of( 
-                Objects.requireNonNull( command, "Command cannot be null." ) );
+        final var childChain = List.of( 
+                Objects.requireNonNull( command, "Command cannot be null." ) 
+        );
         return new Invocation( ListUtils.union( chain, childChain ) );
 
     }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
@@ -47,10 +48,10 @@ public record CommandImpl<H extends Handlers>(
         Scope scope,
         boolean callable,
         Invocation parent,
-        String name,
-        Set<String> aliases,
-        String displayName,
-        String description,
+        @MatchesRegex( Command.NAME_REGEX ) String name,
+        Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases,
+        @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String displayName,
+        @MatchesRegex( Command.DESCRIPTION_REGEX ) String description,
         List<Parameter<?>> parameters,
         Group requiredGroup,
         boolean skipGroupCheckOnInteraction,
@@ -95,10 +96,10 @@ public record CommandImpl<H extends Handlers>(
             final Scope scope,
             final boolean callable,
             final Invocation parent,
-            final String name,
-            final Set<String> aliases,
-            final String displayName,
-            final String description,
+            final @MatchesRegex( Command.NAME_REGEX ) String name,
+            final Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases,
+            final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String displayName,
+            final @MatchesRegex( Command.DESCRIPTION_REGEX ) String description,
             final List<Parameter<?>> parameters,
             final Group requiredGroup,
             final boolean skipGroupCheckOnInteraction,

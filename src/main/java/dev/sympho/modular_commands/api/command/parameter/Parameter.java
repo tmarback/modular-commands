@@ -2,8 +2,11 @@ package dev.sympho.modular_commands.api.command.parameter;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.regex.qual.Regex;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
 
@@ -27,12 +30,17 @@ import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
  */
 // END LONG LINES
 public record Parameter<T extends @NonNull Object>(
-        String name,
-        String description,
+        @MatchesRegex( NAME_REGEX ) String name,
+        @MatchesRegex( DESCRIPTION_REGEX ) String description,
         boolean required,
         @Nullable T defaultValue,
         ArgumentParser<?, T> parser
 ) {
+
+    /** Pattern for valid parameter names in the Discord API. */
+    public static final @Regex String NAME_REGEX = Command.NAME_REGEX;
+    /** Pattern for valid parameter descriptions in the Discord API. */
+    public static final @Regex String DESCRIPTION_REGEX = Command.DESCRIPTION_REGEX;
 
     /**
      * Creates a new builder.

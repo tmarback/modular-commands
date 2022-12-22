@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.regex.qual.Regex;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
@@ -54,6 +56,13 @@ public interface Command<H extends Handlers> {
         GUILD 
 
     }
+
+    /** Pattern for valid slash command names in the Discord API. */
+    @Regex String NAME_REGEX = "(?U)^[-_\\p{L}\\p{N}\\p{sc=Deva}\\p{sc=Thai}]{1,32}+$";
+    /** Pattern for valid user/message command names in the Discord API. */
+    @Regex String DISPLAY_NAME_REGEX = "(?U)^[ -_\\p{L}\\p{N}\\p{sc=Deva}\\p{sc=Thai}]{1,32}+$";
+    /** Pattern for valid command descriptions in the Discord API. */
+    @Regex String DESCRIPTION_REGEX = "(?Us)^.{1,100}+$";
 
     /**
      * The scope that the command is defined in.
@@ -106,7 +115,7 @@ public interface Command<H extends Handlers> {
      * @return The name of the command.
      */
     @Pure
-    String name();
+    @MatchesRegex( NAME_REGEX ) String name();
 
     /**
      * The invocation that executes this command.
@@ -137,7 +146,7 @@ public interface Command<H extends Handlers> {
      * @implSpec The default is an empty set.
      */
     @Pure
-    default Set<String> aliases() {
+    default Set<@MatchesRegex( NAME_REGEX ) String> aliases() {
         return Collections.emptySet();
     }
 
@@ -171,7 +180,7 @@ public interface Command<H extends Handlers> {
      * @return The display name of the command.
      */
     @Pure
-    String displayName();
+    @MatchesRegex( DISPLAY_NAME_REGEX ) String displayName();
 
     /**
      * The description of the command.
@@ -179,7 +188,7 @@ public interface Command<H extends Handlers> {
      * @return The description of the command.
      */
     @Pure
-    String description();
+    @MatchesRegex( DESCRIPTION_REGEX ) String description();
 
     /**
      * The command inline parameters, in the order that they should be provided

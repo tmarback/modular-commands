@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -27,10 +28,10 @@ import dev.sympho.modular_commands.utils.ParameterUtils;
 public final class ParameterBuilder<T extends @NonNull Object> {
 
     /** The parameter name. */
-    protected @MonotonicNonNull String name;
+    protected @MonotonicNonNull @MatchesRegex( Parameter.NAME_REGEX ) String name;
     
     /** The parameter description. */
-    protected @MonotonicNonNull String description;
+    protected @MonotonicNonNull @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String description;
 
     /** Whether the parameter is required. */
     protected boolean required;
@@ -104,7 +105,9 @@ public final class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#name()
      */
     @Deterministic
-    public @This ParameterBuilder<T> withName( final String name ) throws IllegalArgumentException {
+    public @This ParameterBuilder<T> withName( 
+            final @MatchesRegex( Parameter.NAME_REGEX ) String name ) 
+            throws IllegalArgumentException {
 
         this.name = ParameterUtils.validateName( name );
         return this;
@@ -120,7 +123,8 @@ public final class ParameterBuilder<T extends @NonNull Object> {
      * @see Parameter#description()
      */
     @Deterministic
-    public @This ParameterBuilder<T> withDescription( final String description ) 
+    public @This ParameterBuilder<T> withDescription( 
+            final @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String description ) 
             throws IllegalArgumentException {
 
         this.description = ParameterUtils.validateDescription( description );

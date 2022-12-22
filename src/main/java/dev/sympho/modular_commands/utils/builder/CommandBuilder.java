@@ -12,6 +12,7 @@ import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Deterministic;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -29,6 +30,7 @@ import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.impl.CommandImpl;
 import dev.sympho.modular_commands.utils.CommandUtils;
+import dev.sympho.modular_commands.utils.ParameterUtils;
 
 /**
  * Builder for commands.
@@ -85,16 +87,16 @@ public final class CommandBuilder<H extends Handlers> {
     protected Invocation parent;
 
     /** The command name. */
-    protected @MonotonicNonNull String name;
+    protected @MonotonicNonNull @MatchesRegex( Command.NAME_REGEX ) String name;
 
     /** The command aliases. */
-    protected Set<String> aliases;
+    protected Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases;
 
     /** The display name. */
-    protected @MonotonicNonNull String displayName;
+    protected @MonotonicNonNull @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String displayName;
 
     /** The command description. */
-    protected @MonotonicNonNull String description;
+    protected @MonotonicNonNull @MatchesRegex( Command.DESCRIPTION_REGEX ) String description;
 
     /** The command parameters. */
     protected List<Parameter<?>> parameters;
@@ -326,7 +328,8 @@ public final class CommandBuilder<H extends Handlers> {
      * @see Command#name()
      */
     @Deterministic
-    public @This CommandBuilder<H> withName( final String name ) {
+    public @This CommandBuilder<H> withName( 
+            final @MatchesRegex( Command.NAME_REGEX ) String name ) {
 
         this.name = CommandUtils.validateName( name );
         return this;
@@ -345,7 +348,8 @@ public final class CommandBuilder<H extends Handlers> {
      * @see Command#aliases()
      */
     @Deterministic
-    public @This CommandBuilder<H> withAliases( final @Nullable Set<String> aliases ) 
+    public @This CommandBuilder<H> withAliases( 
+            final @Nullable Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases )
             throws IllegalArgumentException {
 
         this.aliases = new HashSet<>( CommandUtils.validateAliases(
@@ -363,7 +367,8 @@ public final class CommandBuilder<H extends Handlers> {
      * @see Command#aliases()
      */
     @Deterministic
-    public @This CommandBuilder<H> addAliases( final String alias ) 
+    public @This CommandBuilder<H> addAliases( 
+            final @MatchesRegex( Command.NAME_REGEX ) String alias )
             throws IllegalArgumentException {
 
         this.aliases.add( CommandUtils.validateAlias( alias ) );
@@ -397,7 +402,8 @@ public final class CommandBuilder<H extends Handlers> {
      * @see Command#displayName()
      */
     @Deterministic
-    public @This CommandBuilder<H> withDisplayName( final String name ) {
+    public @This CommandBuilder<H> withDisplayName( 
+            final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String name ) {
 
         this.displayName = CommandUtils.validateDisplayName( name );
         return this;
@@ -417,7 +423,8 @@ public final class CommandBuilder<H extends Handlers> {
      * @see Command#description()
      */
     @Deterministic
-    public @This CommandBuilder<H> withDescription( final String description ) {
+    public @This CommandBuilder<H> withDescription( 
+            final @MatchesRegex( Command.DESCRIPTION_REGEX ) String description ) {
 
         this.description = CommandUtils.validateDescription( description );
         return this;
@@ -441,6 +448,7 @@ public final class CommandBuilder<H extends Handlers> {
                 Objects.requireNonNullElse( parameters, Collections.emptyList() )
         );
         params.forEach( Objects::requireNonNull );
+        params.forEach( ParameterUtils::validate );
         this.parameters = params;
         return this;
 
@@ -456,7 +464,9 @@ public final class CommandBuilder<H extends Handlers> {
     @Deterministic
     public @This CommandBuilder<H> addParameter( final Parameter<?> parameter ) {
 
-        this.parameters.add( Objects.requireNonNull( parameter, "Parameter cannot be null." ) );
+        this.parameters.add( ParameterUtils.validate( 
+                Objects.requireNonNull( parameter, "Parameter cannot be null." ) 
+        ) );
         return this;
 
     }

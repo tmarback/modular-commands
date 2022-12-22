@@ -1,15 +1,14 @@
 package dev.sympho.modular_commands.utils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.common.value.qual.StaticallyExecutable;
 import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
+
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
 /**
  * Utility functions for Parameter interfaces.
@@ -18,6 +17,14 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
  * @since 1.0
  */
 public final class ParameterUtils {
+
+    /** Compiled name pattern. */
+    private static final Pattern NAME_PATTERN = Pattern.compile( 
+            Parameter.NAME_REGEX );
+
+    /** Compiled description pattern. */
+    private static final Pattern DESCRIPTION_PATTERN = Pattern.compile( 
+            Parameter.DESCRIPTION_REGEX );
 
     /** Class should not be instantiated. */
     private ParameterUtils() {}
@@ -31,9 +38,18 @@ public final class ParameterUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateName( final String name ) throws IllegalArgumentException {
+    public static @MatchesRegex( Parameter.NAME_REGEX ) String validateName( 
+            final @MatchesRegex( Parameter.NAME_REGEX ) String name ) 
+            throws IllegalArgumentException {
 
-        return CommandUtils.validateName( name );
+        Objects.requireNonNull( name, "Name cannot be null." );
+        if ( !NAME_PATTERN.matcher( name ).matches() ) {
+            throw new IllegalArgumentException( "Invalid name." );
+        }
+        if ( !name.equals( name.toLowerCase() ) ) {
+            throw new IllegalArgumentException( "Name must be all lowercase." );
+        }
+        return name;
 
     }
 
@@ -46,45 +62,35 @@ public final class ParameterUtils {
      */
     @Pure
     @StaticallyExecutable
-    public static String validateDescription( final String description ) 
+    public static @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String validateDescription( 
+            final @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String description ) 
             throws IllegalArgumentException {
 
-        return CommandUtils.validateDescription( description );
+        Objects.requireNonNull( description, "Description cannot be null." );
+        if ( !DESCRIPTION_PATTERN.matcher( description ).matches() ) {
+            throw new IllegalArgumentException( "Invalid description." );
+        }
+        return description;
 
     }
 
     /**
-     * Validates the choices specified for a parameter, and returns them as a new,
-     * unmodifiable map.
+     * Validates a parameter.
      *
-     * @param <T> The type of each choice.
-     * @param choices The choices, or {@code null} if no restriction on value is
-     *                to be used.
-     * @return The choices, or an empty map if no restriction on value is to be used.
-     * @throws IllegalArgumentException if the given map is empty or contains an empty
-     *                                  choice name.
-     * @throws NullPointerException if the choices contain {@code null}.
+     * @param <T> The argument type.
+     * @param parameter The parameter to validate.
+     * @return The validated parameter.
+     * @throws IllegalArgumentException if the parameter is not valid.
      */
-    @SideEffectFree
-    public static <T extends @NonNull Object> 
-            Map<String, T> validateChoices( final @Nullable Map<String, T> choices )
-            throws IllegalArgumentException {
+    @Pure
+    public static <T extends @NonNull Object> Parameter<T> validate( 
+            final Parameter<T> parameter ) throws IllegalArgumentException {
 
-        if ( choices == null ) {
-            return Collections.emptyMap();
-        } else if ( choices.isEmpty() ) {
-            throw new IllegalArgumentException( "Choices set cannot be empty." );
-        } else {
-            choices.entrySet().forEach( e -> {
-                Objects.requireNonNull( e.getKey(), "One of the choice names was null." );
-                Objects.requireNonNull( e.getValue(), "One of the choices was null." );
-                if ( e.getKey().isEmpty() ) {
-                    throw new IllegalArgumentException( "A choice name cannot be empty." );
-                }
-            } );
+        validateName( parameter.name() );
+        validateDescription( parameter.description() );
+        Objects.requireNonNull( parameter.parser(), "Parser cannot be null." );
 
-            return Collections.unmodifiableMap( new HashMap<>( choices ) );
-        }
+        return parameter;
 
     }
 
