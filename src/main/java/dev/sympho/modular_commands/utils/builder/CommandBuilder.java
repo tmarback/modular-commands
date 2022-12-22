@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.checkerframework.checker.calledmethods.qual.CalledMethods;
-import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
@@ -184,38 +183,38 @@ public final class CommandBuilder<H extends Handlers> {
      * Constructs a new builder that is initialized to make a copy of 
      * the given command.
      *
+     * @param <H> The handler type.
      * @param base The command to copy.
+     * @return The initialized builder.
      * @throws IllegalArgumentException if the given command has invalid values.
      */
     @SideEffectFree
-    @EnsuresCalledMethods( value = "this", methods = {
+    public static <H extends Handlers> @CalledMethods( {
             "withScope", "withCallable", 
             "withParent", "withName", "withAliases", "withDisplayName",
             "withParameters", "requireGroup", 
             "setSkipGroupCheckOnInteraction", "setRequireParentGroups",
             "setNsfw", "setPrivateReply", "setEphemeralReply", 
             "setInheritSettings", "setInvokeParent", "withHandlers"
-    } )
-    public CommandBuilder( final Command<? extends H> base ) throws IllegalArgumentException {
+    } ) CommandBuilder<H> from( final Command<H> base ) throws IllegalArgumentException {
 
-        this();
-
-        withScope( base.scope() );
-        withCallable( base.callable() );
-        withParent( base.parent() );
-        withName( base.name() );
-        withAliases( base.aliases() );
-        withDisplayName( base.displayName() );
-        withParameters( base.parameters() );
-        requireGroup( base.requiredGroup() );
-        setSkipGroupCheckOnInteraction( base.skipGroupCheckOnInteraction() );
-        setRequireParentGroups( base.requireParentGroups() );
-        setNsfw( base.nsfw() );
-        setPrivateReply( base.privateReply() );
-        setEphemeralReply( base.ephemeralReply() );
-        setInheritSettings( base.inheritSettings() );
-        setInvokeParent( base.invokeParent() );
-        withHandlers( base.handlers() );
+        return new CommandBuilder<H>()
+                .withScope( base.scope() )
+                .withCallable( base.callable() )
+                .withParent( base.parent() )
+                .withName( base.name() )
+                .withAliases( base.aliases() )
+                .withDisplayName( base.displayName() )
+                .withParameters( base.parameters() )
+                .requireGroup( base.requiredGroup() )
+                .setSkipGroupCheckOnInteraction( base.skipGroupCheckOnInteraction() )
+                .setRequireParentGroups( base.requireParentGroups() )
+                .setNsfw( base.nsfw() )
+                .setPrivateReply( base.privateReply() )
+                .setEphemeralReply( base.ephemeralReply() )
+                .setInheritSettings( base.inheritSettings() )
+                .setInvokeParent( base.invokeParent() )
+                .withHandlers( base.handlers() );
 
     }
 

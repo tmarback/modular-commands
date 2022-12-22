@@ -3,7 +3,6 @@ package dev.sympho.modular_commands.utils.builder;
 import java.util.Objects;
 
 import org.checkerframework.checker.calledmethods.qual.CalledMethods;
-import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -76,23 +75,24 @@ public final class ParameterBuilder<T extends @NonNull Object> {
      * Constructs a new builder that is initialized to make a copy of 
      * the given parameter.
      *
+     * @param <T> The argument type.
      * @param base The parameter to copy.
+     * @return The initialized builder.
+     * @throws IllegalArgumentException if the given parameter has invalid values.
      */
     @SideEffectFree
-    @EnsuresCalledMethods( value = "this", methods = { 
+    public static <T extends @NonNull Object> @CalledMethods( {
             "withName", "withDescription", 
             "withRequired", "withDefault", 
             "withParser" 
-    } )
-    public ParameterBuilder( final Parameter<T> base ) {
+    } ) ParameterBuilder<T> from( final Parameter<T> base ) throws IllegalArgumentException {
 
-        this();
-
-        withName( base.name() );
-        withDescription( base.description() );
-        withRequired( base.required() );
-        withDefault( base.defaultValue() );
-        withParser( base.parser() );
+        return new ParameterBuilder<T>()
+                .withName( base.name() )
+                .withDescription( base.description() )
+                .withRequired( base.required() )
+                .withDefault( base.defaultValue() )
+                .withParser( base.parser() );
 
     }
 
