@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.utils.builder;
 import java.util.Objects;
 
 import org.checkerframework.checker.calledmethods.qual.CalledMethods;
+import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -23,7 +24,7 @@ import dev.sympho.modular_commands.utils.ParameterUtils;
  * @since 1.0
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
-public class ParameterBuilder<T extends @NonNull Object> {
+public final class ParameterBuilder<T extends @NonNull Object> {
 
     /** The parameter name. */
     protected @MonotonicNonNull String name;
@@ -60,7 +61,7 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @param base The builder to copy.
      */
     @SideEffectFree
-    protected ParameterBuilder( final ParameterBuilder<T> base ) {
+    public ParameterBuilder( final ParameterBuilder<T> base ) {
 
         this.name = base.name;
         this.description = base.description;
@@ -77,13 +78,20 @@ public class ParameterBuilder<T extends @NonNull Object> {
      * @param base The parameter to copy.
      */
     @SideEffectFree
-    protected ParameterBuilder( final Parameter<T> base ) {
+    @EnsuresCalledMethods( value = "this", methods = { 
+            "withName", "withDescription", 
+            "withRequired", "withDefault", 
+            "withParser" 
+    } )
+    public ParameterBuilder( final Parameter<T> base ) {
 
-        this.name = base.name();
-        this.description = base.description();
-        this.required = base.required();
-        this.defaultValue = base.defaultValue();
-        this.parser = base.parser();
+        this();
+
+        withName( base.name() );
+        withDescription( base.description() );
+        withRequired( base.required() );
+        withDefault( base.defaultValue() );
+        withParser( base.parser() );
 
     }
 

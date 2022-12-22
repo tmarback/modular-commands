@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.checkerframework.checker.calledmethods.qual.CalledMethods;
+import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
@@ -38,7 +39,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @since 1.0
  */
 @SuppressWarnings( "checkstyle:hiddenfield" )
-public class CommandBuilder<H extends Handlers> {
+public final class CommandBuilder<H extends Handlers> {
 
     /* Defaults */
 
@@ -185,26 +186,34 @@ public class CommandBuilder<H extends Handlers> {
      * @throws IllegalArgumentException if the given command has invalid values.
      */
     @SideEffectFree
+    @EnsuresCalledMethods( value = "this", methods = {
+            "withScope", "withCallable", 
+            "withParent", "withName", "withAliases", "withDisplayName",
+            "withParameters", "requireGroup", 
+            "setSkipGroupCheckOnInteraction", "setRequireParentGroups",
+            "setNsfw", "setPrivateReply", "setEphemeralReply", 
+            "setInheritSettings", "setInvokeParent", "withHandlers"
+    } )
     public CommandBuilder( final Command<? extends H> base ) throws IllegalArgumentException {
 
-        CommandUtils.validateCommand( base );
+        this();
 
-        this.scope = base.scope();
-        this.callable = base.callable();
-        this.parent = base.parent();
-        this.name = base.name();
-        this.aliases = new HashSet<>( base.aliases() );
-        this.displayName = base.displayName();
-        this.parameters = new LinkedList<>( base.parameters() );
-        this.requiredGroup = base.requiredGroup();
-        this.skipGroupCheckOnInteraction = base.skipGroupCheckOnInteraction();
-        this.requireParentGroups = base.requireParentGroups();
-        this.nsfw = base.nsfw();
-        this.privateReply = base.privateReply();
-        this.ephemeralReply = base.ephemeralReply();
-        this.inheritSettings = base.inheritSettings();
-        this.invokeParent = base.invokeParent();
-        this.handlers = base.handlers();
+        withScope( base.scope() );
+        withCallable( base.callable() );
+        withParent( base.parent() );
+        withName( base.name() );
+        withAliases( base.aliases() );
+        withDisplayName( base.displayName() );
+        withParameters( base.parameters() );
+        requireGroup( base.requiredGroup() );
+        setSkipGroupCheckOnInteraction( base.skipGroupCheckOnInteraction() );
+        setRequireParentGroups( base.requireParentGroups() );
+        setNsfw( base.nsfw() );
+        setPrivateReply( base.privateReply() );
+        setEphemeralReply( base.ephemeralReply() );
+        setInheritSettings( base.inheritSettings() );
+        setInvokeParent( base.invokeParent() );
+        withHandlers( base.handlers() );
 
     }
 
