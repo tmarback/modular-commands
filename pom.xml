@@ -266,8 +266,7 @@
 
                         </tags>
                         <links>
-                            <!-- https://github.com/typetools/checker-framework/issues/5438 -->
-                            <!-- <link>https://checkerframework.org/api/</link> -->
+                            <link>https://checkerframework.org/api/</link>
                             <link>https://projectreactor.io/docs/core/release/api/</link>
                             <link>https://javadoc.io/doc/com.discord4j/discord4j-core/${d4j.version}/</link>
                             <link>https://javadoc.io/doc/com.discord4j/discord4j-common/${d4j.version}/</link>
