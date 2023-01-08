@@ -145,7 +145,7 @@ public final class Groups {
      */
     public static NamedGroup remote( final NamedGroup group, final Mono<Snowflake> guild ) {
 
-        return named( remote( group, guild ), group.name() );
+        return named( remote( ( Group ) group, guild ), group.name() );
 
     }
 
