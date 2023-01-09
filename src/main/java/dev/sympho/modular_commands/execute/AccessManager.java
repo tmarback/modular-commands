@@ -1,9 +1,7 @@
 package dev.sympho.modular_commands.execute;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.core.object.entity.Guild;
@@ -31,16 +29,30 @@ public interface AccessManager {
     AccessValidator validator( Mono<Guild> guild, Mono<MessageChannel> channel, User caller );
 
     /**
-     * Creates a manager for which all validators are no-op passthroughs.
+     * Creates a manager for which all validators always allow access.
      * That is, a manager that allows access for any user to any group (effectively disabling
      * group checking).
      *
      * @return The manager.
      */
     @SideEffectFree
-    static AccessManager noOp() {
+    static AccessManager alwaysAllow() {
 
-        return ( guild, channel, caller ) -> group -> Mono.empty();
+        return ( guild, channel, caller ) -> group -> Mono.just( true );
+
+    }
+
+    /**
+     * Creates a manager for which all validators always deny access.
+     * That is, a manager that denies access for any user to any group (effectively disabling
+     * any functionality that requires group membership).
+     *
+     * @return The manager.
+     */
+    @SideEffectFree
+    static AccessManager alwaysDeny() {
+
+        return ( guild, channel, caller ) -> group -> Mono.just( false );
 
     }
 
@@ -54,10 +66,7 @@ public interface AccessManager {
     @SideEffectFree
     static AccessManager basic() {
 
-        return ( guild, channel, caller ) -> group -> group.belongs( guild, channel, caller )
-                .defaultIfEmpty( false )
-                .filter( BooleanUtils::negate )
-                .map( b -> new UserNotAllowed( group ) );
+        return ( guild, channel, caller ) -> group -> group.belongs( guild, channel, caller );
 
     }
 
@@ -77,9 +86,7 @@ public interface AccessManager {
                 .switchIfEmpty( Mono.defer( // If not allowed, check override
                         () -> overrideGroup.belongs( guild, channel, caller ) 
                 ) )
-                .defaultIfEmpty( false )
-                .filter( BooleanUtils::negate )
-                .map( b -> new UserNotAllowed( group ) );
+                .defaultIfEmpty( false );
 
     }
     

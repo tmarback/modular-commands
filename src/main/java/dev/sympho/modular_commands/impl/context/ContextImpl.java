@@ -553,8 +553,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     @Override
-    @SideEffectFree
-    public Mono<CommandResult> validate( final Group group ) {
+    public final Mono<Boolean> hasAccess( final Group group ) {
+
+        return access.hasAccess( group );
+
+    }
+
+    @Override
+    public final Mono<CommandResult> validate( final Group group ) {
 
         return access.validate( group );
 
