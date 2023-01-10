@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.checkerframework.checker.calledmethods.qual.CalledMethods;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -359,19 +360,24 @@ public final class CommandBuilder<H extends Handlers> {
     }
 
     /**
-     * Adds an alias to the command.
+     * Adds aliases to the command.
      *
-     * @param alias The alias to add.
+     * @param aliases The aliases to add.
      * @return This builder.
-     * @throws IllegalArgumentException if the alias is not valid.
+     * @throws IllegalArgumentException if any of the aliases is not valid. None will be added.
      * @see Command#aliases()
      */
     @Deterministic
     public @This CommandBuilder<H> addAliases( 
-            final @MatchesRegex( Command.NAME_REGEX ) String alias )
+            final @MatchesRegex( Command.NAME_REGEX ) String... aliases )
             throws IllegalArgumentException {
 
-        this.aliases.add( CommandUtils.validateAlias( alias ) );
+        // @MatchesRegex not getting passed through correctly
+        @SuppressWarnings( { "methodref.param", "assignment" } )
+        final List<@MatchesRegex( Command.NAME_REGEX ) String> validated = Stream.of( aliases )
+                .map( CommandUtils::validateAlias )
+                .toList(); // Check all aliases first
+        this.aliases.addAll( validated );
         return this;
 
     }
