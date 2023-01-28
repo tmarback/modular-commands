@@ -21,6 +21,8 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import reactor.core.publisher.Mono;
 
 /**
@@ -40,14 +42,18 @@ public class MessageCommandExecutor extends CommandExecutor {
      * @param client The client to receive events from.
      * @param registry The registry to use to look up commands.
      * @param accessManager The access manager to use for access checks.
+     * @param meters The meter registry to use.
+     * @param observations The observation registry to use.
      * @param prefixProvider The provider to get prefixes from.
      * @param aliases Provides the aliases that should be applied.
      */
     public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final AccessManager accessManager, final PrefixProvider prefixProvider,
-            final AliasProvider aliases ) {
+            final AccessManager accessManager, 
+            final MeterRegistry meters, final ObservationRegistry observations,
+            final PrefixProvider prefixProvider, final AliasProvider aliases ) {
 
-        super( client, registry, new Builder( accessManager, prefixProvider, aliases ) );
+        super( client, registry, 
+                new Builder( accessManager, meters, observations, prefixProvider, aliases ) );
 
     }
 
@@ -73,17 +79,25 @@ public class MessageCommandExecutor extends CommandExecutor {
          * Creates a new instance. 
          *
          * @param accessManager The access manager to use for access checks.
+         * @param meters The meter registry to use.
+         * @param observations The observation registry to use.
          * @param prefixProvider Provides the prefixes that commands should have.
          * @param aliases Provides the aliases that should be applied.
          */
-        Builder( final AccessManager accessManager, final PrefixProvider prefixProvider, 
-                final AliasProvider aliases ) {
+        Builder( final AccessManager accessManager, 
+                final MeterRegistry meters, final ObservationRegistry observations,
+                final PrefixProvider prefixProvider, final AliasProvider aliases ) {
 
-            super( accessManager );
+            super( accessManager, meters, observations );
 
             this.prefixProvider = prefixProvider;
             this.aliases = aliases;
 
+        }
+
+        @Override
+        protected MetricTag.Type tagType() {
+            return MetricTag.Type.MESSAGE;
         }
 
         @Override
@@ -152,6 +166,11 @@ public class MessageCommandExecutor extends CommandExecutor {
         @Override
         protected Mono<Guild> getGuild( final MessageCreateEvent event ) {
             return event.getGuild();
+        }
+
+        @Override
+        protected Snowflake getChannelId( final MessageCreateEvent event ) {
+            return event.getMessage().getChannelId();
         }
 
         @Override

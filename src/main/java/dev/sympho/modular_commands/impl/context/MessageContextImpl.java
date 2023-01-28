@@ -28,6 +28,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.execute.MetricTag;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.RawParser;
 import discord4j.common.util.Snowflake;
@@ -181,6 +182,11 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         } );
 
+    }
+
+    @Override
+    public MetricTag.Type tagType() {
+        return MetricTag.Type.MESSAGE;
     }
 
     @Override

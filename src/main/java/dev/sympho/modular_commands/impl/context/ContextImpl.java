@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import org.checkerframework.checker.calledmethods.qual.EnsuresCalledMethods;
 import org.checkerframework.checker.interning.qual.FindDistinct;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -39,7 +38,9 @@ import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.execute.InstrumentedContext;
 import dev.sympho.modular_commands.execute.LazyContext;
+import dev.sympho.modular_commands.execute.MetricTag;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.common.util.Snowflake;
@@ -51,6 +52,8 @@ import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
+import io.micrometer.observation.ObservationRegistry;
+import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -62,10 +65,27 @@ import reactor.util.function.Tuple2;
  * @version 1.0
  * @since 1.0
  */
-abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
+abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, InstrumentedContext {
 
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( ContextImpl.class );
+
+    /** The metric prefix for initialization. */
+    private static final String METRIC_NAME_INITIALIZE = "command.context.init";
+    /** The metric prefix for loading. */
+    private static final String METRIC_NAME_LOAD = "command.context.load";
+    /** The metric prefix for argument initialization. */
+    private static final String METRIC_NAME_ARGUMENT_INIT = 
+            "command.context.argument.init";
+    /** The metric prefix for parsing all arguments. */
+    private static final String METRIC_NAME_ARGUMENT_PARSE_ALL = 
+            "command.context.argument.parse.all";
+    /** The metric prefix for parsing one argument. */
+    private static final String METRIC_NAME_ARGUMENT_PARSE_ONE = 
+            "command.context.argument.parse.one";
+
+    /** The tag name for the parameter name. */
+    private static final String METRIC_TAG_PARAMETER = "command.parameter";
 
     /** The command parameters in the order that they should be received. */
     protected final List<Parameter<?>> parameters;
@@ -116,6 +136,17 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
         this.initialized = new AtomicBoolean( false );
         this.initializeLatch = new ReactiveLatch();
         this.loadResult = null;
+
+    }
+
+    @Override
+    public final <T> Mono<T> addTags( final Mono<T> mono ) {
+
+        return mono
+                .transform( tagType()::apply )
+                .transform( MetricTag.Guild.from( getGuildId() )::apply )
+                .transform( MetricTag.Channel.from( getChannelId() )::apply )
+                .transform( MetricTag.Caller.from( getCaller().getId() )::apply );
 
     }
 
@@ -567,7 +598,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     }
 
     @Override
-    public Mono<Void> initialize() {
+    public Mono<Void> initialize( final ObservationRegistry observations ) {
 
         if ( initialized.getAndSet( true ) ) {
             return initializeLatch.await(); // Already initializing
@@ -577,7 +608,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
 
         // Prepare load
         // cache() for idempotence and to prevent cancelling
-        this.loadResult = Mono.defer( this::doLoad ).cache();
+        this.loadResult = Mono.just( observations ).flatMap( this::doLoad ).cache();
 
         return makeReplyManager() // Initialize reply manager
                 .map( ReplyManagerWrapper::new )
@@ -589,6 +620,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
                 .doOnError( initializeLatch::fail )
                 .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
                 .doOnError( t -> LOGGER.error( "Failed to initialize", t ) )
+                .name( METRIC_NAME_INITIALIZE )
+                .transform( this::addTags )
+                .tap( Micrometer.observation( observations ) )
                 .cache(); // Prevent cancelling
 
     }
@@ -596,22 +630,40 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext {
     /**
      * Performs the {@link #load()} operation.
      *
+     * @param observations The registry to use for observations.
      * @return The result.
      * @see #load()
      */
-    @EnsuresCalledMethods( value = "this", methods = "initArgs" )
-    public Mono<CommandResult> doLoad() {
+    public Mono<CommandResult> doLoad( final ObservationRegistry observations ) {
 
         LOGGER.trace( "Loading context" );
 
-        return initArgs()
-                .thenMany( Flux.fromIterable( parameters ) )
-                .flatMap( this::processArgument )
+        final var init = Mono.defer( () -> initArgs() 
+                .name( METRIC_NAME_ARGUMENT_INIT )
+                .transform( this::addTags )
+                .tap( Micrometer.observation( observations ) )
+        );
+
+        final var parse = Mono.defer( () -> Flux.fromIterable( parameters )
+                .flatMap( p -> processArgument( p )
+                        .name( METRIC_NAME_ARGUMENT_PARSE_ONE )
+                        .transform( this::addTags )
+                        .tag( METRIC_TAG_PARAMETER, p.name() )
+                        .tap( Micrometer.observation( observations ) )
+                )
                 .collectMap( Entry::getKey, Entry::getValue )
                 .doOnNext( args -> {
                     this.arguments = args;
                 } )
-                .name( "parameter-parse" ).metrics()
+                .name( METRIC_NAME_ARGUMENT_PARSE_ALL )
+                .transform( this::addTags )
+                .tap( Micrometer.observation( observations ) )
+        );
+
+        return init.then( parse )
+                .name( METRIC_NAME_LOAD )
+                .transform( this::addTags )
+                .tap( Micrometer.observation( observations ) )
                 .doOnSuccess( v -> LOGGER.trace( "Context loaded" ) )
                 .doOnError( t -> {
                     if ( t instanceof ResultException ex ) {

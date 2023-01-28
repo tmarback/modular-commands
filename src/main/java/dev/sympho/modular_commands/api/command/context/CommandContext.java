@@ -118,6 +118,18 @@ public interface CommandContext extends AccessValidator {
     @Nullable Snowflake getGuildId();
 
     /**
+     * Determines if the invocation ocurred in a private channel.
+     *
+     * @return Whether the invocation was made from a private channel.
+     */
+    @Pure
+    default boolean isPrivate() {
+
+        return getGuildId() == null;
+
+    }
+
+    /**
      * Retrieves one of the arguments to the command.
      *
      * @param <T> The type of the argument.

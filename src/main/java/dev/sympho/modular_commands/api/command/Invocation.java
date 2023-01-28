@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.api.command;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,7 +16,7 @@ import org.checkerframework.dataflow.qual.Pure;
  * @version 1.0
  * @since 1.0
  */
-public record Invocation( List<String> chain ) {
+public record Invocation( List<String> chain ) implements Iterable<String> {
 
     /**
      * Constructs an invocation determined by the given chain.
@@ -70,6 +71,13 @@ public record Invocation( List<String> chain ) {
     public static Invocation of( final String... commands ) {
 
         return new Invocation( Arrays.asList( commands ) );
+
+    }
+
+    @Override
+    public Iterator<String> iterator() {
+
+        return chain.iterator();
 
     }
     

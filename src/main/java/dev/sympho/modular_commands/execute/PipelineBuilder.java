@@ -1,7 +1,9 @@
 package dev.sympho.modular_commands.execute;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
@@ -18,7 +20,9 @@ import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.result.CommandContinue;
 import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
+import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.command.result.CommandSuccess;
 import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
@@ -30,11 +34,15 @@ import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
+import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 import reactor.util.function.Tuples;
+import reactor.util.retry.Retry;
 
 /**
  * Type responsible for building a command processing pipeline.
@@ -59,23 +67,83 @@ import reactor.util.function.Tuples;
  *          </ul>
  */
 public abstract class PipelineBuilder<E extends Event, 
-        CTX extends CommandContext & LazyContext, H extends Handlers, 
+        CTX extends CommandContext & LazyContext & InstrumentedContext, H extends Handlers, 
         I extends SmartIterator<String>> {
 
     /** Logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( PipelineBuilder.class );
 
+    /** The metric prefix for the overall pipeline. */
+    private static final String METRIC_NAME_PIPELINE = "command.pipeline";
+    /** The metric prefix for event handling. */
+    private static final String METRIC_NAME_EVENT = "command.event";
+    /** The metric prefix for event parsing. */
+    private static final String METRIC_NAME_PARSE = "command.parse";
+    /** The metric prefix for command validation. */
+    private static final String METRIC_NAME_VALIDATE = "command.validate";
+    /** The metric prefix for command invocation. */
+    private static final String METRIC_NAME_INVOKE = "command.invoke";
+    /** The metric prefix for command execution. */
+    private static final String METRIC_NAME_EXECUTE = "command.execute";
+    /** The metric name for command result handling. */
+    private static final String METRIC_NAME_RESULT = "command.result";
+
+    /** The tag name for the command result. */
+    private static final String METRIC_TAG_RESULT = "command.outcome";
+
+    /** The maximum number of times to retry on error before giving up. */
+    private static final int MAX_RETRIES = 100;
+    /** The minimum backoff period after an error. */
+    private static final Duration MIN_BACKOFF = Duration.ofSeconds( 1 );
+    /** The maximum backoff period after an error. */
+    private static final Duration MAX_BACKOFF = Duration.ofHours( 1 );
+
     /** The access manager to use for access checks. */
     protected final AccessManager accessManager;
+
+    /** The meter registry to use. */
+    protected final MeterRegistry meters;
+
+    /** The observation registry to use. */
+    protected final ObservationRegistry observations;
 
     /** 
      * Creates a new instance. 
      *
      * @param accessManager The access manager to use for access checks.
+     * @param meters The meter registry to use.
+     * @param observations The observation registry to use.
      */
-    protected PipelineBuilder( final AccessManager accessManager ) {
+    protected PipelineBuilder( final AccessManager accessManager, 
+            final MeterRegistry meters, final ObservationRegistry observations ) {
 
         this.accessManager = accessManager;
+        this.meters = meters;
+        this.observations = observations;
+
+    }
+
+    /* Tag value helpers */
+
+    /**
+     * Determines the value for the {@link #METRIC_TAG_RESULT result tag}.
+     *
+     * @param result The execution result.
+     * @return The tag value.
+     */
+    private static String tagResult( final CommandResult result ) {
+
+        if ( result instanceof CommandSuccess ) {
+            return "success";
+        } else if ( result instanceof CommandFailure ) {
+            return "failure";
+        } else if ( result instanceof CommandError ) {
+            return "error";
+        } else if ( result instanceof CommandContinue ) {
+            return "continue";
+        } else {
+            return "unknown";
+        }
 
     }
 
@@ -110,38 +178,78 @@ public abstract class PipelineBuilder<E extends Event,
     private Mono<Void> buildPipeline( final Flux<E> source, final Registry registry ) {
 
         return source.flatMap( event -> parseEvent( event, registry )
-                .flatMap( this::executeCommand )
-                .doOnNext( ctx -> {
-                    final CTX context = ctx.getT2();
-                    final CommandResult result = ctx.getT3();
+                    .flatMap( this::executeCommand )
+                    .doOnNext( ctx -> {
+                        final CTX context = ctx.getT2();
+                        final CommandResult result = ctx.getT3();
 
-                    if ( result instanceof CommandErrorException r ) {
-                        final var cause = r.cause();
-                        LOGGER.error( String.format( "Exception while executing command %s", 
-                                context.getInvocation() ), cause );
-                    } else if ( result instanceof CommandError r ) {
-                        LOGGER.error( "Error while executing command {}: {}", 
-                                context.getInvocation(), r.message() );
-                    } else {
-                        LOGGER.debug( "Finished command execution {} with result {}", 
-                                context.getInvocation(), result.getClass().getSimpleName() );
-                        LOGGER.trace( "{} => {}", context.getInvocation(), result );
-                    }
-                } )
-                .flatMap( this::handleResult )
-                .doOnNext( c -> {
-                    LOGGER.warn( "Handling of result of command {} not complete", 
-                            c.getInvocation() );
-                } )
-                .onErrorResume( e -> {
-                    LOGGER.error( "Exception thrown within processing pipeline", e );
-                    return Mono.empty();
-                } )
-        ).doOnError( e -> LOGGER.error( "Fatal error", e ) ).then();
+                        if ( result instanceof CommandErrorException r ) {
+                            final var cause = r.cause();
+                            LOGGER.error( String.format( "Exception while executing command %s", 
+                                    context.getInvocation() ), cause );
+                        } else if ( result instanceof CommandError r ) {
+                            LOGGER.error( "Error while executing command {}: {}", 
+                                    context.getInvocation(), r.message() );
+                        } else {
+                            LOGGER.debug( "Finished command execution {} with result {}", 
+                                    context.getInvocation(), result.getClass().getSimpleName() );
+                            LOGGER.trace( "{} => {}", context.getInvocation(), result );
+                        }
+                    } )
+                    .flatMap( this::handleResult )
+                    .doOnNext( c -> {
+                        LOGGER.warn( "Handling of result of command {} not complete", 
+                                c.getInvocation() );
+                    } )
+                    .doOnError( e -> LOGGER.error( 
+                            "Exception thrown within processing pipeline", e 
+                    ) )
+                    .name( METRIC_NAME_EVENT )
+                    .transform( addTags( event ) )
+                    .tap( Micrometer.observation( observations ) )
+                    .onErrorComplete()
+                    .thenReturn( true ) // For metric tracking purposes
+            )
+            .doOnError( e -> LOGGER.error( "Fatal error", e ) )
+            .name( METRIC_NAME_PIPELINE )
+            .transform( tagType()::apply )
+            .tap( Micrometer.metrics( meters ) )
+            .retryWhen( Retry.backoff( MAX_RETRIES, MIN_BACKOFF )
+                    .maxBackoff( MAX_BACKOFF )
+                    .transientErrors( true )
+            )
+            .doOnError( e -> LOGGER.error( "Pipeline closed due to too many errors" ) )
+            .then();
 
     }
 
     /* Subclass methods */
+
+    /**
+     * Determines the {@link MetricTag.Type type tag} for this pipeline.
+     *
+     * @return The tag.
+     */
+    @Pure
+    protected abstract MetricTag.Type tagType();
+
+    /**
+     * Creates a function that adds the common instrumentation tags for the given event to Monos.
+     *
+     * @param <T> The mono value type.
+     * @param event The event.
+     * @return The function.
+     */
+    @SideEffectFree
+    protected final <T> Function<Mono<T>, Mono<T>> addTags( final E event ) {
+
+        return m -> m
+                .transform( tagType()::apply )
+                .transform( MetricTag.Guild.from( getGuildId( event ) )::apply )
+                .transform( MetricTag.Channel.from( getChannelId( event ) )::apply )
+                .transform( MetricTag.Caller.from( getCaller( event ).getId() )::apply );
+
+    }
 
     /**
      * Retrieves the event type to listen for.
@@ -264,6 +372,16 @@ public abstract class PipelineBuilder<E extends Event,
      */
     @SideEffectFree
     protected abstract Mono<Guild> getGuild( E event );
+
+    /**
+     * Retrieves the ID of the channel where the command was invoked from the
+     * triggering event.
+     *
+     * @param event The triggering event.
+     * @return The ID of the channel where the event was invoked.
+     */
+    @SideEffectFree
+    protected abstract Snowflake getChannelId( E event );
 
     /**
      * Retrieves the channel where the command was invoked from the
@@ -402,8 +520,9 @@ public abstract class PipelineBuilder<E extends Event,
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .filter( this::checkScope )
                 .filter( this::checkCallable )
-                .name( "command-parse" )
-                .metrics();
+                .name( METRIC_NAME_PARSE )
+                .transform( addTags( event ) )
+                .tap( Micrometer.observation( observations ) );
 
     }
 
@@ -411,12 +530,13 @@ public abstract class PipelineBuilder<E extends Event,
      * Validates that an invocation was appropriate.
      *
      * @param event The event that triggered the invocation.
+     * @param context The invocation context.
      * @param chain The command chain.
      * @return A Mono that completes empty if the invocation is appropriate,
      *         otherwise issuing a failure result.
      */
     @SideEffectFree
-    private Mono<CommandResult> validateCommand( final E event, 
+    private Mono<CommandResult> validateCommand( final E event, final CTX context,
             final List<? extends Command<? extends H>> chain ) {
 
         final var validator = getValidator();
@@ -424,7 +544,9 @@ public abstract class PipelineBuilder<E extends Event,
 
         return validator.validateSettings( event, chain )
                 .switchIfEmpty( validator.validateAccess( access, chain ) )
-                .name( "command-validate" ).metrics();
+                .name( METRIC_NAME_VALIDATE )
+                .transform( context::addTags )
+                .tap( Micrometer.observation( observations ) );
 
     }
 
@@ -481,7 +603,9 @@ public abstract class PipelineBuilder<E extends Event,
         }
 
         return state.filter( r -> verifyHandled( r, chain, context ) )
-                .name( "command-invoke" ).metrics();
+                .name( METRIC_NAME_INVOKE )
+                .transform( context::addTags )
+                .tap( Micrometer.observation( observations ) );
 
     }
 
@@ -503,8 +627,8 @@ public abstract class PipelineBuilder<E extends Event,
         final var command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
 
-        return context.initialize()
-                .then( validateCommand( event, chain ) )
+        return context.initialize( observations )
+                .then( validateCommand( event, context, chain ) )
                 .switchIfEmpty( Mono.defer( () -> context.load() ) )
                 .switchIfEmpty( Mono.fromRunnable( () -> {
                     context.replyManager()
@@ -513,7 +637,9 @@ public abstract class PipelineBuilder<E extends Event,
                 } ) )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
                 .map( result -> Tuples.of( command, context, result ) )
-                .name( "command-execute" ).metrics();
+                .name( METRIC_NAME_EXECUTE )
+                .transform( context::addTags )
+                .tap( Micrometer.observation( observations ) );
 
     }
 
@@ -538,7 +664,10 @@ public abstract class PipelineBuilder<E extends Event,
         }
         state = state.filterWhen( c -> BaseHandler.get().handle( c, result ) );
 
-        return state.name( "command-result" ).metrics();
+        return state.name( METRIC_NAME_RESULT )
+                .transform( context::addTags )
+                .tag( METRIC_TAG_RESULT, tagResult( result ) )
+                .tap( Micrometer.observation( observations ) );
 
     }
     

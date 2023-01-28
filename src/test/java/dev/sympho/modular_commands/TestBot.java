@@ -2,6 +2,7 @@ package dev.sympho.modular_commands;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,14 @@ import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
+import io.micrometer.core.instrument.Measurement;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.Observation.Context;
+import io.micrometer.observation.ObservationHandler;
+import io.micrometer.observation.ObservationRegistry;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -279,6 +288,68 @@ public class TestBot {
     }
 
     /**
+     * Creates a command for showing meter values.
+     *
+     * @param registry The meter registry to use.
+     * @return The command.
+     */
+    private static Command<?> metersCommand( final MeterRegistry registry ) {
+
+        final var counter = registry.counter( "meter.shows", "test", "true", "prod", "false" );
+
+        return CommandBuilder.text()
+                .withName( "meters" )
+                .withDisplayName( "Show meters" )
+                .withDescription( "Shows current meter values" )
+                .withHandlers( Handlers.text( ctx -> {
+
+                    counter.increment();
+
+                    if ( registry.getMeters().isEmpty() ) {
+                        return Results.failureMono( "No meters!" );
+                    }
+
+                    return Flux.fromIterable( registry.getMeters() )
+                            .map( meter -> {
+
+                                final var name = meter.getId().getName();
+                                LOGGER.debug( "Found meter {}", name );
+
+                                final var tags = meter.getId().getTags().stream()
+                                        .map( tag -> "`%s`: `%s`".formatted( 
+                                                tag.getKey(), tag.getValue() 
+                                        ) )
+                                        .toList();
+
+                                final var measurements = StreamSupport.stream( 
+                                        meter.measure().spliterator(), false )
+                                        .map( Measurement::toString )
+                                        .toList();
+
+                                return """
+                                        Meter: `%s`
+
+                                        Tags:
+                                        %s
+
+                                        Measurements:
+                                        %s
+                                        """.formatted(
+                                                name,
+                                                String.join( "\n", tags ),
+                                                String.join( "\n", measurements )
+                                        );
+
+                            } )
+                            .flatMap( ctx::reply )
+                            .then( Results.okMono() );
+
+                } ) )
+                .build();
+        
+    }
+
+    /**
      * Main runner.
      *
      * @param args Command line arguments.
@@ -286,6 +357,42 @@ public class TestBot {
     public static void main( final String[] args ) {
 
         final String token = args[0];
+
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final ObservationRegistry observations = ObservationRegistry.create();
+
+        final var observationHandler = new ObservationHandler<Observation.Context>() {
+
+            @Override
+            public void onStart( final Observation.Context context ) {
+                LOGGER.trace( "OBSERVATION START: {}", context.getName() );
+            }
+
+            @Override
+            public void onError( final Observation.Context context ) {
+                LOGGER.error( "OBSERVATION ERROR: " + context.getName(), context.getError() );
+            }
+
+            @Override
+            public void onEvent( final Observation.Event event, 
+                    final Observation.Context context ) {
+                LOGGER.trace( "OBSERVATION EVENT: {} - {}", context.getName(), event );
+            }
+
+            @Override
+            public void onStop( final Observation.Context context ) {
+                LOGGER.trace( "OBSERVATION STOP: {}", context.getName() );
+            }
+
+            @Override
+            public boolean supportsContext( final Context context ) {
+
+                return true;
+
+            }
+
+        };
+        observations.observationConfig().observationHandler( observationHandler );
 
         final PrefixProvider prefix = new StaticPrefix( "t!" );
         final Registry registry = Registries.simpleRegistry();
@@ -302,6 +409,8 @@ public class TestBot {
 
         registry.registerCommand( "file-text", fileTextCommand() );
 
+        registry.registerCommand( "meters", metersCommand( meters ) );
+
         final AliasProvider aliases = AliasProvider.of(
                 Map.entry( Invocation.of( "pong" ), Invocation.of( "ping" ) )
         );
@@ -312,6 +421,7 @@ public class TestBot {
                 final List<CommandExecutor> executors = List.of(
                     new MessageCommandExecutor( 
                             client, registry, AccessManager.basic(), 
+                            meters, observations, 
                             prefix, aliases 
                     )
                 );
