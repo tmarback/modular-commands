@@ -197,6 +197,7 @@ public abstract class PipelineBuilder<E extends Event,
                     .doOnError( e -> LOGGER.error( 
                             "Exception thrown within processing pipeline", e 
                     ) )
+                    .checkpoint( METRIC_NAME_EVENT )
                     .name( METRIC_NAME_EVENT )
                     .transform( addTags( event ) )
                     .tap( Micrometer.observation( observations ) )
@@ -204,6 +205,7 @@ public abstract class PipelineBuilder<E extends Event,
                     .thenReturn( true ) // For metric tracking purposes
             )
             .doOnError( e -> LOGGER.error( "Fatal error", e ) )
+            .checkpoint( METRIC_NAME_PIPELINE )
             .name( METRIC_NAME_PIPELINE )
             .transform( tagType()::apply )
             .tap( Micrometer.metrics( meters ) )
@@ -513,6 +515,7 @@ public abstract class PipelineBuilder<E extends Event,
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .filter( this::checkScope )
                 .filter( this::checkCallable )
+                .checkpoint( METRIC_NAME_PARSE )
                 .name( METRIC_NAME_PARSE )
                 .transform( addTags( event ) )
                 .tap( Micrometer.observation( observations ) );
@@ -537,6 +540,7 @@ public abstract class PipelineBuilder<E extends Event,
 
         return validator.validateSettings( event, chain )
                 .switchIfEmpty( validator.validateAccess( access, chain ) )
+                .checkpoint( METRIC_NAME_VALIDATE )
                 .name( METRIC_NAME_VALIDATE )
                 .transform( context::addTags )
                 .tap( Micrometer.observation( observations ) );
@@ -567,6 +571,7 @@ public abstract class PipelineBuilder<E extends Event,
                         () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
                 ) )
                 .single()
+                .checkpoint( METRIC_NAME_INVOKE )
                 .name( METRIC_NAME_INVOKE )
                 .transform( context::addTags )
                 .tap( Micrometer.observation( observations ) );
@@ -601,6 +606,7 @@ public abstract class PipelineBuilder<E extends Event,
                 } ) )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
                 .map( result -> Tuples.of( command, context, result ) )
+                .checkpoint( METRIC_NAME_EXECUTE )
                 .name( METRIC_NAME_EXECUTE )
                 .transform( context::addTags )
                 .tap( Micrometer.observation( observations ) );
@@ -636,6 +642,7 @@ public abstract class PipelineBuilder<E extends Event,
                             context.getInvocation() );
                 } )
                 .then()
+                .checkpoint( METRIC_NAME_RESULT )
                 .name( METRIC_NAME_RESULT )
                 .transform( context::addTags )
                 .tag( METRIC_TAG_RESULT, tagResult( result ) )

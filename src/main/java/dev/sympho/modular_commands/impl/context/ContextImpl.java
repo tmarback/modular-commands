@@ -620,6 +620,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
                 .doOnError( initializeLatch::fail )
                 .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
                 .doOnError( t -> LOGGER.error( "Failed to initialize", t ) )
+                .checkpoint( METRIC_NAME_INITIALIZE )
                 .name( METRIC_NAME_INITIALIZE )
                 .transform( this::addTags )
                 .tap( Micrometer.observation( observations ) )
@@ -639,6 +640,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         LOGGER.trace( "Loading context" );
 
         final var init = Mono.defer( () -> initArgs() 
+                .checkpoint( METRIC_NAME_ARGUMENT_INIT )
                 .name( METRIC_NAME_ARGUMENT_INIT )
                 .transform( this::addTags )
                 .tap( Micrometer.observation( observations ) )
@@ -646,6 +648,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
         final var parse = Mono.defer( () -> Flux.fromIterable( parameters )
                 .flatMap( p -> processArgument( p )
+                        .checkpoint( METRIC_NAME_ARGUMENT_PARSE_ONE )
                         .name( METRIC_NAME_ARGUMENT_PARSE_ONE )
                         .transform( this::addTags )
                         .tag( METRIC_TAG_PARAMETER, p.name() )
@@ -655,12 +658,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
                 .doOnNext( args -> {
                     this.arguments = args;
                 } )
+                .checkpoint( METRIC_NAME_ARGUMENT_PARSE_ALL )
                 .name( METRIC_NAME_ARGUMENT_PARSE_ALL )
                 .transform( this::addTags )
                 .tap( Micrometer.observation( observations ) )
         );
 
         return init.then( parse )
+                .checkpoint( METRIC_NAME_LOAD )
                 .name( METRIC_NAME_LOAD )
                 .transform( this::addTags )
                 .tap( Micrometer.observation( observations ) )
