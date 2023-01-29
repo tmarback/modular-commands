@@ -74,11 +74,12 @@ public final class SimpleRegistry implements Registry {
     }
 
     @Override
-    public synchronized boolean registerCommand( final String id, final Command<?> command )
+    public synchronized boolean registerCommand( final Command<?> command )
             throws IllegalArgumentException {
 
         CommandUtils.validateCommand( command );
 
+        final String id = command.id();
         final Invocation invocation = command.invocation();
         final Set<Invocation> aliases = command.handlers() instanceof MessageHandlers
                 ? command.aliasInvocations() : Collections.emptySet();

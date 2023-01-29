@@ -45,13 +45,28 @@ public final class CommandUtils {
     private CommandUtils() {}
 
     /**
+     * Validates the ID of a command.
+     *
+     * @param id The ID to validate.
+     * @return The validated ID.
+     * @throws IllegalArgumentException if the ID is not valid.
+     */
+    public static String validateId( final String id ) throws IllegalArgumentException {
+
+        return Objects.requireNonNull( id );
+
+    }
+
+    /**
      * Validates the parent of a command.
      *
      * @param parent The parent to validate.
      * @return The validated parent.
+     * @throws IllegalArgumentException if the parent is not valid.
      */
     @SuppressWarnings( "methodref.param" )
-    public static Invocation validateParent( final Invocation parent ) {
+    public static Invocation validateParent( final Invocation parent ) 
+            throws IllegalArgumentException {
 
         Objects.requireNonNull( parent, "Parent cannot be null." );
         parent.chain().forEach( CommandUtils::validateName );
@@ -278,6 +293,7 @@ public final class CommandUtils {
     public static <C extends Command<?>> C validateCommand( final C command )
             throws IllegalArgumentException {
 
+        validateId( command.id() );
         validateName( command.name() );
         validateAliases( command.aliases() );
         validateDisplayName( command.displayName() );

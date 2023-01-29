@@ -321,8 +321,8 @@ public final class CommandBuilder<H extends Handlers> {
      * Sets the name of the command.
      * 
      * <p>The default value is {@code null}, e.g. no value. It <i>must</i> be
-     * specified before calling {@link #build()} (so this method must be called
-     * at least once).
+     * specified before calling {@link #build(String)} (so this method must be 
+     * called at least once).
      *
      * @param name The command name.
      * @return This builder.
@@ -400,8 +400,8 @@ public final class CommandBuilder<H extends Handlers> {
      * Sets the display name of the command.
      * 
      * <p>The default value is {@code null}, e.g. no value. It <i>must</i> be
-     * specified before calling {@link #build()} (so this method must be called
-     * at least once).
+     * specified before calling {@link #build(String)} (so this method must be 
+     * called at least once).
      *
      * @param name The command display name.
      * @return This builder.
@@ -421,8 +421,8 @@ public final class CommandBuilder<H extends Handlers> {
      * Sets the description of the command.
      * 
      * <p>The default value is {@code null}, e.g. no value. It <i>must</i> be
-     * specified before calling {@link #build()} (so this method must be called
-     * at least once).
+     * specified before calling {@link #build(String)} (so this method must be 
+     * called at least once).
      *
      * @param description The command description.
      * @return This builder.
@@ -634,8 +634,8 @@ public final class CommandBuilder<H extends Handlers> {
      * Sets the handlers of the command.
      * 
      * <p>The default value is {@code null}, e.g. no value. It <i>must</i> be
-     * specified before calling {@link #build()} (so this method must be called
-     * at least once).
+     * specified before calling {@link #build(String)} (so this method must be 
+     * called at least once).
      *
      * @param handlers The handlers.
      * @return This builder.
@@ -652,13 +652,14 @@ public final class CommandBuilder<H extends Handlers> {
     /**
      * Builds the configured command.
      *
+     * @param id The {@link Command#id() ID} of the built command.
      * @return The built command.
      * @throws IllegalStateException if the current configuration is invalid.
      */
     @SideEffectFree
     public Command<H> build(
             @CalledMethods( { "withName", "withDisplayName", "withDescription", "withHandlers" } ) 
-            CommandBuilder<H> this
+            CommandBuilder<H> this, final String id
     ) throws IllegalStateException {
 
         if ( name == null ) {
@@ -682,7 +683,7 @@ public final class CommandBuilder<H extends Handlers> {
         }
 
         try {
-            return new CommandImpl<>( 
+            return new CommandImpl<>( id,
                 scope, callable, parent, name, aliases, displayName, 
                 description, parameters,
                 requiredGroup, skipGroupCheckOnInteraction, requireParentGroups,

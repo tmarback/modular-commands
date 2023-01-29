@@ -86,7 +86,7 @@ public class TestBot {
                 .withDisplayName( "Ping Command" )
                 .withDescription( "Responds with pong" )
                 .withHandlers( Handlers.text( c -> sendMessage( c, "Pong!" ) ) )
-                .build();
+                .build( "ping" );
 
     }
 
@@ -114,7 +114,7 @@ public class TestBot {
                     final String response = String.format( "You said: %s", message );
                     return c.reply( response ).thenReturn( Results.ok() );
                 } ) )
-                .build();
+                .build( "parrot" );
 
     }
 
@@ -147,7 +147,7 @@ public class TestBot {
                     }
 
                 } ) )
-                .build();
+                .build( "tweet" );
 
     }
 
@@ -176,7 +176,7 @@ public class TestBot {
                             .then( Results.okMono() );
 
                 } ) )
-                .build();
+                .build( "list" );
 
     }
 
@@ -194,7 +194,7 @@ public class TestBot {
                 .setSkipGroupCheckOnInteraction( false )
                 .requireGroup( Groups.ADMINS )
                 .withHandlers( Handlers.text( ctx -> Results.successMono( "You are an admin!" ) ) )
-                .build();
+                .build( "admin" );
 
     }
 
@@ -214,7 +214,7 @@ public class TestBot {
                         Permission.MANAGE_MESSAGES 
                 ) ) )
                 .withHandlers( Handlers.text( ctx -> Results.successMono( "You are a mod!" ) ) )
-                .build();
+                .build( "mod" );
 
     }
 
@@ -234,7 +234,7 @@ public class TestBot {
                 .withHandlers( Handlers.text( 
                         ctx -> Results.successMono( "You are the server owner!" )
                 ) )
-                .build();
+                .build( "server-owner" );
 
     }
 
@@ -254,7 +254,7 @@ public class TestBot {
                 .withHandlers( Handlers.text( 
                         ctx -> Results.successMono( "You are the bot owner!" ) 
                 ) )
-                .build();
+                .build( "bot-owner" );
 
     }
 
@@ -283,7 +283,7 @@ public class TestBot {
                     return Results.successMono( content );
 
                 } ) )
-                .build();
+                .build( "file-text" );
 
     }
 
@@ -345,7 +345,7 @@ public class TestBot {
                             .then( Results.okMono() );
 
                 } ) )
-                .build();
+                .build( "meters" );
         
     }
 
@@ -397,19 +397,21 @@ public class TestBot {
         final PrefixProvider prefix = new StaticPrefix( "t!" );
         final Registry registry = Registries.simpleRegistry();
 
-        registry.registerCommand( "ping", pingCommand() );
-        registry.registerCommand( "parrot", parrotCommand() );
-        registry.registerCommand( "tweet", tweetCommand() );
-        registry.registerCommand( "list", listCommand() );
+        registry.registerCommands( 
+                pingCommand(),
+                parrotCommand(),
+                tweetCommand(),
+                listCommand(),
 
-        registry.registerCommand( "admin", adminCommand() );
-        registry.registerCommand( "mod", modCommand() );
-        registry.registerCommand( "server-owner", serverOwnerCommand() );
-        registry.registerCommand( "bot-owner", botOwnerCommand() );
+                adminCommand(),
+                modCommand(),
+                serverOwnerCommand(),
+                botOwnerCommand(),
 
-        registry.registerCommand( "file-text", fileTextCommand() );
+                fileTextCommand(),
 
-        registry.registerCommand( "meters", metersCommand( meters ) );
+                metersCommand( meters )
+        );
 
         final AliasProvider aliases = AliasProvider.of(
                 Map.entry( Invocation.of( "pong" ), Invocation.of( "ping" ) )

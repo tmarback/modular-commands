@@ -65,6 +65,14 @@ public interface Command<H extends Handlers> {
     @Regex String DESCRIPTION_REGEX = "(?Us)^.{1,100}+$";
 
     /**
+     * The ID that uniquely identifies this command in the system.
+     *
+     * @return The command ID.
+     */
+    @Pure
+    String id();
+
+    /**
      * The scope that the command is defined in.
      *
      * @return The command scope.

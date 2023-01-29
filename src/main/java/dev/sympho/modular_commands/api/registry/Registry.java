@@ -1,11 +1,14 @@
 package dev.sympho.modular_commands.api.registry;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
+import org.slf4j.LoggerFactory;
 
+import dev.sympho.modular_commands.api.CommandGroup;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
@@ -45,7 +48,7 @@ public interface Registry {
     /**
      * Retrieves the command with the given ID that is registered to this registry.
      *
-     * @param id The ID of the command to retrieve.
+     * @param id The {@link Command#id() ID} of the command to retrieve.
      * @return The command that was registered with the given ID, or {@code null} if there
      *         is no such command in this registry.
      */
@@ -55,9 +58,6 @@ public interface Registry {
     /**
      * Registers a command into this registry.
      *
-     * @param id The ID to register the command under. This is different from the command name
-     *           and display name in that it is not used for command handling or any user-facing
-     *           functionality, but rather only as a way to internally identify the command.
      * @param command The command to register.
      * @return {@code true} if the command was registered successfully. {@code false} if there
      *         is already a command in this registry with the given ID, or if there is already
@@ -66,12 +66,73 @@ public interface Registry {
      *         no effect.
      * @throws IllegalArgumentException if the given command has an invalid configuration.
      */
-    boolean registerCommand( String id, Command<?> command ) throws IllegalArgumentException;
+    boolean registerCommand( Command<?> command ) throws IllegalArgumentException;
+
+    /**
+     * Registers the given commands into this registry.
+     *
+     * <p>For each of the commands that cannot be added (due to being invalid or using an ID that 
+     * is already used by another command), if any, an error will be logged but otherwise it will 
+     * be silently ignored. If handling of those cases is necessary, use 
+     * {@link #registerCommand(Command)} directly.
+     *
+     * @param commands The commands to add.
+     */
+    default void registerCommands( final Collection<? extends Command<?>> commands ) {
+
+        final var logger = LoggerFactory.getLogger( Registry.class );
+        commands.forEach( c -> {
+            try {
+                if ( !registerCommand( c ) ) {
+                    logger.error( 
+                            "Command {} could not be added due to using an existing ID", c.id() 
+                    );
+                }
+            } catch ( final IllegalArgumentException e ) {
+                logger.error( String.format( 
+                        "Command %s could not be added due to being invalid", c.id() 
+                ), e );
+            }
+        } );
+
+    }
+
+    /**
+     * Registers the given commands into this registry.
+     *
+     * <p>For each of the commands that cannot be added (due to being invalid or using an ID that 
+     * is already used by another command), if any, an error will be logged but otherwise it will 
+     * be silently ignored. If handling of those cases is necessary, use 
+     * {@link #registerCommand(Command)} directly.
+     *
+     * @param commands The commands to add.
+     */
+    default void registerCommands( final CommandGroup commands ) {
+
+        registerCommands( commands.commands() );
+
+    }
+
+    /**
+     * Registers the given commands into this registry.
+     *
+     * <p>For each of the commands that cannot be added (due to being invalid or using an ID that 
+     * is already used by another command), if any, an error will be logged but otherwise it will 
+     * be silently ignored. If handling of those cases is necessary, use 
+     * {@link #registerCommand(Command)} directly.
+     *
+     * @param commands The commands to add.
+     */
+    default void registerCommands( final Command<?>... commands ) {
+
+        registerCommands( Arrays.asList( commands ) );
+
+    }
 
     /**
      * Removes a command from this registry that was registered with the given ID.
      *
-     * @param id The ID of the command to remove.
+     * @param id The {@link Command#id() ID} of the command to remove.
      * @return The removed command, or {@code null} if there was no command in this registry
      *         registered with the given ID.
      */

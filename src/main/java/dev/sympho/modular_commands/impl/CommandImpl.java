@@ -19,6 +19,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * Default implementation of an interaction-based command.
  *
  * @param <H> The handler type.
+ * @param id The ID that uniquely identifies this command in the system.
  * @param scope The scope that the command is defined in.
  * @param callable If the command may be directly invoked by users.
  * @param parent The parent of the command.
@@ -45,6 +46,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @since 1.0
  */
 public record CommandImpl<H extends Handlers>(
+        String id,
         Scope scope,
         boolean callable,
         Invocation parent,
@@ -67,6 +69,7 @@ public record CommandImpl<H extends Handlers>(
     /**
      * Initializes a new instance.
      *
+     * @param id The ID that uniquely identifies this command in the system.
      * @param scope The scope that the command is defined in.
      * @param callable If the command may be directly invoked by users.
      * @param parent The parent of the command.
@@ -93,6 +96,7 @@ public record CommandImpl<H extends Handlers>(
     @SideEffectFree
     @SuppressWarnings( "checkstyle:parameternumber" )
     public CommandImpl(
+            final String id,
             final Scope scope,
             final boolean callable,
             final Invocation parent,
@@ -112,6 +116,7 @@ public record CommandImpl<H extends Handlers>(
             final H handlers
     ) {
 
+        this.id = CommandUtils.validateId( id );
         this.scope = Objects.requireNonNull( scope );
         this.callable = callable;
         this.parent = CommandUtils.validateParent( parent );

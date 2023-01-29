@@ -1,17 +1,13 @@
 package dev.sympho.modular_commands.api;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
-import org.checkerframework.checker.nullness.qual.KeyFor;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
-import dev.sympho.modular_commands.api.registry.Registry;
 
 /**
  * Encapsulates a group of commands.
@@ -19,47 +15,52 @@ import dev.sympho.modular_commands.api.registry.Registry;
  * @version 1.0
  * @since 1.0
  * @apiNote This interface is provided primarily to facilitate the use of dependency-injection
- *          (IoC) frameworks. For example, commands can be easily registered using Spring's
- *          autowiring capabilities by grouping them into {@link CommandGroup} beans then
- *          having Spring collect and provide them to the initializer of a {@link Registry}
- *          bean, which can then register them.
+ *          (IoC) frameworks when commands must be created in distinct groups (i.e. cannot be
+ *          created individually) and the framework does not have a native way of merging
+ *          collections. In those cases, this type can be used to encapsulate these groups,
+ *          which can then be combined using {@link #merge(Collection)}.
  */
 @FunctionalInterface
 public interface CommandGroup {
 
     /**
-     * Retrieves the commands contained in this group, keyed by their IDs.
+     * Retrieves the commands contained in this group.
      *
-     * @return The ID-keyed command group.
+     * @return The command group.
      * @implSpec As specified by the {@link Pure} annotation, this method should always return
-     *           the same map instance for a given {@link CommandGroup} instance. Additionally,
-     *           the map should be immutable. 
+     *           the same instance for a given {@link CommandGroup} instance. Additionally,
+     *           the collection should be immutable. 
      */
     @Pure
-    Map<String, Command<?>> commands();
+    Collection<Command<?>> commands();
 
     /**
-     * Retrives the IDs of the commands in this group.
-     *
-     * @return The command IDs.
-     */
-    @Pure
-    default Set<@KeyFor( "this.commands()" ) String> ids() {
-        return commands().keySet();
-    }
-
-    /**
-     * Creates a command group from the given mappings.
+     * Creates a command group from the given commands.
      * 
-     * <p>Changes made to the given map are not reflected in the returned instance.
+     * <p>Changes made to the given collection are not reflected in the returned instance.
      *
-     * @param commands The ID-command mappings to turn into a command group.
+     * @param commands The commands to turn into a command group.
      * @return The equivalent command group.
      */
     @SideEffectFree
-    static CommandGroup of( final Map<String, ? extends Command<?>> commands ) {
-        final Map<String, Command<?>> copy = Map.copyOf( commands );
+    static CommandGroup of( final Collection<? extends Command<?>> commands ) {
+
+        final Collection<Command<?>> copy = List.copyOf( commands );
         return () -> copy;
+
+    }
+
+    /**
+     * Creates a command group from the given commands.
+     *
+     * @param commands The commands to turn into a command group.
+     * @return The equivalent command group.
+     */
+    @SideEffectFree
+    static CommandGroup of( final Command<?>... commands ) {
+
+        return of( Arrays.asList( commands ) );
+
     }
 
     /**
@@ -67,18 +68,15 @@ public interface CommandGroup {
      *
      * @param groups The groups to merge.
      * @return A group that contains all the commands in the merged groups.
-     * @throws IllegalStateException if there are duplicate command IDs.
      */
     @SideEffectFree
-    @SuppressWarnings( "methodref.return" )
-    static CommandGroup merge( final Collection<CommandGroup> groups )
-            throws IllegalStateException {
+    //@SuppressWarnings( "methodref.return" )
+    static CommandGroup merge( final Collection<CommandGroup> groups ) {
 
         final var commands = groups.stream()
                 .map( CommandGroup::commands )
-                .map( Map::entrySet )
-                .flatMap( Set::stream )
-                .collect( Collectors.toMap( Entry::getKey, Entry::getValue ) );
+                .flatMap( Collection::stream )
+                .toList();
 
         return of( commands );
 
