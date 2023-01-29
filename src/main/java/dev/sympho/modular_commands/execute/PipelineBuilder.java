@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.commons.collections4.ListUtils;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
@@ -17,13 +18,11 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
-import dev.sympho.modular_commands.api.command.result.CommandContinue;
 import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.CommandSuccess;
-import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
@@ -139,8 +138,6 @@ public abstract class PipelineBuilder<E extends Event,
             return "failure";
         } else if ( result instanceof CommandError ) {
             return "error";
-        } else if ( result instanceof CommandContinue ) {
-            return "continue";
         } else {
             return "unknown";
         }
@@ -197,10 +194,6 @@ public abstract class PipelineBuilder<E extends Event,
                         }
                     } )
                     .flatMap( this::handleResult )
-                    .doOnNext( c -> {
-                        LOGGER.warn( "Handling of result of command {} not complete", 
-                                c.getInvocation() );
-                    } )
                     .doOnError( e -> LOGGER.error( 
                             "Exception thrown within processing pipeline", e 
                     ) )
@@ -551,28 +544,6 @@ public abstract class PipelineBuilder<E extends Event,
     }
 
     /**
-     * Verifies that the invocation of a command was completely handled. That is,
-     * that the final result was not {@link CommandContinue continue}.
-     *
-     * @param result The final invocation result.
-     * @param chain The command chain.
-     * @param context The invocation context.
-     * @return {@code true} if execution was fully handled.
-     * @throws IncompleteHandlingException if the execution was not fully handled.
-     */
-    private boolean verifyHandled( final CommandResult result, 
-            final List<? extends Command<? extends H>> chain, final CTX context ) 
-            throws IncompleteHandlingException {
-
-        if ( result instanceof CommandContinue ) {
-            throw new IncompleteHandlingException( chain, context.getInvocation() );
-        } else {
-            return true;
-        }
-
-    }
-
-    /**
      * Invokes a command chain.
      *
      * @param chain The command chain.
@@ -589,20 +560,13 @@ public abstract class PipelineBuilder<E extends Event,
                 chain, this::getInvocationHandler );
         LOGGER.trace( "Handlers for {}: {}", invocation, handlers );
 
-        var state = Results.contMono();
-        for ( final var handler : handlers ) {
-            state = state.flatMap( r -> {
-                if ( r instanceof CommandContinue ) {
-                    LOGGER.trace( "Invoking command handler for {}", invocation );
-                    return handler.handleWrapped( context );
-                } else {
-                    LOGGER.trace( "Skipping command handler for {}", invocation );
-                    return Mono.just( r );
-                }
-            } );
-        }
-
-        return state.filter( r -> verifyHandled( r, chain, context ) )
+        return Flux.fromIterable( handlers )
+                .concatMap( h -> h.handleWrapped( context ) )
+                .take( 1 ) // Ensures it stops at the first non-continue result
+                .switchIfEmpty( Mono.error( 
+                        () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
+                ) )
+                .single()
                 .name( METRIC_NAME_INVOKE )
                 .transform( context::addTags )
                 .tap( Micrometer.observation( observations ) );
@@ -647,24 +611,32 @@ public abstract class PipelineBuilder<E extends Event,
      * Handles the result of an invocation.
      *
      * @param payload The invocation result.
-     * @return A Mono that completes without issuing any value if the result was fully
-     *         handled. If the result handling was not complete for any reason, it
-     *         issues the invocation context.
+     * @return A Mono that completes once handing is complete.
      */
-    private Mono<CTX> handleResult( 
+    private Mono<Void> handleResult( 
             final Tuple3<Command<? extends H>, CTX, CommandResult> payload ) {
 
         final Command<? extends H> command = payload.getT1();
         final CTX context = payload.getT2();
         final CommandResult result = payload.getT3();
 
-        var state = Mono.just( context );
-        for ( final ResultHandler<? super CTX> handler : getResultHandlers( command.handlers() ) ) {
-            state = state.filterWhen( c -> handler.handle( c, result ) );
-        }
-        state = state.filterWhen( c -> BaseHandler.get().handle( c, result ) );
+        final var handlers = ListUtils.union( 
+                getResultHandlers( command.handlers() ),
+                List.of( BaseHandler.get() ) 
+        );
 
-        return state.name( METRIC_NAME_RESULT )
+        return Flux.fromIterable( handlers )
+                .concatMap( h -> h.handle( context, result ) )
+                .filter( r -> r )
+                .take( 1 ) // Stop once the first one signals complete
+                .count()
+                .filter( c -> c == 0 ) // No handler signaled complete
+                .doOnNext( c -> {
+                    LOGGER.warn( "Handling of result of command {} not complete", 
+                            context.getInvocation() );
+                } )
+                .then()
+                .name( METRIC_NAME_RESULT )
                 .transform( context::addTags )
                 .tag( METRIC_TAG_RESULT, tagResult( result ) )
                 .tap( Micrometer.observation( observations ) );

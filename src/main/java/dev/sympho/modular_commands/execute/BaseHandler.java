@@ -67,7 +67,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If not fully handled.
+     * @return If fully handled.
      */
     private static Mono<Boolean> defaultHandler( final CommandContext context, 
             final CommandResult result ) {
@@ -79,7 +79,7 @@ public final class BaseHandler {
         } else if ( result instanceof CommandError error ) {
             return handleError( context, error );
         } else {
-            return Mono.just( true ); // Not recognized
+            return Mono.empty(); // Not recognized
         }
 
     }
@@ -89,7 +89,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If not fully handled.
+     * @return If fully handled.
      */
     private static Mono<Boolean> handleSuccess( final CommandContext context, 
             final CommandSuccess result ) {
@@ -103,9 +103,9 @@ public final class BaseHandler {
                     .description( message )
                     .build();
 
-            return context.reply( embed ).thenReturn( false );
+            return context.reply( embed ).thenReturn( true );
         } else {
-            return Mono.just( false );
+            return Mono.just( true );
         }
 
     }
@@ -115,7 +115,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If not fully handled.
+     * @return If fully handled.
      */
     private static Mono<Boolean> handleFailure( final CommandContext context, 
             final CommandFailure result ) {
@@ -132,7 +132,7 @@ public final class BaseHandler {
         } else if ( result instanceof CommandFailureMessage res ) {
             message = res.message();
         } else {
-            return Mono.just( false );
+            return Mono.just( true );
         }
 
         final var embed = EmbedCreateSpec.builder()
@@ -140,7 +140,7 @@ public final class BaseHandler {
                 .color( COLOR_FAILURE )
                 .description( message )
                 .build();
-        return context.reply( embed ).thenReturn( false );
+        return context.reply( embed ).thenReturn( true );
 
     }
 
@@ -149,7 +149,7 @@ public final class BaseHandler {
      *
      * @param context The execution context.
      * @param result The execution result.
-     * @return If not fully handled.
+     * @return If fully handled.
      */
     private static Mono<Boolean> handleError( final CommandContext context, 
             final CommandError result ) {
@@ -161,7 +161,7 @@ public final class BaseHandler {
                 .description( message )
                 .build();
 
-        return context.reply( embed ).thenReturn( false );
+        return context.reply( embed ).thenReturn( true );
 
     }
     

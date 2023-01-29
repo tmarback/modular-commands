@@ -29,7 +29,13 @@ public interface InvocationHandler<C extends @NonNull CommandContext>
      * @param context The invocation context.
      * @return The invocation result. It may result in an error (exception) if an
      *         error occured during handling (same as if this handler threw the
-     *         exception directly). This includes {@link ResultException}.
+     *         exception directly). This includes {@link ResultException}. 
+     *         
+     *         <p>The returned Mono may also finish empty, in which case handling 
+     *         continues with the next handler in the execution chain. Care should
+     *         be taken that this only occurs if there <i>is</i> a next handler;
+     *         an empty result from the last handler in the chain will cause an
+     *         error.
      * @throws ResultException if execution finishes early. This is equivalent to returning 
      *                         the result, but should only be used when returning directly 
      *                         is impractical.
@@ -59,11 +65,10 @@ public interface InvocationHandler<C extends @NonNull CommandContext>
      * Handles an invocation of the command using {@link #handle(CommandContext)}, automatically
      * converting any exception thrown in that method or issued in the resulting mono to an
      * {@link CommandErrorException exception result} (with the exception of a 
-     * {@link ResultException}, which is unpacked into the contained result), and guaranteeing
-     * that the mono is not empty.
+     * {@link ResultException}, which is unpacked into the contained result).
      *
      * @param context The invocation context.
-     * @return The invocation result. It is guaranteed to not be an error nor empty.
+     * @return The invocation result. The returned Mono is guaranteed to not contain an error.
      * @implSpec Do not override this.
      */
     @SuppressWarnings( "checkstyle:illegalcatch" )
@@ -72,8 +77,7 @@ public interface InvocationHandler<C extends @NonNull CommandContext>
         try {
             return handle( context )
                     .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
-                    .onErrorResume( e -> Results.exceptionMono( e ) )
-                    .defaultIfEmpty( Results.error( "No result issued!" ) );
+                    .onErrorResume( e -> Results.exceptionMono( e ) );
         } catch ( final ResultException e ) {
             return Mono.just( e.getResult() );
         } catch ( final Exception e ) {

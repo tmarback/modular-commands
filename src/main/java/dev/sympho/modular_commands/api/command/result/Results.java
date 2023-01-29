@@ -11,13 +11,6 @@ import reactor.core.publisher.Mono;
 public final class Results {
 
     /** 
-     * Result indicating execution should continue along the chain.
-     *
-     * @see #cont()
-     */
-    public static final CommandContinue CONTINUE = new ResultContinue();
-
-    /** 
      * Result indicating the command executed successfully with no further context. 
      *
      * @see #ok()
@@ -33,41 +26,6 @@ public final class Results {
 
     /** Do not instantiate. */
     private Results() {}
-
-    /**
-     * Generates a result indicating execution should continue along the chain.
-     *
-     * @return The generated result.
-     * @apiNote Would have been named {@code continue()} but that's a reserved
-     *          keyword.
-     */
-    public static CommandContinue cont() {
-
-        return CONTINUE;
-
-    }
-
-    /**
-     * Alias for {@link #cont()} that casts to a 
-     * plain Result to avoid Generics issues.
-     *
-     * @return The result.
-     */
-    public static CommandResult contR() {
-        return cont();
-    }
-
-    /**
-     * Generates a result indicating execution should continue along the chain.
-     *
-     * @return A Mono that issues the generated result.
-     * @see #cont()
-     */
-    public static Mono<CommandResult> contMono() {
-
-        return Mono.just( cont() );
-
-    }
 
     /**
      * Generates a result indicating the command executed successfully with no further context.
@@ -285,14 +243,6 @@ public final class Results {
     }
 
     /* Implementations for the returns */
-
-    /** 
-     * Implementation for {@link Results#cont()}. 
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    record ResultContinue() implements CommandContinue {}
 
     /** 
      * Implementation for {@link Results#ok()}. 

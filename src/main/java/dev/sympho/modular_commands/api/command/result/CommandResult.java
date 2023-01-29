@@ -6,5 +6,4 @@ package dev.sympho.modular_commands.api.command.result;
  * @version 1.0
  * @since 1.0
  */
-public sealed interface CommandResult 
-        permits CommandContinue, CommandSuccess, CommandFailure, CommandError {}
+public sealed interface CommandResult permits CommandSuccess, CommandFailure, CommandError {}

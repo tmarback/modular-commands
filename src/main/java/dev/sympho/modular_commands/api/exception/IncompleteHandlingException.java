@@ -8,12 +8,12 @@ import org.checkerframework.dataflow.qual.Pure;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.result.CommandContinue;
 import dev.sympho.modular_commands.execute.InvocationUtils;
 
 /**
- * Exception type that is triggered when the invocation handling of a command is completed
- * without a non-{@link CommandContinue continue} result.
+ * Exception type that indicates that the invocation handling of a command was completed
+ * but did not issue any result (i.e. all the invocation handlers in the chain resulted
+ * into an empty Mono).
  *
  * @version 1.0
  * @since 1.0
