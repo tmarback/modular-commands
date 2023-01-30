@@ -16,6 +16,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
@@ -28,7 +29,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
-import dev.sympho.modular_commands.execute.MetricTag;
+import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.RawParser;
 import discord4j.common.util.Snowflake;
@@ -66,19 +67,19 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     /**
      * Initializes a new context.
      *
-     * @param event      The event that triggered the invocation.
+     * @param event The event that triggered the invocation.
      * @param invocation The invocation that triggered execution.
-     * @param parameters The command parameters.
-     * @param args       The raw arguments received.
-     * @param access     The validator to use for access checks.
+     * @param command The invoked command.
+     * @param args The raw arguments received.
+     * @param access The validator to use for access checks.
      * @throws ResultException if there is a mismatch between parameters and
      *                         arguments.
      */
-    public MessageContextImpl( final MessageCreateEvent event, final Invocation invocation,
-            final List<Parameter<?>> parameters, final Iterator args,
-            final AccessValidator access ) throws ResultException {
+    public MessageContextImpl( final MessageCreateEvent event, 
+            final Invocation invocation, final Command<?> command, 
+            final Iterator args, final AccessValidator access ) throws ResultException {
 
-        super( invocation, parameters, access );
+        super( invocation, command, access );
 
         this.event = event;
         this.arguments = args;
@@ -164,9 +165,9 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         return Mono.defer( () -> {
 
-            final var inputParams = parameters.stream()
+            final var inputParams = command.parameters().stream()
                     .filter( p -> p.parser() instanceof InputParser<?, ?> ).toList();
-            final var attachmentParams = parameters.stream()
+            final var attachmentParams = command.parameters().stream()
                     .filter( p -> p.parser() instanceof AttachmentParser<?> ).toList();
 
             final var attachments = event.getMessage().getAttachments();
@@ -185,8 +186,8 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    public MetricTag.Type tagType() {
-        return MetricTag.Type.MESSAGE;
+    public Metrics.Tag.Type tagType() {
+        return Metrics.Tag.Type.MESSAGE;
     }
 
     @Override

@@ -199,8 +199,7 @@ public interface Command<H extends Handlers> {
     @MatchesRegex( DESCRIPTION_REGEX ) String description();
 
     /**
-     * The command inline parameters, in the order that they should be provided
-     * by the user.
+     * The command parameters, in the order that they should be provided by the user.
      * 
      * <p>All parameters that are marked as {@link Parameter#required() required}
      * <i>must</i> come <i>before</i> all parameters that aren't (optional parameters).

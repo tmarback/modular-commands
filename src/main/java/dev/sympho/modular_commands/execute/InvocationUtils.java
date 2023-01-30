@@ -1,11 +1,9 @@
 package dev.sympho.modular_commands.execute;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -18,9 +16,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
-import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
 import dev.sympho.modular_commands.api.permission.Group;
@@ -151,30 +147,27 @@ public final class InvocationUtils {
     }
 
     /**
-     * Determines the sequence of invocation handlers to execute.
+     * Determines the sequence that command handlers should be invoked in for
+     * the given chain.
      *
-     * @param <H> The handler type.
-     * @param <C> The context type.
+     * @param <C> The command type.
      * @param chain The invocation chain.
-     * @param getter The getter to use to retrieve handlers.
-     * @return The handlers to execute.
+     * @return The commands, in the order that their handlers must be executed.
+     *         Some of the commands in the chain may be missing if they do not
+     *         need to be executed.
      * @throws InvalidChainException if the command chain is incompatible.
      * @see Command#invokeParent()
      */
     @SideEffectFree
-    public static <H extends Handlers, C extends CommandContext> 
-            List<InvocationHandler<? super C>> accumulateHandlers(
-                final List<? extends Command<? extends H>> chain, 
-                final Function<H, InvocationHandler<? super C>> getter 
-    ) throws InvalidChainException {
+    public static <C extends @NonNull Command<?>> List<C> handlingOrder( final List<C> chain ) {
 
-        final List<InvocationHandler<? super C>> handlers = new LinkedList<>();
+        final List<C> commands = new LinkedList<>();
         final var it = chain.listIterator( chain.size() );
 
-        Command<? extends H> source = it.previous();
-        handlers.add( getter.apply( source.handlers() ) );
+        C source = it.previous();
+        commands.add( source );
 
-        final Command<? extends H> target = source;
+        final C target = source;
         final Set<String> satisfiedParameters = source.parameters().stream()
                 .filter( InvocationUtils::satisfied )
                 .map( Parameter::name )
@@ -208,11 +201,11 @@ public final class InvocationUtils {
 
             }
 
-            handlers.add( 0, getter.apply( source.handlers() ) );
+            commands.add( 0, source );
 
         }
 
-        return new ArrayList<>( handlers );
+        return List.copyOf( commands );
 
     }
 

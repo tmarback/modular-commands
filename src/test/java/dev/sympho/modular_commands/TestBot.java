@@ -366,6 +366,7 @@ public class TestBot {
             @Override
             public void onStart( final Observation.Context context ) {
                 LOGGER.trace( "OBSERVATION START: {}", context.getName() );
+                LOGGER.trace( "Tags: {}", context.getAllKeyValues() );
             }
 
             @Override

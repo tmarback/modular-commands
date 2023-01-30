@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.apache.commons.collections4.ListUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
@@ -73,22 +74,26 @@ public abstract class PipelineBuilder<E extends Event,
     private static final Logger LOGGER = LoggerFactory.getLogger( PipelineBuilder.class );
 
     /** The metric prefix for the overall pipeline. */
-    private static final String METRIC_NAME_PIPELINE = "command.pipeline";
+    private static final String METRIC_NAME_PIPELINE = Metrics.name( "pipeline" );
     /** The metric prefix for event handling. */
-    private static final String METRIC_NAME_EVENT = "command.event";
+    private static final String METRIC_NAME_EVENT = Metrics.name( "event" );
     /** The metric prefix for event parsing. */
-    private static final String METRIC_NAME_PARSE = "command.parse";
+    private static final String METRIC_NAME_PARSE = Metrics.name( "parse" );
     /** The metric prefix for command validation. */
-    private static final String METRIC_NAME_VALIDATE = "command.validate";
+    private static final String METRIC_NAME_VALIDATE = Metrics.name( "validate" );
     /** The metric prefix for command invocation. */
-    private static final String METRIC_NAME_INVOKE = "command.invoke";
+    private static final String METRIC_NAME_INVOKE = Metrics.name( "invoke" );
+    /** The metric prefix for handler invocation. */
+    private static final String METRIC_NAME_HANDLE = Metrics.name( "handle" );
     /** The metric prefix for command execution. */
-    private static final String METRIC_NAME_EXECUTE = "command.execute";
+    private static final String METRIC_NAME_EXECUTE = Metrics.name( "execute" );
     /** The metric name for command result handling. */
-    private static final String METRIC_NAME_RESULT = "command.result";
+    private static final String METRIC_NAME_RESULT = Metrics.name( "result" );
 
     /** The tag name for the command result. */
-    private static final String METRIC_TAG_RESULT = "command.outcome";
+    private static final String METRIC_TAG_RESULT = Metrics.name( "outcome" );
+    /** The tag name for the handler being invoked. */
+    private static final String METRIC_TAG_HANDLER = Metrics.name( "handler" );
 
     /** The maximum number of times to retry on error before giving up. */
     private static final int MAX_RETRIES = 100;
@@ -221,12 +226,12 @@ public abstract class PipelineBuilder<E extends Event,
     /* Subclass methods */
 
     /**
-     * Determines the {@link MetricTag.Type type tag} for this pipeline.
+     * Determines the {@link Metrics.Tag.Type type tag} for this pipeline.
      *
      * @return The tag.
      */
     @Pure
-    protected abstract MetricTag.Type tagType();
+    protected abstract Metrics.Tag.Type tagType();
 
     /**
      * Creates a function that adds the common instrumentation tags for the given event to Monos.
@@ -240,9 +245,9 @@ public abstract class PipelineBuilder<E extends Event,
 
         return m -> m
                 .transform( tagType()::apply )
-                .transform( MetricTag.Guild.from( getGuildId( event ) )::apply )
-                .transform( MetricTag.Channel.from( getChannelId( event ) )::apply )
-                .transform( MetricTag.Caller.from( getCaller( event ).getId() )::apply );
+                .transform( Metrics.Tag.Guild.from( getGuildId( event ) )::apply )
+                .transform( Metrics.Tag.Channel.from( getChannelId( event ) )::apply )
+                .transform( Metrics.Tag.Caller.from( getCaller( event ).getId() )::apply );
 
     }
 
@@ -493,8 +498,6 @@ public abstract class PipelineBuilder<E extends Event,
                     final E e = ctx.getT1();
                     final I args = ctx.getT2();
 
-                    LOGGER.trace( "Parsed args {}", args );
-
                     final var parsed = InvocationUtils.parseInvocation( 
                             registry, args, commandType() );
 
@@ -554,19 +557,32 @@ public abstract class PipelineBuilder<E extends Event,
      * @param context The invocation context.
      * @return A Mono that issues the final result once invocation is complete.
      */
-    private Mono<CommandResult> invokeCommand( final List<? extends Command<? extends H>> chain,
+    private Mono<CommandResult> invokeCommand( 
+            final List<? extends @NonNull Command<? extends @NonNull H>> chain,
             final CTX context ) {
 
         final var invocation = InvocationUtils.getInvokedCommand( chain ).invocation();
         LOGGER.debug( "Invoking command {}", invocation );
 
-        final var handlers = InvocationUtils.accumulateHandlers(
-                chain, this::getInvocationHandler );
-        LOGGER.trace( "Handlers for {}: {}", invocation, handlers );
+        @SuppressWarnings( "type.argument" ) // @UnknownKeyFor bound weirdness
+        final var commands = InvocationUtils.handlingOrder( chain );
+        if ( LOGGER.isTraceEnabled() ) {
+            LOGGER.trace( "Execution order for {}: {}", invocation, commands.stream()
+                    .map( Command::id )
+                    .toList() 
+            );
+        }
 
-        return Flux.fromIterable( handlers )
-                .concatMap( h -> h.handleWrapped( context ) )
-                .take( 1 ) // Ensures it stops at the first non-continue result
+        return Flux.fromIterable( commands )
+                .concatMap( c -> getInvocationHandler( c.handlers() )
+                        .handleWrapped( context )
+                        .checkpoint( c.id() )
+                        .name( METRIC_NAME_HANDLE )
+                        .transform( context::addTags )
+                        .tag( METRIC_TAG_HANDLER, c.id() )
+                        .tap( Micrometer.observation( observations ) )
+                )
+                .take( 1 ) // Ensures it stops at the first non-empty result
                 .switchIfEmpty( Mono.error( 
                         () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
                 ) )
@@ -584,6 +600,7 @@ public abstract class PipelineBuilder<E extends Event,
      * @param <C> The command type.
      * @param payload The invocation payload.
      * @return A Mono that issues the invocation result once execution has completed.
+     * @throws IllegalStateException if some mismatch is detected.
      */
     private <C extends Command<? extends H>> Mono<Tuple3<C, CTX, CommandResult>> executeCommand( 
             final Tuple4<E, List<C>, Invocation, I> payload ) {
@@ -595,6 +612,18 @@ public abstract class PipelineBuilder<E extends Event,
 
         final var command = InvocationUtils.getInvokedCommand( chain );
         final CTX context = makeContext( event, command, invocation, args );
+
+        // Sanity check that the normalized invocation (e.g. the invocation after resolving 
+        // aliases) is the same as the canonical invocation
+        final var normalizedInvocation = chain.stream().map( Command::name ).toList();
+        if ( !normalizedInvocation.equals( command.invocation().chain() ) ) {
+            throw new IllegalStateException( String.format(
+                    "Normalized invocation is %s, but command %s has invocation %s",
+                    Invocation.of( normalizedInvocation ),
+                    command.id(),
+                    command.invocation()
+            ) );
+        }
 
         return context.initialize( observations )
                 .then( validateCommand( event, context, chain ) )

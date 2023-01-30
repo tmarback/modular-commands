@@ -4,9 +4,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.ListUtils;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 /**
  * An invocation of a command. That is, a sequence of keys (names) that (possibly) map
@@ -68,9 +71,22 @@ public record Invocation( List<String> chain ) implements Iterable<String> {
      * @return The constructed invocation.
      */
     @Pure
+    public static Invocation of( final List<String> commands ) {
+
+        return new Invocation( commands );
+
+    }
+
+    /**
+     * Constructs an invocation from the given sequence of command names.
+     *
+     * @param commands The command names.
+     * @return The constructed invocation.
+     */
+    @Pure
     public static Invocation of( final String... commands ) {
 
-        return new Invocation( Arrays.asList( commands ) );
+        return of( Arrays.asList( commands ) );
 
     }
 
@@ -78,6 +94,25 @@ public record Invocation( List<String> chain ) implements Iterable<String> {
     public Iterator<String> iterator() {
 
         return chain.iterator();
+
+    }
+
+    @Override
+    public Spliterator<String> spliterator() {
+        
+        return chain.spliterator();
+
+    }
+
+    /**
+     * Obtains a stream over the invocation elements.
+     *
+     * @return The stream.
+     */
+    @SideEffectFree
+    public Stream<String> stream() {
+        
+        return chain.stream();
 
     }
     

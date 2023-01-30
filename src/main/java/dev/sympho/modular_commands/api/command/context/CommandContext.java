@@ -57,13 +57,32 @@ public interface CommandContext extends AccessValidator {
     /**
      * Retrieves the invocation that triggered the command.
      * 
-     * <p>This may be different from the command's declared {@link Command#invocation()}
-     * if it was invoked using an alias (when supported).
+     * <p>Unlike {@link #getCommandInvocation()}, the returned value may be 
+     * different from the command's declared {@link Command#invocation()} if it 
+     * was invoked using an alias (when supported).
+     * 
+     * <p>If the command has no aliases, or was invoked through a method that does not 
+     * support aliases, the return of this method is the same as the return of 
+     * {@link #getCommandInvocation()}.
      *
      * @return The trigger invocation.
      */
     @Pure
     Invocation getInvocation();
+
+    /**
+     * Retrieves the canonical invocation of the triggered command, that is, the value
+     * of {@link Command#invocation()}. This is equivalent to the 
+     * {@link #getInvocation() triggering invocation} after resolving any aliases.
+     * 
+     * <p>If the command has no aliases, or was invoked through a method that does not 
+     * support aliases, the return of this method is the same as the return of 
+     * {@link #getInvocation()}.
+     *
+     * @return The normalized trigger invocation.
+     */
+    @Pure
+    Invocation getCommandInvocation();
 
     /**
      * Retrieves the user that called the command.

@@ -96,8 +96,8 @@ public class MessageCommandExecutor extends CommandExecutor {
         }
 
         @Override
-        protected MetricTag.Type tagType() {
-            return MetricTag.Type.MESSAGE;
+        protected Metrics.Tag.Type tagType() {
+            return Metrics.Tag.Type.MESSAGE;
         }
 
         @Override
@@ -154,7 +154,7 @@ public class MessageCommandExecutor extends CommandExecutor {
                 final Iterator args ) {
 
             final var access = accessValidator( event );
-            return new MessageContextImpl( event, invocation, command.parameters(), args, access );
+            return new MessageContextImpl( event, invocation, command, args, access );
     
         }
     

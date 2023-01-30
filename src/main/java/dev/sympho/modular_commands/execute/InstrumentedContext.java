@@ -17,12 +17,20 @@ import reactor.core.publisher.Mono;
 public interface InstrumentedContext extends CommandContext {
 
     /**
-     * Determines the value for the {@link MetricTag.Type type tag}.
+     * Retrieves the ID of the invoked command.
+     *
+     * @return The command ID.
+     */
+    @Pure
+    String getCommandId();
+
+    /**
+     * Determines the value for the {@link Metrics.Tag.Type type tag}.
      *
      * @return The tag.
      */
     @Pure
-    MetricTag.Type tagType();
+    Metrics.Tag.Type tagType();
 
     /**
      * Adds the common instrumentation tags for this context to a Mono.
@@ -36,10 +44,13 @@ public interface InstrumentedContext extends CommandContext {
 
         return mono
                 .transform( tagType()::apply )
-                .transform( MetricTag.Guild.from( getGuildId() )::apply )
-                .transform( MetricTag.Channel.from( getChannelId() )::apply )
-                .transform( MetricTag.Caller.from( getCaller().getId() )::apply )
-                .transform( MetricTag.Command.from( getInvocation() )::apply );
+                .transform( Metrics.Tag.Guild.from( getGuildId() )::apply )
+                .transform( Metrics.Tag.Channel.from( getChannelId() )::apply )
+                .transform( Metrics.Tag.Caller.from( getCaller().getId() )::apply )
+                .transform( Metrics.Tag.CommandInvocation.called( getInvocation() )::apply )
+                .transform( Metrics.Tag.CommandInvocation.canonical( 
+                        getCommandInvocation() )::apply )
+                .transform( Metrics.Tag.CommandId.from( getCommandId() )::apply );
 
     }
     

@@ -2,7 +2,6 @@ package dev.sympho.modular_commands.impl.context;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,6 +16,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -40,7 +40,7 @@ import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.execute.InstrumentedContext;
 import dev.sympho.modular_commands.execute.LazyContext;
-import dev.sympho.modular_commands.execute.MetricTag;
+import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.ReactiveLatch;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.common.util.Snowflake;
@@ -65,30 +65,36 @@ import reactor.util.function.Tuple2;
  * @version 1.0
  * @since 1.0
  */
+@SuppressWarnings( "MultipleStringLiterals" )
 abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, InstrumentedContext {
+
+    /** The prefix for metrics in this class. */
+    public static final String METRIC_NAME_PREFIX = "context";
+    /** The prefix for argument parsing metrics. */
+    public static final String METRIC_NAME_PREFIX_ARGUMENT = "argument";
 
     /** The logger. */
     private static final Logger LOGGER = LoggerFactory.getLogger( ContextImpl.class );
 
     /** The metric prefix for initialization. */
-    private static final String METRIC_NAME_INITIALIZE = "command.context.init";
+    private static final String METRIC_NAME_INITIALIZE = Metrics.name( METRIC_NAME_PREFIX, "init" );
     /** The metric prefix for loading. */
-    private static final String METRIC_NAME_LOAD = "command.context.load";
+    private static final String METRIC_NAME_LOAD = Metrics.name( METRIC_NAME_PREFIX, "load" );
     /** The metric prefix for argument initialization. */
-    private static final String METRIC_NAME_ARGUMENT_INIT = 
-            "command.context.argument.init";
+    private static final String METRIC_NAME_ARGUMENT_INIT = Metrics.name( METRIC_NAME_PREFIX, 
+            METRIC_NAME_PREFIX_ARGUMENT, "init" );
     /** The metric prefix for parsing all arguments. */
-    private static final String METRIC_NAME_ARGUMENT_PARSE_ALL = 
-            "command.context.argument.parse.all";
+    private static final String METRIC_NAME_ARGUMENT_PARSE_ALL = Metrics.name( METRIC_NAME_PREFIX, 
+            METRIC_NAME_PREFIX_ARGUMENT, "all" );
     /** The metric prefix for parsing one argument. */
-    private static final String METRIC_NAME_ARGUMENT_PARSE_ONE = 
-            "command.context.argument.parse.one";
+    private static final String METRIC_NAME_ARGUMENT_PARSE_ONE = Metrics.name( METRIC_NAME_PREFIX, 
+            METRIC_NAME_PREFIX_ARGUMENT, "one" );
 
     /** The tag name for the parameter name. */
-    private static final String METRIC_TAG_PARAMETER = "command.parameter";
+    private static final String METRIC_TAG_PARAMETER = Metrics.name( "parameter" );
 
-    /** The command parameters in the order that they should be received. */
-    protected final List<Parameter<?>> parameters;
+    /** The invoked command. */
+    protected final Command<?> command;
 
     /** The invocation that triggered this context. */
     private final Invocation invocation;
@@ -118,13 +124,13 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      * Initializes a new context.
      *
      * @param invocation The invocation that triggered execution.
-     * @param parameters The command parameters.
+     * @param command The invoked command.
      * @param access The validator to use for access checks.
      */
-    protected ContextImpl( final Invocation invocation, final List<Parameter<?>> parameters,
+    protected ContextImpl( final Invocation invocation, final Command<?> command, 
             final AccessValidator access ) {
 
-        this.parameters = List.copyOf( parameters );
+        this.command = command;
 
         this.invocation = invocation;
         this.access = access;
@@ -144,9 +150,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
         return mono
                 .transform( tagType()::apply )
-                .transform( MetricTag.Guild.from( getGuildId() )::apply )
-                .transform( MetricTag.Channel.from( getChannelId() )::apply )
-                .transform( MetricTag.Caller.from( getCaller().getId() )::apply );
+                .transform( Metrics.Tag.Guild.from( getGuildId() )::apply )
+                .transform( Metrics.Tag.Channel.from( getChannelId() )::apply )
+                .transform( Metrics.Tag.Caller.from( getCaller().getId() )::apply );
 
     }
 
@@ -484,9 +490,23 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /* Implementations */
 
     @Override
+    public String getCommandId() {
+
+        return command.id();
+
+    }
+
+    @Override
     public Invocation getInvocation() {
 
         return invocation;
+
+    }
+
+    @Override
+    public Invocation getCommandInvocation() {
+
+        return command.invocation();
 
     }
 
@@ -646,7 +666,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
                 .tap( Micrometer.observation( observations ) )
         );
 
-        final var parse = Mono.defer( () -> Flux.fromIterable( parameters )
+        final var parse = Mono.defer( () -> Flux.fromIterable( command.parameters() )
                 .flatMap( p -> processArgument( p )
                         .checkpoint( METRIC_NAME_ARGUMENT_PARSE_ONE )
                         .name( METRIC_NAME_ARGUMENT_PARSE_ONE )

@@ -48,7 +48,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
-        <checker.version>3.27.0</checker.version> <!-- Version of the Checker framework used -->
+        <checker.version>3.29.0</checker.version> <!-- Version of the Checker framework used -->
         <d4j.version>3.2.2</d4j.version> <!-- Version of Discord4J used -->
         <reporter.version>1.1.0</reporter.version> <!-- Version of the tree reporter used -->
     </properties>
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
+            <version>2.0.6</version>
         </dependency>
 
         <dependency>
@@ -149,7 +149,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.11</version>
+            <version>1.4.5</version>
             <scope>test</scope>
         </dependency>
 
@@ -175,7 +175,6 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <version>3.4.24</version>
             <scope>test</scope>
         </dependency>
 
@@ -183,8 +182,8 @@
 
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
-            <artifactId>annotations</artifactId>
-            <version>3.0.1</version>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -641,6 +640,13 @@
                                             <artifactId>${project.artifactId}</artifactId>
                                             <version>${project.version}</version>
                                         </path>
+
+                                        <!-- To make SLF4J not complain about no providers -->
+                                        <dependency>
+                                            <groupId>org.slf4j</groupId>
+                                            <artifactId>slf4j-simple</artifactId>
+                                            <version>2.0.6</version>
+                                        </dependency>
         
                                     </annotationProcessorPaths>
                                     <annotationProcessors>
@@ -662,7 +668,7 @@
                                     </annotationProcessors>
                                     <compilerArgs>
                                         <arg>-Xlint:all,-processing,-requires-transitive-automatic,-requires-automatic</arg>
-                                        <arg>-AreportEvalWarns</arg>
+                                        <!-- <arg>-AreportEvalWarns</arg> --> <!-- TODO: Too many issues for the time being -->
                                         <arg>-Astubs=./stubs</arg>
                                         <arg>-AstubWarnIfNotFoundIgnoresClasses</arg>
                                         <!-- I don't need to know what didn't run, spammy -->

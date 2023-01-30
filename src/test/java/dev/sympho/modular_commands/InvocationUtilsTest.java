@@ -59,7 +59,7 @@ public class InvocationUtilsTest {
                 .requireGroup( group )
                 .setRequireParentGroups( parent )
                 .withHandlers( Handlers.message( ctx -> Results.okMono() ) )
-                .build();
+                .build( "test" );
 
     }
 
