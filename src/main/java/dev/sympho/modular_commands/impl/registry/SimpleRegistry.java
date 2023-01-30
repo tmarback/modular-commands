@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -29,6 +31,9 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @since 1.0
  */
 public final class SimpleRegistry implements Registry {
+
+    /** The logger. */
+    private static final Logger LOGGER = LoggerFactory.getLogger( SimpleRegistry.class );
 
     /** The commands registered to this registry. */
     private final Map<String, Command<?>> commands = new ConcurrentHashMap<>();
@@ -80,6 +85,9 @@ public final class SimpleRegistry implements Registry {
         CommandUtils.validateCommand( command );
 
         final String id = command.id();
+
+        LOGGER.info( "Registering command {}", id );
+
         final Invocation invocation = command.invocation();
         final Set<Invocation> aliases = command.handlers() instanceof MessageHandlers
                 ? command.aliasInvocations() : Collections.emptySet();
