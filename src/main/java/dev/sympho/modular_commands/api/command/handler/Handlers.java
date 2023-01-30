@@ -9,6 +9,7 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.context.InteractionCommandContext;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.context.SlashCommandContext;
+import reactor.core.publisher.Mono;
 
 /**
  * A set of handlers for executing an invocation of a command.
@@ -25,6 +26,9 @@ import dev.sympho.modular_commands.api.command.context.SlashCommandContext;
  * @since 1.0
  */
 public sealed interface Handlers permits MessageHandlers, SlashHandlers {
+
+    /** An invocation handler that simply signals that handling should continue. */
+    InvocationHandler<CommandContext> CONTINUE = ctx -> Mono.empty();
 
     /**
      * The handler to use for executing the invocation.
