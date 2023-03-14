@@ -1,10 +1,10 @@
 package dev.sympho.modular_commands.impl.context;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.checkerframework.checker.interning.qual.FindDistinct;
@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
@@ -32,6 +31,10 @@ import dev.sympho.modular_commands.api.command.parameter.parse.RoleArgumentParse
 import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.UserArgumentParser;
+import dev.sympho.modular_commands.api.command.reply.CommandReplyMono;
+import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
+import dev.sympho.modular_commands.api.command.reply.Reply;
+import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
@@ -50,13 +53,13 @@ import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
-import discord4j.core.spec.MessageEditSpec;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 /**
  * Base implementation for context objects.
@@ -161,7 +164,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      *
      * @return The initial reply manager.
      */
-    protected abstract Mono<ReplyManager> makeReplyManager();
+    protected abstract ReplyManager makeReplyManager();
 
     /* Argument getters */
 
@@ -593,7 +596,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      */
     @Override
     @Pure
-    public ReplyManager replyManager() throws IllegalStateException {
+    public ReplyManager replies() throws IllegalStateException {
 
         if ( reply == null ) {
             throw new IllegalStateException();
@@ -617,6 +620,26 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
     }
 
+    /**
+     * Performs the initialize operation.
+     *
+     * @param observations The observation registry to use.
+     */
+    private void doInitialize( final ObservationRegistry observations ) {
+
+        LOGGER.trace( "Initializing context" );
+
+        // Prepare load
+        // cache() for idempotence and to prevent cancelling
+        this.loadResult = Mono.just( observations ).flatMap( this::doLoad ).cache();
+
+        // Initialize reply manager
+        this.reply = new ReplyManagerWrapper( makeReplyManager() );
+
+        LOGGER.trace( "Context initialized" );
+
+    }
+
     @Override
     public Mono<Void> initialize( final ObservationRegistry observations ) {
 
@@ -629,16 +652,12 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         // Prepare load
         // cache() for idempotence and to prevent cancelling
         this.loadResult = Mono.just( observations ).flatMap( this::doLoad ).cache();
+        this.reply = new ReplyManagerWrapper( makeReplyManager() );
 
-        return makeReplyManager() // Initialize reply manager
-                .map( ReplyManagerWrapper::new )
-                .doOnNext( manager -> {
-                    this.reply = manager;
-                } )
+        return Mono.fromRunnable( () -> doInitialize( observations ) )
                 .then()
                 .doOnSuccess( v -> initializeLatch.countDown() )
                 .doOnError( initializeLatch::fail )
-                .doOnSuccess( v -> LOGGER.trace( "Context initialized" ) )
                 .doOnError( t -> LOGGER.error( "Failed to initialize", t ) )
                 .checkpoint( METRIC_NAME_INITIALIZE )
                 .name( METRIC_NAME_INITIALIZE )
@@ -752,7 +771,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     private static final class ReplyManagerWrapper implements ReplyManager {
 
         /** The backing manager. */
-        private ReplyManager backing;
+        private final AtomicReference<ReplyManager> backing;
 
         /**
          * Creates a new instance.
@@ -761,111 +780,71 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
          */
         ReplyManagerWrapper( final ReplyManager backing ) {
 
-            this.backing = backing;
+            this.backing = new AtomicReference<>( backing );
 
         }
 
         @Override
-        public ReplyManager setPrivate( final boolean priv ) {
-            return backing.setPrivate( priv );
+        public Mono<Reply> add( final CommandReplySpec spec ) {
+
+            return backing.get().add( spec );
+
         }
 
         @Override
-        public ReplyManager setEphemeral( final EphemeralType ephemeral ) {
-            return backing.setEphemeral( ephemeral );
+        public CommandReplyMono add() {
+
+            return backing.get().add();
+
         }
 
         @Override
-        public ReplyManager setDeleteDelay( final Duration delay ) {
-            return backing.setDeleteDelay( delay );
+        public Mono<Reply> add( final MessageCreateSpec spec ) {
+
+            return backing.get().add( spec );
+
         }
 
         @Override
-        public Mono<Void> defer() {
-            return backing.defer();
+        public Mono<Reply> add( final InteractionApplicationCommandCallbackSpec spec ) {
+
+            return backing.get().add( spec );
+
         }
 
         @Override
-        public Mono<Void> reply( final MessageCreateSpec spec ) throws IllegalStateException {
-            return backing.reply( spec );
+        public Mono<Reply> add( final InteractionFollowupCreateSpec spec ) {
+
+            return backing.get().add( spec );
+
         }
 
         @Override
-        public Mono<Void> reply( final String content ) throws IllegalStateException {
-            return backing.reply( content );
+        public Mono<Reply> add( final String content ) {
+
+            return backing.get().add( content );
+
         }
 
         @Override
-        public Mono<Void> reply( final EmbedCreateSpec... embeds ) throws IllegalStateException {
-            return backing.reply( embeds );
+        public Mono<Reply> add( final EmbedCreateSpec... embeds ) {
+
+            return backing.get().add( embeds );
+
         }
 
         @Override
-        public Mono<Tuple2<Message, Integer>> add( final MessageCreateSpec spec ) {
-            return backing.add( spec );
+        public Reply get( final int index ) throws IndexOutOfBoundsException {
+
+            return backing.get().get( index );
+
         }
 
         @Override
-        public Mono<Tuple2<Message, Integer>> add( final String content ) {
-            return backing.add( content );
-        }
+        public Reply get() throws IllegalStateException {
 
-        @Override
-        public Mono<Tuple2<Message, Integer>> add( final EmbedCreateSpec... embeds ) {
-            return backing.add( embeds );
-        }
+            return backing.get().get();
 
-        @Override
-        public Mono<Message> edit( final MessageEditSpec spec ) throws IllegalStateException {
-            return backing.edit( spec );
-        }
-
-        @Override
-        public Mono<Message> edit( final String content ) throws IllegalStateException {
-            return backing.edit( content );
-        }
-
-        @Override
-        public Mono<Message> edit( final EmbedCreateSpec... embeds ) throws IllegalStateException {
-            return backing.edit( embeds );
-        }
-
-        @Override
-        public Mono<Message> edit( final int index, final MessageEditSpec spec )
-                throws IndexOutOfBoundsException {
-            return backing.edit( index, spec );
-        }
-
-        @Override
-        public Mono<Message> edit( final int index, final String content ) 
-                throws IndexOutOfBoundsException {
-            return backing.edit( index, content );
-        }
-
-        @Override
-        public Mono<Message> edit( final int index, final EmbedCreateSpec... embeds )
-                throws IndexOutOfBoundsException {
-            return backing.edit( index, embeds );
-        }
-
-        @Override
-        public Mono<Message> get( final int index ) throws IndexOutOfBoundsException {
-            return backing.get( index );
-        }
-
-        @Override
-        public Mono<Message> get() throws IllegalStateException {
-            return backing.get();
-        }
-
-        @Override
-        public Mono<Void> delete( final int index ) throws IndexOutOfBoundsException {
-            return backing.delete( index );
-        }
-
-        @Override
-        public Mono<Void> delete() throws IllegalStateException {
-            return backing.delete();
         }
 
         /**
@@ -876,7 +855,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         @Override
         public synchronized ReplyManager longTerm() {
 
-            backing = backing.longTerm();
+            // Still synchronized since may have side effects
+            backing.updateAndGet( ReplyManager::longTerm );
             return this;
 
         }

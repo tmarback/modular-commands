@@ -9,8 +9,10 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
+import dev.sympho.modular_commands.api.command.reply.Reply;
+import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.common.util.Snowflake;
@@ -18,13 +20,13 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 /**
  * The execution context of an invoked command.
@@ -369,73 +371,113 @@ public interface CommandContext extends AccessValidator {
      * @return The reply manager.
      */
     @SideEffectFree
-    ReplyManager replyManager();
-
-    /**
-     * Defers response to the command, as if by calling 
-     * {@link #replyManager()}.{@link ReplyManager#defer() defer()}.
-     *
-     * @return A Mono that completes after deferral is processed.
-     * @see #replyManager()
-     * @see ReplyManager#defer()
-     */
-    default Mono<Void> deferReply() {
-        
-        return replyManager().defer();
-
-    }
+    ReplyManager replies();
 
     /**
      * Sends a reply, as if by calling 
-     * {@link #replyManager()}.{@link ReplyManager#add(String) add()}.
+     * {@link #replies()}.{@link ReplyManager#add(String) add()}.
      * 
      * <p>Sending more than one causes the replies to be chained
      * (each replying to the previous one).
      *
      * @param content The message content.
-     * @return The message.
-     * @see #replyManager()
+     * @return The sent reply.
+     * @see #replies()
      * @see ReplyManager#add(String)
      */
-    default Mono<Message> reply( final String content ) {
+    default Mono<Reply> reply( final String content ) {
 
-        return replyManager().add( content ).map( Tuple2::getT1 );
+        return replies().add( content );
 
     }
 
     /**
      * Sends a reply, as if by calling 
-     * {@link #replyManager()}.{@link ReplyManager#add(EmbedCreateSpec...) add()}.
+     * {@link #replies()}.{@link ReplyManager#add(EmbedCreateSpec...) add()}.
      * 
      * <p>Sending more than one causes the replies to be chained
      * (each replying to the previous one).
      *
      * @param embeds The message embeds.
      * @return The message.
-     * @see #replyManager()
+     * @see #replies()
      * @see ReplyManager#add(EmbedCreateSpec...)
      */
-    default Mono<Message> reply( final EmbedCreateSpec... embeds ) {
+    default Mono<Reply> reply( final EmbedCreateSpec... embeds ) {
 
-        return replyManager().add( embeds ).map( Tuple2::getT1 );
+        return replies().add( embeds );
 
     }
 
     /**
      * Sends a reply, as if by calling 
-     * {@link #replyManager()}.{@link ReplyManager#add(MessageCreateSpec) add()}.
+     * {@link #replies()}.{@link ReplyManager#add(MessageCreateSpec) add()}.
      * 
      * <p>Sending more than one causes the replies to be chained
      * (each replying to the previous one).
      *
      * @param spec The message specification.
      * @return The message.
-     * @see #replyManager()
+     * @see #replies()
      * @see ReplyManager#add(MessageCreateSpec)
      */
-    default Mono<Message> reply( final MessageCreateSpec spec ) {
+    default Mono<Reply> reply( final MessageCreateSpec spec ) {
 
-        return replyManager().add( spec ).map( Tuple2::getT1 );
+        return replies().add( spec );
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replies()}.{@link ReplyManager#add(InteractionApplicationCommandCallbackSpec) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param spec The message specification.
+     * @return The message.
+     * @see #replies()
+     * @see ReplyManager#add(InteractionApplicationCommandCallbackSpec)
+     */
+    default Mono<Reply> reply( final InteractionApplicationCommandCallbackSpec spec ) {
+
+        return replies().add( spec );
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replies()}.{@link ReplyManager#add(InteractionFollowupCreateSpec) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param spec The message specification.
+     * @return The message.
+     * @see #replies()
+     * @see ReplyManager#add(InteractionFollowupCreateSpec)
+     */
+    default Mono<Reply> reply( final InteractionFollowupCreateSpec spec ) {
+
+        return replies().add( spec );
+
+    }
+
+    /**
+     * Sends a reply, as if by calling 
+     * {@link #replies()}.{@link ReplyManager#add(CommandReplySpec) add()}.
+     * 
+     * <p>Sending more than one causes the replies to be chained
+     * (each replying to the previous one).
+     *
+     * @param spec The message specification.
+     * @return The message.
+     * @see #replies()
+     * @see ReplyManager#add(CommandReplySpec)
+     */
+    default Mono<Reply> reply( final CommandReplySpec spec ) {
+
+        return replies().add( spec );
 
     }
 

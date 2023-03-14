@@ -626,13 +626,8 @@ public abstract class PipelineBuilder<E extends Event,
         }
 
         return context.initialize( observations )
-                .then( validateCommand( event, context, chain ) )
+                .then( Mono.defer( () -> validateCommand( event, context, chain ) ) )
                 .switchIfEmpty( Mono.defer( () -> context.load() ) )
-                .switchIfEmpty( Mono.fromRunnable( () -> {
-                    context.replyManager()
-                            .setPrivate( command.privateReply() )
-                            .setEphemeral( command.ephemeralReply() );
-                } ) )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
                 .map( result -> Tuples.of( command, context, result ) )
                 .checkpoint( METRIC_NAME_EXECUTE )

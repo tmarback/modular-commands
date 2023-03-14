@@ -65,12 +65,13 @@ public class TestBot {
             final String message ) {
 
         LOGGER.info( "Sending message: {}", message );
-        return context.reply( message ).flatMap( m -> Mono.just( m )
-                    .then( context.replyManager().setPrivate( true ).add( "Test1" ) )
-                    .then( context.replyManager().setPrivate( false ).add( "Test2" ) )
-                    .then( context.replyManager().setPrivate( true ).add( "Test3" ) )
-                    .then( context.replyManager().setPrivate( false ).add( "Test4" ) )
-        ).thenReturn( Results.ok() );
+        final var replies = context.replies();
+        return replies.add( message )
+                    .then( replies.add().withPrivately( true ).withContent( "Test1" ) )
+                    .then( replies.add().withPrivately( false ).withContent( "Test2" ) )
+                    .then( replies.add().withPrivately( true ).withContent( "Test3" ) )
+                    .then( replies.add().withPrivately( false ).withContent( "Test4" ) )
+                    .thenReturn( Results.ok() );
 
     }
 

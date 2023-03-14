@@ -9,7 +9,6 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.permission.Group;
@@ -35,9 +34,8 @@ import dev.sympho.modular_commands.utils.CommandUtils;
  * @param requireParentGroups Whether a user invoking this command must also have access 
  *                            to the groups necessary to invoke its parent command(s).
  * @param nsfw Whether this command can only be invoked in a NSFW channel.
- * @param privateReply Whether this command's response is sent in a way that only the 
- *                     invoking user can see.
- * @param ephemeralReply The type of ephemeral response to use, if any.
+ * @param repliesDefaultPrivate Whether this command's responses should be private by default.
+ * @param deferReply Whether the initial reply is deferred.
  * @param inheritSettings Whether the command settings should be inherited from the parent 
  *                        command (ignoring the values provided by this command).
  * @param invokeParent Whether to invoke the parent as part of normal execution.
@@ -59,8 +57,8 @@ public record CommandImpl<H extends Handlers>(
         boolean skipGroupCheckOnInteraction,
         boolean requireParentGroups,
         boolean nsfw,
-        boolean privateReply,
-        EphemeralType ephemeralReply,
+        boolean repliesDefaultPrivate,
+        boolean deferReply,
         boolean inheritSettings,
         boolean invokeParent,
         H handlers
@@ -85,9 +83,8 @@ public record CommandImpl<H extends Handlers>(
      * @param requireParentGroups Whether a user invoking this command must also have access 
      *                            to the groups necessary to invoke its parent command(s).
      * @param nsfw Whether this command can only be invoked in a NSFW channel.
-     * @param privateReply Whether this command's response is sent in a way that only the 
-     *                     invoking user can see.
-     * @param ephemeralReply The type of ephemeral response to use, if any.
+     * @param repliesDefaultPrivate Whether this command's responses should be private by default.
+     * @param deferReply Whether the initial reply is deferred.
      * @param inheritSettings Whether the command settings should be inherited from the parent 
      *                        command (ignoring the values provided by this command).
      * @param invokeParent Whether to invoke the parent as part of normal execution.
@@ -109,8 +106,8 @@ public record CommandImpl<H extends Handlers>(
             final boolean skipGroupCheckOnInteraction,
             final boolean requireParentGroups,
             final boolean nsfw,
-            final boolean privateReply,
-            final EphemeralType ephemeralReply,
+            final boolean repliesDefaultPrivate,
+            final boolean deferReply,
             final boolean inheritSettings,
             final boolean invokeParent,
             final H handlers
@@ -129,8 +126,8 @@ public record CommandImpl<H extends Handlers>(
         this.skipGroupCheckOnInteraction = skipGroupCheckOnInteraction;
         this.requireParentGroups = requireParentGroups;
         this.nsfw = nsfw;
-        this.privateReply = privateReply;
-        this.ephemeralReply = Objects.requireNonNull( ephemeralReply );
+        this.repliesDefaultPrivate = repliesDefaultPrivate;
+        this.deferReply = deferReply;
         this.inheritSettings = inheritSettings;
         this.invokeParent = invokeParent;
         this.handlers = CommandUtils.validateHandlers( handlers );

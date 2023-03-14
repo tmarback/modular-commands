@@ -18,7 +18,6 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.ReplyManager;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParser;
@@ -26,6 +25,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.InputParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
+import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
@@ -191,17 +191,16 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     }
 
     @Override
-    protected Mono<ReplyManager> makeReplyManager() {
+    protected ReplyManager makeReplyManager() {
 
         final var message = getEvent().getMessage();
-        final var caller = getCaller();
-        return Mono.zip( getChannel(), caller.getPrivateChannel() ).map( t -> {
-
-            final var publicChannel = t.getT1();
-            final var privateChannel = t.getT2();
-            return new MessageReplyManager( message, publicChannel, privateChannel );
-
-        } );
+        return new MessageReplyManager( 
+                message, 
+                Mono.defer( () -> getChannel() ), 
+                getGuildId() == null ? null : Mono.defer( () -> getCaller().getPrivateChannel() ),
+                command.repliesDefaultPrivate(),
+                command.deferReply()
+        );
 
     }
 

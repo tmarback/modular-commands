@@ -92,9 +92,30 @@
         </dependency>
 
         <dependency>
+            <groupId>dev.sympho</groupId>
+            <artifactId>d4j-encoding-extra</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.discord4j</groupId>
             <artifactId>discord4j-core</artifactId>
             <version>${d4j.version}</version>
+            <exclusions>
+
+                <exclusion>
+                    <groupId>com.austinv11.servicer</groupId>
+                    <artifactId>Servicer</artifactId>
+                </exclusion>
+
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.discord4j</groupId>
+            <artifactId>discord-json-encoding</artifactId>
+            <version>1.6.13</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -136,6 +157,14 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core-micrometer</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- the annotation processor, compile only -->
+            <groupId>org.immutables</groupId>
+            <artifactId>value</artifactId>
+            <version>2.9.2</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Testing dependencies -->
@@ -254,16 +283,6 @@
                         <showWarnings>true</showWarnings>
                         <!-- <verbose>true</verbose> -->
                     </configuration>
-                    <!-- Discord4J Stores dependency on https://github.com/austinv11/Servicer causes a 
-                         warning if using annotation processing with default discovery -->
-                    <executions>
-                        <execution>
-                            <id>default-testCompile</id>
-                            <configuration>
-                                <proc>none</proc>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
 
                 <plugin>
@@ -452,6 +471,24 @@
                     </execution>
 
                 </executions>
+            </plugin>
+
+            <!-- Test bot -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>dev.sympho.modular_commands.TestBot</mainClass>
+                    <classpathScope>test</classpathScope>
+                </configuration>
             </plugin>
 
         </plugins>
@@ -720,15 +757,6 @@
 
                 </plugins>
             </build>
-            <dependencies>
-                <!-- The compiler trips itself up with Xlint:all if this isn't specified due to missing annotation classes -->
-                <dependency>
-                    <groupId>org.immutables</groupId>
-                    <artifactId>value</artifactId>
-                    <version>2.8.2</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
         </profile>
         
         <!-- Style checking -->

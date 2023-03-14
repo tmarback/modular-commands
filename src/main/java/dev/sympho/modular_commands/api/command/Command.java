@@ -9,11 +9,11 @@ import org.checkerframework.checker.regex.qual.Regex;
 import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Pure;
 
-import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
+import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
 
@@ -288,29 +288,36 @@ public interface Command<H extends Handlers> {
     boolean nsfw();
 
     /**
-     * Whether this command's response is sent in a way that only the invoking user
-     * can see.
+     * Whether the replies sent by this command should be private by default (i.e. unless 
+     * specified otherwise on the individual reply).
      *
-     * @return Whether this command's response is sent in a way that only the invoking user
-     *         can see.
-     * @apiNote This setting only affects the default configuration of the reply manager
-     *          provided by the execution context. The specific mechanism used for it
-     *          depends on how the command was invoked (message, slash command, etc)
-     *          and the value of {@link #ephemeralReply()}.
+     * @return Whether this command's responses should be private by default.
+     * @see CommandReplySpec#privately()
+     * @apiNote The specific mechanism used for private replies may vary depending on how 
+     *          the command was invoked (message, slash command, etc).
      */
     @Pure
-    boolean privateReply();
+    boolean repliesDefaultPrivate();
 
     /**
-     * The type of ephemeral response to use, if any.
+     * Whether the initial reply to the command should be deferred, indicating to the user
+     * that a reply is pending.
+     * 
+     * <p>Note that whether the deferral is publicly visible or not is defined by the
+     * {@link #repliesDefaultPrivate() default visibility of replies}. Note also that,
+     * if deferral is used, the visibility of the first reply will be set to the default
+     * to match the deferral, with the value of {@link CommandReplySpec#privately()} 
+     * being ignored if set. Further replies are not affected.
+     * 
+     * <p>If using a deferral, it is expected that a reply will be sent at some point.
+     * It is an error to set this to {@code true} and not send any replies.
      *
-     * @return The ephemeral response type.
-     * @apiNote This setting only affects the default configuration of the reply manager
-     *          provided by the execution context. The specific mechanism used for it
-     *          depends on how the command was invoked (message, slash command, etc).
+     * @return Whether this command's initial response is deferred.
+     * @apiNote The specific mechanism used for deferral may vary depending on how 
+     *          the command was invoked (message, slash command, etc).
      */
     @Pure
-    EphemeralType ephemeralReply();
+    boolean deferReply();
 
     /**
      * Whether the command settings should be inherited from the parent command
@@ -320,7 +327,7 @@ public interface Command<H extends Handlers> {
      * 
      * <ul>
      *  <li>{@link #nsfw()}</li>
-     *  <li>{@link #privateReply()}</li>
+     *  <li>{@link #repliesDefaultPrivate()}</li>
      * </ul>
      *
      * @return Whether settings should be inherited from the parent command.

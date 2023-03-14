@@ -19,7 +19,6 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.ReplyManager.EphemeralType;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InteractionHandlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
@@ -63,11 +62,11 @@ public final class CommandBuilder<H extends Handlers> {
     /** Default for {@link #setNsfw(boolean)}. */
     public static final boolean DEFAULT_NSFW = false;
 
-    /** Default for {@link #setPrivateReply(boolean)}. */
+    /** Default for {@link #setRepliesDefaultPrivate(boolean)}. */
     public static final boolean DEFAULT_PRIVATE = false;
 
-    /** Default for {@link #setEphemeralReply(EphemeralType)} ({@link EphemeralType#NONE}). */
-    public static final EphemeralType DEFAULT_EPHEMERAL = EphemeralType.NONE;
+    /** Default for {@link #setDeferReply(boolean)}. */
+    public static final boolean DEFAULT_DEFER = false;
 
     /** Default for {@link #setInheritSettings(boolean)}. */
     public static final boolean DEFAULT_INHERIT = false;
@@ -113,11 +112,11 @@ public final class CommandBuilder<H extends Handlers> {
     /** Whether the command can only be run in NSFW channels. */
     protected boolean nsfw;
 
-    /** Whether the command response should only be seen by the caller. */
-    protected boolean privateReply;
+    /** Whether the command responses should be private by default. */
+    protected boolean repliesDefaultPrivate;
 
-    /** The type of ephemeral response to use, if any. */
-    protected EphemeralType ephemeralReply;
+    /** Whether the first reply is deferred. */
+    protected boolean deferReply;
 
     /** Whether to inherit settings from parent. */
     protected boolean inheritSettings;
@@ -145,8 +144,8 @@ public final class CommandBuilder<H extends Handlers> {
         this.skipGroupCheckOnInteraction = DEFAULT_SKIP;
         this.requireParentGroups = DEFAULT_REQUIRE_PARENT_GROUPS;
         this.nsfw = DEFAULT_NSFW;
-        this.privateReply = DEFAULT_PRIVATE;
-        this.ephemeralReply = DEFAULT_EPHEMERAL;
+        this.repliesDefaultPrivate = DEFAULT_PRIVATE;
+        this.deferReply = DEFAULT_DEFER;
         this.inheritSettings = DEFAULT_INHERIT;
         this.invokeParent = DEFAULT_INVOKE_PARENT;
         this.handlers = null;
@@ -172,8 +171,8 @@ public final class CommandBuilder<H extends Handlers> {
         this.skipGroupCheckOnInteraction = base.skipGroupCheckOnInteraction;
         this.requireParentGroups = base.requireParentGroups;
         this.nsfw = base.nsfw;
-        this.privateReply = base.privateReply;
-        this.ephemeralReply = base.ephemeralReply;
+        this.repliesDefaultPrivate = base.repliesDefaultPrivate;
+        this.deferReply = base.deferReply;
         this.inheritSettings = base.inheritSettings;
         this.invokeParent = base.invokeParent;
         this.handlers = base.handlers;
@@ -195,7 +194,7 @@ public final class CommandBuilder<H extends Handlers> {
             "withParent", "withName", "withAliases", "withDisplayName",
             "withDescription", "withParameters", "requireGroup", 
             "setSkipGroupCheckOnInteraction", "setRequireParentGroups",
-            "setNsfw", "setPrivateReply", "setEphemeralReply", 
+            "setNsfw", "setRepliesDefaultPrivate", "setDeferReply", 
             "setInheritSettings", "setInvokeParent", "withHandlers"
     } ) CommandBuilder<H> from( final Command<H> base ) throws IllegalArgumentException {
 
@@ -212,8 +211,8 @@ public final class CommandBuilder<H extends Handlers> {
                 .setSkipGroupCheckOnInteraction( base.skipGroupCheckOnInteraction() )
                 .setRequireParentGroups( base.requireParentGroups() )
                 .setNsfw( base.nsfw() )
-                .setPrivateReply( base.privateReply() )
-                .setEphemeralReply( base.ephemeralReply() )
+                .setRepliesDefaultPrivate( base.repliesDefaultPrivate() )
+                .setDeferReply( base.deferReply() )
                 .setInheritSettings( base.inheritSettings() )
                 .setInvokeParent( base.invokeParent() )
                 .withHandlers( base.handlers() );
@@ -561,37 +560,35 @@ public final class CommandBuilder<H extends Handlers> {
     }
 
     /**
-     * Sets whether the command response should be sent privately to the caller.
+     * Sets whether the command replies should be private by default.
      * 
      * <p>The default value is {@value #DEFAULT_PRIVATE}.
      *
-     * @param privateReply Whether the response should be sent privately.
+     * @param privateReply Whether the replies should be private by default.
      * @return This builder.
-     * @see Command#privateReply()
+     * @see Command#repliesDefaultPrivate()
      */
     @Deterministic
-    public @This CommandBuilder<H> setPrivateReply( final boolean privateReply ) {
+    public @This CommandBuilder<H> setRepliesDefaultPrivate( final boolean privateReply ) {
 
-        this.privateReply = privateReply;
+        this.repliesDefaultPrivate = privateReply;
         return this;
 
     }
 
     /**
-     * Sets the type of ephemeral response to use, if any.
+     * Sets whether the first reply is deferred.
      * 
-     * <p>The default value is {@link #DEFAULT_EPHEMERAL}.
+     * <p>The default value is {@link #DEFAULT_DEFER}.
      *
-     * @param ephemeralReply The type of ephemeral response to use, if any. 
-     *                       If {@code null}, restores the default value.
+     * @param deferReply WHether to defer the first reply.
      * @return This builder.
-     * @see Command#ephemeralReply()
+     * @see Command#deferReply()
      */
     @Deterministic
-    public @This CommandBuilder<H> setEphemeralReply( 
-            final @Nullable EphemeralType ephemeralReply ) {
+    public @This CommandBuilder<H> setDeferReply( final boolean deferReply ) {
 
-        this.ephemeralReply = Objects.requireNonNullElse( ephemeralReply, DEFAULT_EPHEMERAL );
+        this.deferReply = deferReply;
         return this;
 
     }
@@ -687,7 +684,7 @@ public final class CommandBuilder<H extends Handlers> {
                 scope, callable, parent, name, aliases, displayName, 
                 description, parameters,
                 requiredGroup, skipGroupCheckOnInteraction, requireParentGroups,
-                nsfw, privateReply, ephemeralReply,
+                nsfw, repliesDefaultPrivate, deferReply,
                 inheritSettings, invokeParent, 
                 handlers
             );
