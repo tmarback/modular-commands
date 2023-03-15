@@ -3,10 +3,8 @@ package dev.sympho.modular_commands.utils;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.MatchesRegex;
-import org.checkerframework.common.value.qual.StaticallyExecutable;
-import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 
@@ -33,14 +31,13 @@ public final class ParameterUtils {
      * Validates the name of a parameter.
      *
      * @param name The name to validate.
-     * @return The validated name.
      * @throws IllegalArgumentException if the name is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed.
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Parameter.NAME_REGEX ) String validateName( 
+    @SideEffectFree
+    public static void validateName( 
             final @MatchesRegex( Parameter.NAME_REGEX ) String name ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( name, "Name cannot be null." );
         if ( !NAME_PATTERN.matcher( name ).matches() ) {
@@ -49,7 +46,6 @@ public final class ParameterUtils {
         if ( !name.equals( name.toLowerCase() ) ) {
             throw new IllegalArgumentException( "Name must be all lowercase." );
         }
-        return name;
 
     }
 
@@ -57,40 +53,35 @@ public final class ParameterUtils {
      * Validates the description of a parameter.
      *
      * @param description The description to validate.
-     * @return The validated description.
      * @throws IllegalArgumentException if the description is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String validateDescription( 
+    @SideEffectFree
+    public static void validateDescription( 
             final @MatchesRegex( Parameter.DESCRIPTION_REGEX ) String description ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( description, "Description cannot be null." );
         if ( !DESCRIPTION_PATTERN.matcher( description ).matches() ) {
             throw new IllegalArgumentException( "Invalid description." );
         }
-        return description;
 
     }
 
     /**
      * Validates a parameter.
      *
-     * @param <T> The argument type.
      * @param parameter The parameter to validate.
-     * @return The validated parameter.
      * @throws IllegalArgumentException if the parameter is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    public static <T extends @NonNull Object> Parameter<T> validate( 
-            final Parameter<T> parameter ) throws IllegalArgumentException {
+    @SideEffectFree
+    public static void validate( final Parameter<?> parameter ) 
+            throws IllegalArgumentException, NullPointerException {
 
         validateName( parameter.name() );
         validateDescription( parameter.description() );
         Objects.requireNonNull( parameter.parser(), "Parser cannot be null." );
-
-        return parameter;
 
     }
 

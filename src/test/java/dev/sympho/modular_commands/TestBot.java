@@ -25,7 +25,6 @@ import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
-import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
@@ -99,10 +98,10 @@ public class TestBot {
     private static Command<?> parrotCommand() {
 
         final var param = Parameter.<String>builder()
-                .withName( "message" )
-                .withDescription( "The message to repeat" )
-                .withRequired( true )
-                .withParser( Parsers.text() )
+                .name( "message" )
+                .description( "The message to repeat" )
+                .required( true )
+                .parser( Parsers.text() )
                 .build();
 
         return Command.builder()
@@ -128,10 +127,10 @@ public class TestBot {
     private static Command<?> tweetCommand() {
 
         final var param = Parameter.<Channel>builder()
-                .withName( "channel" )
-                .withDescription( "The channel to send to" )
-                .withRequired( true )
-                .withParser( Parsers.channel( Channel.class ) )
+                .name( "channel" )
+                .description( "The channel to send to" )
+                .required( true )
+                .parser( Parsers.channel( Channel.class ) )
                 .build();
 
         return Command.builder()
@@ -162,10 +161,10 @@ public class TestBot {
     private static Command<?> listCommand() {
 
         final var param = Parameter.<List<Long>>builder()
-                .withName( "list" )
-                .withDescription( "The list values" )
-                .withRequired( true )
-                .withParser( ParseUtils.integers() )
+                .name( "list" )
+                .description( "The list values" )
+                .required( true )
+                .parser( ParseUtils.integers() )
                 .build();
 
         return Command.builder()
@@ -273,11 +272,11 @@ public class TestBot {
      */
     private static Command<?> fileTextCommand() {
 
-        final var param = new ParameterBuilder<String>()
-                .withName( "file" )
-                .withDescription( "The file to read" )
-                .withRequired( true )
-                .withParser( Parsers.textFile( SizeUtils.kilo( 1 ) + 100 ) )
+        final var param = Parameter.<String>builder()
+                .name( "file" )
+                .description( "The file to read" )
+                .required( true )
+                .parser( Parsers.textFile( SizeUtils.kilo( 1 ) + 100 ) )
                 .build();
 
         return Command.builder()
