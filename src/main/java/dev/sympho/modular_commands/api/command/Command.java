@@ -213,6 +213,7 @@ public interface Command<H extends @NonNull Handlers> {
      * @implSpec The default is an empty set.
      */
     @Pure
+    @Value.Default
     default Set<@MatchesRegex( NAME_REGEX ) String> aliases() {
         return Collections.emptySet();
     }
