@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Pure;
@@ -46,7 +47,7 @@ import dev.sympho.modular_commands.utils.CommandUtils;
         visibility = Value.Style.ImplementationVisibility.PACKAGE, 
         overshadowImplementation = true 
 )
-public interface Command<H extends Handlers> {
+public interface Command<H extends @NonNull Handlers> {
 
     /**
      * The scopes that a command may be defined in.
@@ -503,8 +504,20 @@ public interface Command<H extends Handlers> {
      * @return The builder.
      */
     @SideEffectFree
-    static <H extends Handlers> Builder<H> builder() {
+    static <H extends @NonNull Handlers> Builder<H> builder() {
         return new Builder<>();
+    }
+
+    /**
+     * Creates a new builder initialized with the properties of the given command.
+     *
+     * @param <H> The argument type.
+     * @param base The base instance to copy.
+     * @return The builder.
+     */
+    @SideEffectFree
+    static <H extends @NonNull Handlers> Builder<H> builder( final Command<H> base ) {
+        return new Builder<H>().from( base );
     }
 
     /**
@@ -558,6 +571,6 @@ public interface Command<H extends Handlers> {
      * @since 1.0
      */
     @SuppressWarnings( "MissingCtor" )
-    class Builder<H extends Handlers> extends ImmutableCommand.Builder<H> {}
+    class Builder<H extends @NonNull Handlers> extends ImmutableCommand.Builder<H> {}
     
 }

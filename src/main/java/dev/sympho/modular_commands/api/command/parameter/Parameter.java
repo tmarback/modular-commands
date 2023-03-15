@@ -117,6 +117,18 @@ public interface Parameter<T extends @NonNull Object> {
     }
 
     /**
+     * Creates a new builder initialized with the properties of the given parameter.
+     *
+     * @param <T> The argument type.
+     * @param base The base instance to copy.
+     * @return The builder.
+     */
+    @SideEffectFree
+    static <T extends @NonNull Object> Builder<T> builder( final Parameter<T> base ) {
+        return new Builder<T>().from( base );
+    }
+
+    /**
      * The default builder.
      *
      * @param <T> The argument type.
