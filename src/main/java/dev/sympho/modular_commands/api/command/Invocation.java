@@ -21,6 +21,9 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
  */
 public record Invocation( List<String> chain ) implements Iterable<String> {
 
+    /** The empty invocation. */
+    public static final Invocation EMPTY = Invocation.of();
+
     /**
      * Constructs an invocation determined by the given chain.
      *

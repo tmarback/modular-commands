@@ -25,7 +25,6 @@ import dev.sympho.modular_commands.execute.PrefixProvider;
 import dev.sympho.modular_commands.execute.StaticPrefix;
 import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
-import dev.sympho.modular_commands.utils.builder.CommandBuilder;
 import dev.sympho.modular_commands.utils.builder.ParameterBuilder;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
@@ -82,12 +81,13 @@ public class TestBot {
      */
     private static Command<?> pingCommand() {
 
-        return new CommandBuilder<>()
-                .withName( "ping" )
-                .withDisplayName( "Ping Command" )
-                .withDescription( "Responds with pong" )
-                .withHandlers( Handlers.text( c -> sendMessage( c, "Pong!" ) ) )
-                .build( "ping" );
+        return Command.builder()
+                .name( "ping" )
+                .displayName( "Ping Command" )
+                .description( "Responds with pong" )
+                .handlers( Handlers.text( c -> sendMessage( c, "Pong!" ) ) )
+                .id( "ping" )
+                .build();
 
     }
 
@@ -105,17 +105,18 @@ public class TestBot {
                 .withParser( Parsers.text() )
                 .build();
 
-        return new CommandBuilder<>()
-                .withName( "parrot" )
-                .withDisplayName( "Parrot Command" )
-                .withDescription( "Responds with what you said" )
-                .addParameter( param )
-                .withHandlers( Handlers.text( c -> {
+        return Command.builder()
+                .name( "parrot" )
+                .displayName( "Parrot Command" )
+                .description( "Responds with what you said" )
+                .addParameters( param )
+                .handlers( Handlers.text( c -> {
                     final String message = c.requireArgument( param, String.class );
                     final String response = String.format( "You said: %s", message );
                     return c.reply( response ).thenReturn( Results.ok() );
                 } ) )
-                .build( "parrot" );
+                .id( "parrot" )
+                .build();
 
     }
 
@@ -133,12 +134,12 @@ public class TestBot {
                 .withParser( Parsers.channel( Channel.class ) )
                 .build();
 
-        return new CommandBuilder<>()
-                .withName( "tweet" )
-                .withDisplayName( "Tweet Command" )
-                .withDescription( "Says something in a channel" )
-                .addParameter( param )
-                .withHandlers( Handlers.text( ctx -> {
+        return Command.builder()
+                .name( "tweet" )
+                .displayName( "Tweet Command" )
+                .description( "Says something in a channel" )
+                .addParameters( param )
+                .handlers( Handlers.text( ctx -> {
                     final Channel c = ctx.requireArgument( param, Channel.class );
                     if ( c instanceof MessageChannel ch ) {
                         return ch.createMessage( "Tweet" )
@@ -148,7 +149,8 @@ public class TestBot {
                     }
 
                 } ) )
-                .build( "tweet" );
+                .id( "tweet" )
+                .build();
 
     }
 
@@ -166,18 +168,19 @@ public class TestBot {
                 .withParser( ParseUtils.integers() )
                 .build();
 
-        return new CommandBuilder<>()
-                .withName( "list" )
-                .withDisplayName( "List Command" )
-                .withDescription( "Parses a list" )
-                .addParameter( param )
-                .withHandlers( Handlers.text( ctx -> {
+        return Command.builder()
+                .name( "list" )
+                .displayName( "List Command" )
+                .description( "Parses a list" )
+                .addParameters( param )
+                .handlers( Handlers.text( ctx -> {
                     final List<Long> l = ctx.requireArgument( param );
                     return ctx.reply( "Received items: " + l )
                             .then( Results.okMono() );
 
                 } ) )
-                .build( "list" );
+                .id( "list" )
+                .build();
 
     }
 
@@ -188,14 +191,15 @@ public class TestBot {
      */
     private static Command<?> adminCommand() {
 
-        return new CommandBuilder<>()
-                .withName( "admin" )
-                .withDisplayName( "Admin Command" )
-                .withDescription( "Only works when used by admins" )
-                .setSkipGroupCheckOnInteraction( false )
-                .requireGroup( Groups.ADMINS )
-                .withHandlers( Handlers.text( ctx -> Results.successMono( "You are an admin!" ) ) )
-                .build( "admin" );
+        return Command.builder()
+                .name( "admin" )
+                .displayName( "Admin Command" )
+                .description( "Only works when used by admins" )
+                .skipGroupCheckOnInteraction( false )
+                .requiredGroup( Groups.ADMINS )
+                .handlers( Handlers.text( ctx -> Results.successMono( "You are an admin!" ) ) )
+                .id( "admin" )
+                .build();
 
     }
 
@@ -206,16 +210,17 @@ public class TestBot {
      */
     private static Command<?> modCommand() {
 
-        return new CommandBuilder<>()
-                .withName( "mod" )
-                .withDisplayName( "Mod Command" )
-                .withDescription( "Only works when used by mods" )
-                .setSkipGroupCheckOnInteraction( false )
-                .requireGroup( Groups.hasGuildPermissions( PermissionSet.of( 
+        return Command.builder()
+                .name( "mod" )
+                .displayName( "Mod Command" )
+                .description( "Only works when used by mods" )
+                .skipGroupCheckOnInteraction( false )
+                .requiredGroup( Groups.hasGuildPermissions( PermissionSet.of( 
                         Permission.MANAGE_MESSAGES 
                 ) ) )
-                .withHandlers( Handlers.text( ctx -> Results.successMono( "You are a mod!" ) ) )
-                .build( "mod" );
+                .handlers( Handlers.text( ctx -> Results.successMono( "You are a mod!" ) ) )
+                .id( "mod" )
+                .build();
 
     }
 
@@ -226,16 +231,17 @@ public class TestBot {
      */
     private static Command<?> serverOwnerCommand() {
 
-        return new CommandBuilder<>()
-                .withName( "server-owner" )
-                .withDisplayName( "Server Owner Command" )
-                .withDescription( "Only works when used by server owners" )
-                .setSkipGroupCheckOnInteraction( false )
-                .requireGroup( Groups.SERVER_OWNER )
-                .withHandlers( Handlers.text( 
+        return Command.builder()
+                .name( "server-owner" )
+                .displayName( "Server Owner Command" )
+                .description( "Only works when used by server owners" )
+                .skipGroupCheckOnInteraction( false )
+                .requiredGroup( Groups.SERVER_OWNER )
+                .handlers( Handlers.text( 
                         ctx -> Results.successMono( "You are the server owner!" )
                 ) )
-                .build( "server-owner" );
+                .id( "server-owner" )
+                .build();
 
     }
 
@@ -246,16 +252,17 @@ public class TestBot {
      */
     private static Command<?> botOwnerCommand() {
 
-        return new CommandBuilder<>()
-                .withName( "bot-owner" )
-                .withDisplayName( "Bot Owner Command" )
-                .withDescription( "Only works when used by the bot owner" )
-                .setSkipGroupCheckOnInteraction( false )
-                .requireGroup( Groups.BOT_OWNER )
-                .withHandlers( Handlers.text( 
+        return Command.builder()
+                .name( "bot-owner" )
+                .displayName( "Bot Owner Command" )
+                .description( "Only works when used by the bot owner" )
+                .skipGroupCheckOnInteraction( false )
+                .requiredGroup( Groups.BOT_OWNER )
+                .handlers( Handlers.text( 
                         ctx -> Results.successMono( "You are the bot owner!" ) 
                 ) )
-                .build( "bot-owner" );
+                .id( "bot-owner" )
+                .build();
 
     }
 
@@ -273,18 +280,19 @@ public class TestBot {
                 .withParser( Parsers.textFile( SizeUtils.kilo( 1 ) + 100 ) )
                 .build();
 
-        return new CommandBuilder<>()
-                .withName( "file-text" )
-                .withDisplayName( "Text File Command" )
-                .withDescription( "Reads a text file" )
-                .addParameter( param )
-                .withHandlers( Handlers.text( ctx -> {
+        return Command.builder()
+                .name( "file-text" )
+                .displayName( "Text File Command" )
+                .description( "Reads a text file" )
+                .addParameters( param )
+                .handlers( Handlers.text( ctx -> {
 
                     final var content = ctx.requireArgument( param, String.class );
                     return Results.successMono( content );
 
                 } ) )
-                .build( "file-text" );
+                .id( "file-text" )
+                .build();
 
     }
 
@@ -298,11 +306,11 @@ public class TestBot {
 
         final var counter = registry.counter( "meter.shows", "test", "true", "prod", "false" );
 
-        return CommandBuilder.text()
-                .withName( "meters" )
-                .withDisplayName( "Show meters" )
-                .withDescription( "Shows current meter values" )
-                .withHandlers( Handlers.text( ctx -> {
+        return Command.builder()
+                .name( "meters" )
+                .displayName( "Show meters" )
+                .description( "Shows current meter values" )
+                .handlers( Handlers.text( ctx -> {
 
                     counter.increment();
 
@@ -346,7 +354,8 @@ public class TestBot {
                             .then( Results.okMono() );
 
                 } ) )
-                .build( "meters" );
+                .id( "meters" )
+                .build();
         
     }
 

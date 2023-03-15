@@ -13,7 +13,6 @@ import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.execute.InvocationUtils;
-import dev.sympho.modular_commands.utils.builder.CommandBuilder;
 import discord4j.common.util.Snowflake;
 
 /**
@@ -36,12 +35,12 @@ public class InvocationUtilsTest {
      *
      * @return The builder.
      */
-    private static CommandBuilder<MessageHandlers> baseBuilder() {
+    private static Command.Builder<MessageHandlers> baseBuilder() {
 
-        return CommandBuilder.message()
-                .withName( "test" )
-                .withDisplayName( "test" )
-                .withDescription( "test" );
+        return Command.message()
+                .name( "test" )
+                .displayName( "test" )
+                .description( "test" );
 
     }
 
@@ -56,10 +55,11 @@ public class InvocationUtilsTest {
             final Group group, final boolean parent ) {
 
         return baseBuilder()
-                .requireGroup( group )
-                .setRequireParentGroups( parent )
-                .withHandlers( Handlers.message( ctx -> Results.okMono() ) )
-                .build( "test" );
+                .requiredGroup( group )
+                .requireParentGroups( parent )
+                .handlers( Handlers.message( ctx -> Results.okMono() ) )
+                .id( "test" )
+                .build();
 
     }
 

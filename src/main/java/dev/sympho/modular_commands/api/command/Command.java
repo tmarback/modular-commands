@@ -8,14 +8,20 @@ import java.util.stream.Collectors;
 import org.checkerframework.checker.regex.qual.Regex;
 import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
+import org.immutables.value.Value;
 
 import dev.sympho.modular_commands.api.command.handler.Handlers;
+import dev.sympho.modular_commands.api.command.handler.InteractionHandlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
+import dev.sympho.modular_commands.api.command.handler.TextHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.api.permission.Groups;
+import dev.sympho.modular_commands.utils.CommandUtils;
 
 // BEGIN LONG LINES
 /**
@@ -35,6 +41,11 @@ import dev.sympho.modular_commands.api.permission.Group;
  * @since 1.0
  */
 // END LONG LINES
+@Value.Immutable
+@Value.Style( 
+        visibility = Value.Style.ImplementationVisibility.PACKAGE, 
+        overshadowImplementation = true 
+)
 public interface Command<H extends Handlers> {
 
     /**
@@ -57,6 +68,40 @@ public interface Command<H extends Handlers> {
 
     }
 
+    /* Defaults */
+
+    /** Default for {@link #scope()} ({@link Scope#GLOBAL}). */
+    Scope DEFAULT_SCOPE = Scope.GLOBAL;
+
+    /** Default for {@link #callable()}. */
+    boolean DEFAULT_CALLABLE = true;
+
+    /** Default for {@link #requiredGroup()} ({@link Groups#EVERYONE}). */
+    Group DEFAULT_GROUP = Groups.EVERYONE;
+
+    /** Default for {@link #skipGroupCheckOnInteraction()}. */
+    boolean DEFAULT_SKIP = true;
+
+    /** Default for {@link #requireParentGroups()}. */
+    boolean DEFAULT_REQUIRE_PARENT_GROUPS = true;
+
+    /** Default for {@link #nsfw()}. */
+    boolean DEFAULT_NSFW = false;
+
+    /** Default for {@link #repliesDefaultPrivate()}. */
+    boolean DEFAULT_PRIVATE = false;
+
+    /** Default for {@link #deferReply()}. */
+    boolean DEFAULT_DEFER = false;
+
+    /** Default for {@link #inheritSettings()}. */
+    boolean DEFAULT_INHERIT = false;
+
+    /** Default for {@link #invokeParent()}. */
+    boolean DEFAULT_INVOKE_PARENT = false;
+
+    /* String regexes */
+
     /** Pattern for valid slash command names in the Discord API. */
     @Regex String NAME_REGEX = "(?U)^[-_\\p{L}\\p{N}\\p{sc=Deva}\\p{sc=Thai}]{1,32}+$";
     /** Pattern for valid user/message command names in the Discord API. */
@@ -76,9 +121,13 @@ public interface Command<H extends Handlers> {
      * The scope that the command is defined in.
      *
      * @return The command scope.
+     * @implSpec The default value is {@link #DEFAULT_SCOPE}.
      */
     @Pure
-    Scope scope();
+    @Value.Default
+    default Scope scope() {
+        return Scope.GLOBAL;
+    }
 
     /**
      * Whether this command can be invoked by a user.
@@ -91,9 +140,13 @@ public interface Command<H extends Handlers> {
      *
      * @return {@code true} if the command may be directly called by users. 
      *         {@code false} otherwise.
+     * @implSpec The default value is {@value #DEFAULT_CALLABLE}.
      */
     @Pure
-    boolean callable();
+    @Value.Default
+    default boolean callable() {
+        return DEFAULT_CALLABLE;
+    }
 
     /**
      * The parent of the command.
@@ -108,9 +161,13 @@ public interface Command<H extends Handlers> {
      * considered a parent of this command.
      *
      * @return The parent of the command.
+     * @implSpec The default is {@link Invocation#EMPTY the empty invocation} (e.g. no parent).
      */
     @Pure
-    Invocation parent();
+    @Value.Default
+    default Invocation parent() {
+        return Invocation.EMPTY;
+    }
 
     /**
      * The name of the command.
@@ -132,7 +189,8 @@ public interface Command<H extends Handlers> {
      * @implSpec The invocation is determined by appending the {@link #name() name}
      *           to the {@link #parent() parent}.
      */
-    @Pure
+    @SideEffectFree
+    @Value.NonAttribute
     default Invocation invocation() {
 
         return parent().child( name() );
@@ -169,7 +227,8 @@ public interface Command<H extends Handlers> {
      * @implSpec The invocation is determined by appending each alias to the 
      *           {@link #parent() parent}. Do not override this.
      */
-    @Pure
+    @SideEffectFree
+    @Value.NonAttribute
     default Set<Invocation> aliasInvocations() {
 
         return aliases().stream()
@@ -239,9 +298,13 @@ public interface Command<H extends Handlers> {
      * through Discord).
      *
      * @return The required group.
+     * @implSpec The default value is {@link #DEFAULT_GROUP}.
      */
     @Pure
-    Group requiredGroup();
+    @Value.Default
+    default Group requiredGroup() {
+        return DEFAULT_GROUP;
+    }
 
     /**
      * Whether group access checking should be skipped when this command is invoked
@@ -253,12 +316,13 @@ public interface Command<H extends Handlers> {
      * @apiNote This value is only meaningful for interaction-based invocations. By extension,
      *          if the command does not support interaction invocations, this setting has no
      *          effect.
-     * @implSpec The default returns {@code true}, as application commands should generally
-     *           avoid clashing with user-set permissions unless necessary.
+     * @implSpec The default value is {@value #DEFAULT_SKIP}, as application commands 
+     *           should generally avoid clashing with user-set permissions unless necessary.
      */
     @Pure
+    @Value.Default
     default boolean skipGroupCheckOnInteraction() {
-        return true;
+        return DEFAULT_SKIP;
     }
 
     /**
@@ -269,23 +333,31 @@ public interface Command<H extends Handlers> {
      *         groups required by its parents.
      * @see #requiredGroup()
      * @apiNote This value is only meaningful for subcommands.
+     * @implSpec The default value is {@value #DEFAULT_REQUIRE_PARENT_GROUPS}.
      */
     @Pure
-    boolean requireParentGroups();
+    @Value.Default
+    default boolean requireParentGroups() {
+        return DEFAULT_REQUIRE_PARENT_GROUPS;
+    }
 
     /**
      * Whether this command can only be invoked in a NSFW channel.
      * 
-     * <p>A private channel (if the {@link #scope() scope}) of the command allows invocation
+     * <p>A private channel (if the {@link #scope() scope} of the command allows invocation
      * in one) always satisfies this condition.
      * 
      * <p>Conversely, a guild channel that cannot be marked as NSFW (such as an announcement
      * channel) never satisfies this condition.
      *
      * @return Whether this command can only be invoked in a NSFW channel.
+     * @implSpec The default value is {@value #DEFAULT_NSFW}.
      */
     @Pure
-    boolean nsfw();
+    @Value.Default
+    default boolean nsfw() {
+        return DEFAULT_NSFW;
+    }
 
     /**
      * Whether the replies sent by this command should be private by default (i.e. unless 
@@ -295,9 +367,13 @@ public interface Command<H extends Handlers> {
      * @see CommandReplySpec#privately()
      * @apiNote The specific mechanism used for private replies may vary depending on how 
      *          the command was invoked (message, slash command, etc).
+     * @implSpec The default value is {@value #DEFAULT_PRIVATE}.
      */
     @Pure
-    boolean repliesDefaultPrivate();
+    @Value.Default
+    default boolean repliesDefaultPrivate() {
+        return DEFAULT_PRIVATE;
+    }
 
     /**
      * Whether the initial reply to the command should be deferred, indicating to the user
@@ -315,9 +391,13 @@ public interface Command<H extends Handlers> {
      * @return Whether this command's initial response is deferred.
      * @apiNote The specific mechanism used for deferral may vary depending on how 
      *          the command was invoked (message, slash command, etc).
+     * @implSpec The default value is {@value #DEFAULT_DEFER}.
      */
     @Pure
-    boolean deferReply();
+    @Value.Default
+    default boolean deferReply() {
+        return DEFAULT_DEFER;
+    }
 
     /**
      * Whether the command settings should be inherited from the parent command
@@ -332,9 +412,13 @@ public interface Command<H extends Handlers> {
      *
      * @return Whether settings should be inherited from the parent command.
      * @apiNote This value is only meaningful for subcommands.
+     * @implSpec The default value is {@value #DEFAULT_INHERIT}.
      */
     @Pure
-    boolean inheritSettings();
+    @Value.Default
+    default boolean inheritSettings() {
+        return DEFAULT_INHERIT;
+    }
 
     /**
      * Whether the parent command should be invoked before this command is invoked.
@@ -366,9 +450,13 @@ public interface Command<H extends Handlers> {
      * <p>Naturally, this flag has no effect on a command with no parent.
      *
      * @return Whether this command's parent should be executed as part of an invocation.
+     * @implSpec The default value is {@value #DEFAULT_INVOKE_PARENT}.
      */
     @Pure
-    boolean invokeParent();
+    @Value.Default
+    default boolean invokeParent() {
+        return DEFAULT_INVOKE_PARENT;
+    }
 
     /**
      * The handlers to use for processing an invocation of the command.
@@ -392,5 +480,84 @@ public interface Command<H extends Handlers> {
      */
     @Pure
     H handlers();
+
+    /**
+     * Validates that the command properties of this instance are valid.
+     *
+     * @throws IllegalArgumentException if any of properties are invalid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed.
+     * @see CommandUtils#validateCommand(Command)
+     */
+    @Pure
+    @Value.Check
+    default void validate() throws IllegalArgumentException, NullPointerException {
+
+        CommandUtils.validateCommand( this );
+
+    }
+
+    /**
+     * Creates a new builder.
+     *
+     * @param <H> The handler type.
+     * @return The builder.
+     */
+    @SideEffectFree
+    static <H extends Handlers> Builder<H> builder() {
+        return new Builder<>();
+    }
+
+    /**
+     * Creates a builder for a message-only command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    @SideEffectFree
+    static Builder<MessageHandlers> message() {
+        return builder();
+    }
+
+    /**
+     * Creates a builder for a slash-only command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    @SideEffectFree
+    static Builder<SlashHandlers> slash() {
+        return builder();
+    }
+
+    /**
+     * Creates a builder for a text (message and slash) command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    @SideEffectFree
+    static Builder<TextHandlers> text() {
+        return builder();
+    }
+
+    /**
+     * Creates a builder for an interaction command.
+     *
+     * @return The builder.
+     * @apiNote Use to force the type argument when it cannot be inferred.
+     */
+    @SideEffectFree
+    static Builder<InteractionHandlers> interaction() {
+        return builder();
+    }
+
+    /**
+     * The default builder.
+     *
+     * @param <H> The handler type.
+     * @since 1.0
+     */
+    @SuppressWarnings( "MissingCtor" )
+    class Builder<H extends Handlers> extends ImmutableCommand.Builder<H> {}
     
 }

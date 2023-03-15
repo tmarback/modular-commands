@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;
-import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
@@ -67,7 +66,7 @@ import reactor.util.retry.Retry;
  *          </ul>
  */
 public abstract class PipelineBuilder<E extends Event, 
-        CTX extends CommandContext & LazyContext & InstrumentedContext, H extends Handlers, 
+        CTX extends InstrumentedContext & LazyContext, H extends Handlers, 
         I extends SmartIterator<String>> {
 
     /** Logger. */

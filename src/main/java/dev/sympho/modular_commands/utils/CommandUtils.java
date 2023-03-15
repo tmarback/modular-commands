@@ -4,13 +4,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMultiset;
 
 import org.checkerframework.common.value.qual.MatchesRegex;
-import org.checkerframework.common.value.qual.StaticallyExecutable;
-import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.Command;
@@ -48,12 +45,12 @@ public final class CommandUtils {
      * Validates the ID of a command.
      *
      * @param id The ID to validate.
-     * @return The validated ID.
-     * @throws IllegalArgumentException if the ID is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    public static String validateId( final String id ) throws IllegalArgumentException {
+    @SideEffectFree
+    public static void validateId( final String id ) throws NullPointerException {
 
-        return Objects.requireNonNull( id );
+        Objects.requireNonNull( id );
 
     }
 
@@ -61,16 +58,16 @@ public final class CommandUtils {
      * Validates the parent of a command.
      *
      * @param parent The parent to validate.
-     * @return The validated parent.
      * @throws IllegalArgumentException if the parent is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
+    @SideEffectFree
     @SuppressWarnings( "methodref.param" )
-    public static Invocation validateParent( final Invocation parent ) 
-            throws IllegalArgumentException {
+    public static void validateParent( final Invocation parent ) 
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( parent, "Parent cannot be null." );
         parent.chain().forEach( CommandUtils::validateName );
-        return parent;
 
     }
 
@@ -78,14 +75,13 @@ public final class CommandUtils {
      * Validates the name of a command.
      *
      * @param name The name to validate.
-     * @return The validated name.
      * @throws IllegalArgumentException if the name is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Command.NAME_REGEX ) String validateName( 
+    @SideEffectFree
+    public static void validateName( 
             final @MatchesRegex( Command.NAME_REGEX ) String name ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( name, "Name cannot be null." );
         if ( !NAME_PATTERN.matcher( name ).matches() ) {
@@ -94,7 +90,6 @@ public final class CommandUtils {
         if ( !name.equals( name.toLowerCase() ) ) {
             throw new IllegalArgumentException( "Name must be all lowercase." );
         }
-        return name;
 
     }
 
@@ -102,20 +97,18 @@ public final class CommandUtils {
      * Validates the display name of a command.
      *
      * @param name The display name to validate.
-     * @return The validated display name.
      * @throws IllegalArgumentException if the display name is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String validateDisplayName( 
+    @SideEffectFree
+    public static void validateDisplayName( 
             final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String name ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( name, "Display name cannot be null." );
         if ( !DISPLAY_NAME_PATTERN.matcher( name ).matches() ) {
             throw new IllegalArgumentException( "Invalid display name." );
         }
-        return name;
 
     }
 
@@ -123,20 +116,18 @@ public final class CommandUtils {
      * Validates an alias.
      *
      * @param alias The alias to validate.
-     * @return The validated alias.
      * @throws IllegalArgumentException if the alias is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Command.NAME_REGEX ) String validateAlias( 
+    @SideEffectFree
+    public static void validateAlias( 
             final @MatchesRegex( Command.NAME_REGEX ) String alias ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( alias, "Alias cannot be null." );
         if ( !NAME_PATTERN.matcher( alias ).matches() ) {
             throw new IllegalArgumentException( "Invalid alias." );
         }
-        return alias;
 
     }
 
@@ -144,17 +135,16 @@ public final class CommandUtils {
      * Validates the aliases of a command.
      *
      * @param aliases The aliases to validate.
-     * @return An immutable copy of the validated alias set.
      * @throws IllegalArgumentException if the alias set is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
     @SideEffectFree
-    public static Set<@MatchesRegex( Command.NAME_REGEX ) String> validateAliases( 
+    public static void validateAliases( 
             final Set<@MatchesRegex( Command.NAME_REGEX ) String> aliases ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
-        return Objects.requireNonNull( aliases, "Alias set cannot be null." ).stream()
-                .map( CommandUtils::validateAlias )
-                .collect( Collectors.toUnmodifiableSet() );
+        Objects.requireNonNull( aliases, "Alias set cannot be null." )
+                .forEach( CommandUtils::validateAlias );
 
     }
 
@@ -162,20 +152,18 @@ public final class CommandUtils {
      * Validates the description of a command.
      *
      * @param description The description to validate.
-     * @return The validated description.
      * @throws IllegalArgumentException if the description is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    @StaticallyExecutable
-    public static @MatchesRegex( Command.DESCRIPTION_REGEX ) String validateDescription( 
+    @SideEffectFree
+    public static void validateDescription( 
             final @MatchesRegex( Command.DESCRIPTION_REGEX ) String description ) 
-            throws IllegalArgumentException {
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( description, "Description cannot be null." );
         if ( !DESCRIPTION_PATTERN.matcher( description ).matches() ) {
             throw new IllegalArgumentException( "Invalid description." );
         }
-        return description;
 
     }
 
@@ -183,12 +171,12 @@ public final class CommandUtils {
      * Validates the parameters of a command.
      *
      * @param parameters The parameters to validate.
-     * @return An immutable copy of the validated parameter list, in the same order as given.
      * @throws IllegalArgumentException if the parameter list is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
     @SideEffectFree
-    public static List<Parameter<?>> validateParameters( 
-            final List<Parameter<?>> parameters ) throws IllegalArgumentException {
+    public static void validateParameters( final List<Parameter<?>> parameters ) 
+            throws IllegalArgumentException, NullPointerException {
 
         Objects.requireNonNull( parameters, "Parameter list cannot be null." );
         boolean optional = false;
@@ -217,80 +205,73 @@ public final class CommandUtils {
 
         }
 
-        return List.copyOf( parameters );
-
     }
 
     /**
      * Validates the required group of a command.
      *
      * @param group The group to validate.
-     * @return The validated group.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    public static Group validateGroup( final Group group ) {
+    @SideEffectFree
+    public static void validateGroup( final Group group ) throws NullPointerException {
 
-        return Objects.requireNonNull( group, "Required group cannot be null." );
+        Objects.requireNonNull( group, "Required group cannot be null." );
 
     }
 
     /**
      * Validates the invocation handler of a command.
      *
-     * @param <H> The handler type.
      * @param handler The handler to validate.
-     * @return The validated handler.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
      */
-    @Pure
-    public static <H extends InvocationHandler<?>> H validateInvocationHandler( final H handler ) {
+    @SideEffectFree
+    public static void validateInvocationHandler( final InvocationHandler<?> handler ) 
+            throws NullPointerException {
 
-        return Objects.requireNonNull( handler, "Invocation handler cannot be null." );
+        Objects.requireNonNull( handler, "Invocation handler cannot be null." );
 
     }
 
     /**
      * Validates the result handlers of a command.
      *
-     * @param <H> The handler type.
      * @param handlers The result handlers to validate.
-     * @return An immutable copy of the validated handler list.
+     * @throws NullPointerException if a {@code null} value was found where not allowed.
      */
     @SideEffectFree
-    public static <H extends ResultHandler<?>> List<H> validateResultHandlers( 
-            final List<? extends H> handlers ) {
+    public static void validateResultHandlers( final List<? extends ResultHandler<?>> handlers ) 
+            throws NullPointerException {
 
-        return Objects.requireNonNull( handlers, "Result handler list cannot be null." ).stream()
-                .map( h -> Objects.requireNonNull( h, "Result handler cannot be null." ) )
-                .collect( Collectors.toUnmodifiableList() );
+        Objects.requireNonNull( handlers, "Result handler list cannot be null." )
+                .forEach( h -> Objects.requireNonNull( h, "Result handler cannot be null." ) );
 
     }
 
     /**
      * Validates the handlers of a command.
      *
-     * @param <H> The handler type.
      * @param handlers The handlers to validate.
-     * @return The handlers.
+     * @throws NullPointerException if a {@code null} value was found where not allowed.
      */
-    public static <H extends Handlers> H validateHandlers( final H handlers ) {
+    @SideEffectFree
+    public static void validateHandlers( final Handlers handlers ) throws NullPointerException {
 
         validateInvocationHandler( handlers.invocation() );
         validateResultHandlers( handlers.result() );
-
-        return handlers;
 
     }
 
     /**
      * Validates a command.
      *
-     * @param <C> The command type.
      * @param command The command to validate.
-     * @return The validated command.
-     * @throws IllegalArgumentException If one of the components of the command was invalid.
+     * @throws IllegalArgumentException if any of the components of the command was invalid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed.
      */
-    @Pure
-    public static <C extends Command<?>> C validateCommand( final C command )
+    @SideEffectFree
+    public static void validateCommand( final Command<?> command )
             throws IllegalArgumentException {
 
         validateId( command.id() );
@@ -301,8 +282,6 @@ public final class CommandUtils {
         validateParameters( command.parameters() );
         validateGroup( command.requiredGroup() );
         validateHandlers( command.handlers() );
-
-        return command;
 
     }
 
