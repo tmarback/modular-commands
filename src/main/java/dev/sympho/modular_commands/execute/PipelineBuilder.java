@@ -201,6 +201,7 @@ public abstract class PipelineBuilder<E extends Event,
                     .doOnError( e -> LOGGER.error( 
                             "Exception thrown within processing pipeline", e 
                     ) )
+                    .contextCapture()
                     .checkpoint( METRIC_NAME_EVENT )
                     .name( METRIC_NAME_EVENT )
                     .transform( addTags( event ) )
