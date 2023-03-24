@@ -553,6 +553,12 @@ public abstract class PipelineBuilder<E extends Event,
                 .filter( ctx -> !ctx.getT2().isEmpty() )
                 .filter( this::checkScope )
                 .filter( this::checkCallable )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
+                .doOnNext( r -> addTag( METRIC_TAG_RESULT, "found" ) )
+                .switchIfEmpty( Mono.fromRunnable( 
+                        () -> addTag( METRIC_TAG_RESULT, "not_found" ) 
+                ) )
                 .checkpoint( METRIC_NAME_PARSE )
                 .name( METRIC_NAME_PARSE )
                 .transform( addTags( event ) )
@@ -579,9 +585,14 @@ public abstract class PipelineBuilder<E extends Event,
         return validator.validateSettings( event, chain )
                 // TODO: https://github.com/reactor/reactor-core/issues/3366
                 .contextWrite( Function.identity() )
+                .doOnNext( r -> addTag( METRIC_TAG_RESULT, "invalid" ) )
                 .switchIfEmpty( validator.validateAccess( access, chain ) )
                 // TODO: https://github.com/reactor/reactor-core/issues/3366
                 .contextWrite( Function.identity() )
+                .doOnNext( r -> addTag( METRIC_TAG_RESULT, "no_access" ) )
+                .switchIfEmpty( Mono.fromRunnable( 
+                        () -> addTag( METRIC_TAG_RESULT, "allowed" ) 
+                ) )
                 .checkpoint( METRIC_NAME_VALIDATE )
                 .name( METRIC_NAME_VALIDATE )
                 .transform( context::addTags )
