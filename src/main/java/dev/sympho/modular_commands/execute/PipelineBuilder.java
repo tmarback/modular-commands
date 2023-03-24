@@ -193,6 +193,15 @@ public abstract class PipelineBuilder<E extends Event,
     private Mono<Void> buildPipeline( final Flux<E> source, final Registry registry ) {
 
         return source.flatMap( event -> parseEvent( event, registry )
+                    .switchIfEmpty( Mono.fromRunnable( () -> {
+
+                        final var observation = observations.getCurrentObservation();
+                        if ( observation != null ) {
+                            observation.lowCardinalityKeyValue( METRIC_TAG_RESULT, "not_command" );
+
+                        }
+                        
+                    } ) )
                     .flatMap( this::executeCommand )
                     .doOnNext( ctx -> {
                         final CTX context = ctx.getT2();
