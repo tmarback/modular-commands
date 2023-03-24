@@ -149,16 +149,28 @@ public abstract class PipelineBuilder<E extends Event,
     }
 
     /**
+     * Adds the given low cardinality tag to the current observation, if any.
+     *
+     * @param key The tag key.
+     * @param value The tag value.
+     */
+    private void addTag( final String key, final String value ) {
+
+        final var observation = observations.getCurrentObservation();
+        if ( observation != null ) {
+            observation.lowCardinalityKeyValue( key, value );
+        }
+
+    }
+
+    /**
      * Adds the {@link #METRIC_TAG_RESULT result tag} to the current observation, if any.
      *
      * @param result The execution result.
      */
     private void addTagResult( final CommandResult result ) {
 
-        final var observation = observations.getCurrentObservation();
-        if ( observation != null ) {
-            observation.lowCardinalityKeyValue( METRIC_TAG_RESULT, tagResult( result ) );
-        }
+        addTag( METRIC_TAG_RESULT, tagResult( result ) );
 
     }
 
@@ -193,15 +205,9 @@ public abstract class PipelineBuilder<E extends Event,
     private Mono<Void> buildPipeline( final Flux<E> source, final Registry registry ) {
 
         return source.flatMap( event -> parseEvent( event, registry )
-                    .switchIfEmpty( Mono.fromRunnable( () -> {
-
-                        final var observation = observations.getCurrentObservation();
-                        if ( observation != null ) {
-                            observation.lowCardinalityKeyValue( METRIC_TAG_RESULT, "not_command" );
-
-                        }
-                        
-                    } ) )
+                    .switchIfEmpty( Mono.fromRunnable( 
+                            () -> addTag( METRIC_TAG_RESULT, "not_command" ) 
+                    ) )
                     .flatMap( this::executeCommand )
                     .doOnNext( ctx -> {
                         final CTX context = ctx.getT2();
@@ -601,6 +607,11 @@ public abstract class PipelineBuilder<E extends Event,
         return Flux.fromIterable( commands )
                 .concatMap( c -> getInvocationHandler( c.handlers() )
                         .handleWrapped( context )
+                        // TODO: https://github.com/reactor/reactor-core/issues/3366
+                        .contextWrite( Function.identity() )
+                        .switchIfEmpty( Mono.fromRunnable( 
+                                () -> addTag( METRIC_TAG_RESULT, "continue" ) 
+                        ) )
                         .checkpoint( c.id() )
                         .name( METRIC_NAME_HANDLE )
                         .transform( context::addTags )
