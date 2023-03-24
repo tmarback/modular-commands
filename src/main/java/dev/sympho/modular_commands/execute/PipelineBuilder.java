@@ -148,6 +148,20 @@ public abstract class PipelineBuilder<E extends Event,
 
     }
 
+    /**
+     * Adds the {@link #METRIC_TAG_RESULT result tag} to the current observation, if any.
+     *
+     * @param result The execution result.
+     */
+    private void addTagResult( final CommandResult result ) {
+
+        final var observation = observations.getCurrentObservation();
+        if ( observation != null ) {
+            observation.lowCardinalityKeyValue( METRIC_TAG_RESULT, tagResult( result ) );
+        }
+
+    }
+
     /* Public interface */
 
     /**
@@ -196,6 +210,8 @@ public abstract class PipelineBuilder<E extends Event,
                                     context.getInvocation(), result.getClass().getSimpleName() );
                             LOGGER.trace( "{} => {}", context.getInvocation(), result );
                         }
+
+                        addTagResult( result );
                     } )
                     .flatMap( this::handleResult )
                     .doOnError( e -> LOGGER.error( 
@@ -587,6 +603,7 @@ public abstract class PipelineBuilder<E extends Event,
                         () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
                 ) )
                 .single()
+                .doOnNext( this::addTagResult )
                 .checkpoint( METRIC_NAME_INVOKE )
                 .name( METRIC_NAME_INVOKE )
                 .transform( context::addTags )
@@ -629,6 +646,7 @@ public abstract class PipelineBuilder<E extends Event,
                 .then( Mono.defer( () -> validateCommand( event, context, chain ) ) )
                 .switchIfEmpty( Mono.defer( () -> context.load() ) )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
+                .doOnNext( this::addTagResult )
                 .map( result -> Tuples.of( command, context, result ) )
                 .checkpoint( METRIC_NAME_EXECUTE )
                 .name( METRIC_NAME_EXECUTE )
