@@ -39,6 +39,7 @@ import io.micrometer.observation.Observation.Context;
 import io.micrometer.observation.ObservationHandler;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 
 /**
@@ -365,6 +366,9 @@ public class TestBot {
      */
     public static void main( final String[] args ) {
 
+        // Enable context propagation so tracing works
+        Hooks.enableAutomaticContextPropagation();
+
         final String token = args[0];
 
         final MeterRegistry meters = new SimpleMeterRegistry();
@@ -392,6 +396,7 @@ public class TestBot {
             @Override
             public void onStop( final Observation.Context context ) {
                 LOGGER.trace( "OBSERVATION STOP: {}", context.getName() );
+                LOGGER.trace( "Tags: {}", context.getAllKeyValues() );
             }
 
             @Override
