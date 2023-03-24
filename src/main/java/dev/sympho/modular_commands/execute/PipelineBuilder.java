@@ -209,6 +209,8 @@ public abstract class PipelineBuilder<E extends Event,
                             () -> addTag( METRIC_TAG_RESULT, "not_command" ) 
                     ) )
                     .flatMap( this::executeCommand )
+                    // TODO: https://github.com/reactor/reactor-core/issues/3366
+                    .contextWrite( Function.identity() )
                     .doOnNext( ctx -> {
                         final CTX context = ctx.getT2();
                         final CommandResult result = ctx.getT3();
@@ -229,6 +231,8 @@ public abstract class PipelineBuilder<E extends Event,
                         addTagResult( result );
                     } )
                     .flatMap( this::handleResult )
+                    // TODO: https://github.com/reactor/reactor-core/issues/3366
+                    .contextWrite( Function.identity() )
                     .doOnError( e -> LOGGER.error( 
                             "Exception thrown within processing pipeline", e 
                     ) )
@@ -573,7 +577,11 @@ public abstract class PipelineBuilder<E extends Event,
         final var access = accessValidator( event );
 
         return validator.validateSettings( event, chain )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .switchIfEmpty( validator.validateAccess( access, chain ) )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .checkpoint( METRIC_NAME_VALIDATE )
                 .name( METRIC_NAME_VALIDATE )
                 .transform( context::addTags )
@@ -609,6 +617,7 @@ public abstract class PipelineBuilder<E extends Event,
                         .handleWrapped( context )
                         // TODO: https://github.com/reactor/reactor-core/issues/3366
                         .contextWrite( Function.identity() )
+                        .doOnNext( this::addTagResult )
                         .switchIfEmpty( Mono.fromRunnable( 
                                 () -> addTag( METRIC_TAG_RESULT, "continue" ) 
                         ) )
@@ -623,6 +632,8 @@ public abstract class PipelineBuilder<E extends Event,
                         () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
                 ) )
                 .single()
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .doOnNext( this::addTagResult )
                 .checkpoint( METRIC_NAME_INVOKE )
                 .name( METRIC_NAME_INVOKE )
@@ -663,9 +674,17 @@ public abstract class PipelineBuilder<E extends Event,
         }
 
         return context.initialize( observations )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .then( Mono.defer( () -> validateCommand( event, context, chain ) ) )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .switchIfEmpty( Mono.defer( () -> context.load() ) )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .doOnNext( this::addTagResult )
                 .map( result -> Tuples.of( command, context, result ) )
                 .checkpoint( METRIC_NAME_EXECUTE )
@@ -698,6 +717,8 @@ public abstract class PipelineBuilder<E extends Event,
                 .filter( r -> r )
                 .take( 1 ) // Stop once the first one signals complete
                 .count()
+                // TODO: https://github.com/reactor/reactor-core/issues/3366
+                .contextWrite( Function.identity() )
                 .filter( c -> c == 0 ) // No handler signaled complete
                 .doOnNext( c -> {
                     LOGGER.warn( "Handling of result of command {} not complete", 
