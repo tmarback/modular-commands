@@ -289,25 +289,25 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /* Argument parsing */
 
     /**
-     * Handles a missing argument by using the default or issuing a result, as specified by
-     * the parameter spec.
+     * Handles a missing argument according to the parameter specification.
      *
-     * @param <T> The argument type.
+     * @param <R> The raw argument type.
      * @param parameter The parameter whose argument is missing.
-     * @return A Mono that issues the default value, or fails with a {@link ResultException}
-     *         if the parameter is not allowed to be missing. May also be empty if there is
-     *         no default and the spec allows it.
+     * @return A Mono that fails with a {@link ResultException} if the parameter is not
+     *         allowed to be missing, and is empty otherwise.
+     * @implNote The error case uses lazy instantiation. Use without 
+     *           {@link Mono#defer(java.util.function.Supplier)}.
      */
     @SideEffectFree
-    private <T extends @NonNull Object> Mono<T> handleMissingArgument( 
-            final Parameter<T> parameter ) {
+    private <R extends @NonNull Object> Mono<R> handleMissingArgument( 
+            final Parameter<?> parameter ) {
 
         if ( parameter.required() ) {
-            final var result = new CommandFailureArgumentMissing( parameter );
-            return Mono.error( new ResultException( result ) );
+            return Mono.error( () -> new ResultException( 
+                    new CommandFailureArgumentMissing( parameter ) 
+            ) );
         } else {
-            final var def = parameter.defaultValue();
-            return def == null ? Mono.empty() : Mono.just( def );
+            return Mono.empty();
         }
 
     }
@@ -343,23 +343,18 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      *         (and required), and may be empty if no value.
      */
     @SideEffectFree
-    @SuppressWarnings( { 
-            "conditional", "return",  // Weird Optional stuff
-            "optional.parameter" // TODO: Weird interaction with generics? 
-    } )
+    @SuppressWarnings( { "conditional", "return" } ) // Weird Optional stuff
     private <R extends @NonNull Object, T extends @NonNull Object> Mono<T> parseArgument(
             final Parameter<T> parameter,
             final Function<String, Mono<R>> getter,
             final ArgumentParser<R, T> parser 
     ) {
 
-        // Note flatMap automatically packs exceptions thrown by parse()
         return getter.apply( parameter.name() )
-                .singleOptional()
-                .flatMap( raw -> raw.isPresent()
-                        ? parser.parse( this, raw.get() )
-                        : handleMissingArgument( parameter )
-                )
+                .switchIfEmpty( handleMissingArgument( parameter ) )
+                // Note flatMap automatically packs exceptions thrown by parse()
+                .flatMap( raw -> parser.parse( this, raw ) )
+                .switchIfEmpty( Mono.justOrEmpty( parameter.defaultValue() ) )
                 .onErrorMap( InvalidArgumentException.class, 
                         e -> wrapInvalidParam( parameter, e ) 
                 );
