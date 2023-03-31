@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.api.command.parameter.parse;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,7 +88,7 @@ public final class Parsers {
     @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> functor( final Functor<R, T> parser ) {
-        return parser;
+        return Objects.requireNonNull( parser );
     }
 
     /**
@@ -103,7 +104,7 @@ public final class Parsers {
     @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> sync( final Synchronous<R, T> parser ) {
-        return parser;
+        return Objects.requireNonNull( parser );
     }
 
     /**
@@ -120,7 +121,88 @@ public final class Parsers {
     @Pure
     public static <R extends @NonNull Object, T extends @NonNull Object> 
             ParserFunction<R, T> simple( final Simple<R, T> parser ) {
-        return parser;
+        return Objects.requireNonNull( parser );
+    }
+
+    /* Utility wrappers */
+
+    /**
+     * Creates a parser that returns an empty result for the given value, otherwise deferring
+     * to the given parser.
+     *
+     * @param <R> The raw type received.
+     * @param <T> The parsed argument type.
+     * @param value The raw value that should cause an empty result.
+     * @param parser The parser to delegate to otherwise.
+     * @return The created parser.
+     */
+    @SideEffectFree
+    public static <R extends @NonNull Object, T extends @NonNull Object> ParserFunction<R, T> 
+            nullValue( final R value, final ParserFunction<R, T> parser ) {
+
+        Objects.requireNonNull( parser );
+        Objects.requireNonNull( value );
+        return ( ctx, raw ) -> value.equals( raw ) 
+                ? Mono.empty() 
+                : parser.parse( ctx, raw );
+
+    }
+
+    /**
+     * Creates a parser that returns an empty result for the given value, otherwise resulting
+     * in the raw value.
+     *
+     * @param <R> The raw type received.
+     * @param value The raw value that should cause an empty result.
+     * @return The created parser.
+     */
+    @SideEffectFree
+    public static <R extends @NonNull Object> ParserFunction<R, R> nullValue( final R value ) {
+
+        return nullValue( value, Parsers::raw );
+
+    }
+
+    /**
+     * Creates a parser that returns an empty result for the given values, otherwise deferring
+     * to the given parser.
+     *
+     * @param <R> The raw type received.
+     * @param <T> The parsed argument type.
+     * @param values The raw values that should cause an empty result.
+     * @param parser The parser to delegate to otherwise.
+     * @return The created parser.
+     * @implNote The created parser uses {@link Collection#contains(Object)}, so prefer using
+     *           collections with fast lookup times (like Set) when possible.
+     */
+    @SideEffectFree
+    public static <R extends @NonNull Object, T extends @NonNull Object> ParserFunction<R, T> 
+            nullValues( final Collection<? extends R> values, final ParserFunction<R, T> parser ) {
+
+        Objects.requireNonNull( parser );
+        Objects.requireNonNull( values );
+        return ( ctx, raw ) -> values.contains( raw )
+                ? Mono.empty() 
+                : parser.parse( ctx, raw );
+
+    }
+
+    /**
+     * Creates a parser that returns an empty result for the given values, otherwise resulting
+     * in the raw value.
+     *
+     * @param <R> The raw type received.
+     * @param values The raw value that should cause an empty result.
+     * @return The created parser.
+     * @implNote The created parser uses {@link Collection#contains(Object)}, so prefer using
+     *           collections with fast lookup times (like Set) when possible.
+     */
+    @SideEffectFree
+    public static <R extends @NonNull Object> ParserFunction<R, R> nullValues( 
+            final Collection<? extends R> values ) {
+
+        return nullValues( values, Parsers::raw );
+
     }
 
     /* Choices utils */

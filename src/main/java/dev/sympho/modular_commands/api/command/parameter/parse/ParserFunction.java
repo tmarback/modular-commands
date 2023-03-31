@@ -7,6 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import reactor.core.publisher.Mono;
 
 /**
@@ -26,7 +27,10 @@ public interface ParserFunction<R extends @NonNull Object, T extends @NonNull Ob
      * @param context The execution context.
      * @param raw The raw argument received from the user.
      * @return A Mono that issues the parsed argument. If the raw value is invalid, it may
-     *         fail with a {@link InvalidArgumentException}.
+     *         fail with a {@link InvalidArgumentException}. May be empty, in which case
+     *         the value defers to the {@link Parameter#defaultValue() default} (functionally
+     *         the same as if the argument was missing, but without causing an error if the
+     *         parameter is {@link Parameter#required() required}).
      * @throws InvalidArgumentException if the given argument is not a valid value.
      */
     @SideEffectFree

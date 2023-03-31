@@ -156,14 +156,17 @@ public interface CommandContext extends AccessValidator {
      * @param <T> The type of the argument.
      * @param name The name of the corresponding parameter.
      * @param argumentType The type of the argument.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value, or {@code null} if the received argument is empty
+     *         (omitted by the caller or an empty parsing result) and does not have 
+     *         a default value.
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
      * @see #getArgument(Parameter, Class)
-     * @apiNote This method will never return {@code null} if the parameter is marked
-     *          as required or provides a default value.
+     * @apiNote This method will never return {@code null} if the parameter provides a default 
+     *          value. If it is marked as required, it will return {@code null} if and only if
+     *          the parser result was empty (which implies that it will never return {@code null} 
+     *          if the parser is guaranteed to never give an empty result).
      */
     @Pure
     <T extends @NonNull Object> @Nullable T getArgument( String name, Class<T> argumentType )
@@ -175,8 +178,9 @@ public interface CommandContext extends AccessValidator {
      * @param <T> The type of the argument.
      * @param parameter The corresponding parameter.
      * @param argumentType The type of the argument.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value, or {@code null} if the received argument is empty
+     *         (omitted by the caller or an empty parsing result) and does not have 
+     *         a default value.
      * @throws IllegalArgumentException if there is no parameter with a matching name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
@@ -199,8 +203,9 @@ public interface CommandContext extends AccessValidator {
      *
      * @param <T> The type of the argument.
      * @param parameter The corresponding parameter.
-     * @return The argument value, or {@code null} if the argument was not given by
-     *         the caller and does not have a default value.
+     * @return The argument value, or {@code null} if the received argument is empty
+     *         (omitted by the caller or an empty parsing result) and does not have 
+     *         a default value.
      * @throws IllegalArgumentException if the given parameter is not present in the
      *                                  invoked command.
      * @apiNote This is functionally equivalent to {@link #getArgument(Parameter, Class)}.
@@ -217,8 +222,9 @@ public interface CommandContext extends AccessValidator {
             throws IllegalArgumentException;
 
     /**
-     * Retrieves one of the arguments to the command, assuming it is non-null
-     * (so either required or with a default value).
+     * Retrieves one of the arguments to the command expecting that it is non-null,
+     * i.e. that it either has a default value or is never empty (is required and 
+     * the parser never has an empty result).
      *
      * @param <T> The type of the argument.
      * @param name The name of the corresponding parameter.
@@ -227,12 +233,13 @@ public interface CommandContext extends AccessValidator {
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
-     * @throws NullPointerException if the argument was not received and does not have a
-     *                              default value.
+     * @throws NullPointerException if the argument was empty (not received or empty parsing 
+     *                              result) and does not have a default value.
      * @see #requireArgument(Parameter, Class)
-     * @apiNote An NPE thrown by this method indicates a mismatched configuration 
+     * @apiNote An NPE thrown by this method indicates either a mismatched configuration 
      *          (code expects the parameter to be required or default but it was not
-     *          configured as such).
+     *          configured as such) or that the parser function unexpectedly returned
+     *          an empty result.
      */
     @Pure
     default <T extends @NonNull Object> T requireArgument( String name, Class<T> argumentType )
@@ -243,8 +250,9 @@ public interface CommandContext extends AccessValidator {
     }
 
     /**
-     * Retrieves one of the arguments to the command, assuming it is non-null
-     * (so either required or with a default value).
+     * Retrieves one of the arguments to the command expecting that it is non-null,
+     * i.e. that it either has a default value or is never empty (is required and 
+     * the parser never has an empty result).
      *
      * @param <T> The type of the argument.
      * @param parameter The name of the corresponding parameter.
@@ -253,8 +261,8 @@ public interface CommandContext extends AccessValidator {
      * @throws IllegalArgumentException if there is no parameter with the given name.
      * @throws ClassCastException if the given argument type does not match the type of the
      *                            argument with the given name.
-     * @throws NullPointerException if the argument was not received and does not have a
-     *                              default value.
+     * @throws NullPointerException if the argument was empty (not received or empty parsing 
+     *                              result) and does not have a default value.
      * @see #requireArgument(String, Class)
      * @apiNote This is functionally equivalent to {@link #requireArgument(String, Class)},
      *          but allows access directly from the parameter instance and provides
@@ -270,8 +278,9 @@ public interface CommandContext extends AccessValidator {
     }
 
     /**
-     * Retrieves one of the arguments to the command, assuming it is non-null
-     * (so either required or with a default value).
+     * Retrieves one of the arguments to the command expecting that it is non-null,
+     * i.e. that it either has a default value or is never empty (is required and 
+     * the parser never has an empty result).
      *
      * @param <T> The type of the argument.
      * @param parameter The name of the corresponding parameter.
