@@ -25,10 +25,10 @@ under the License.
     <language>en-us</language>
     <copyright>&#169;2023</copyright>
     <item>
-      <title>File: 131,
+      <title>File: 135,
              Errors: 0,
              Warnings: 0,
-             Infos: 0
+             Infos: 15
       </title>
             <link>https://modular-commands.sympho.dev/checkstyle.html</link>
       <description>
@@ -74,7 +74,21 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser.java">dev/sympho/modular_commands/api/command/parameter/parse/ArgumentParser.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.CommandReplyEditSpecGenerator.java">dev/sympho/modular_commands/api/command/reply/CommandReplyEditSpecGenerator.java</a>
+                </td>
+                <td>
+                  1
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.StaticPrefix.java">dev/sympho/modular_commands/execute/StaticPrefix.java</a>
                 </td>
                 <td>
                   0
@@ -102,7 +116,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.StaticPrefix.java">dev/sympho/modular_commands/execute/StaticPrefix.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.ArgumentParser.java">dev/sympho/modular_commands/api/command/parameter/parse/ArgumentParser.java</a>
                 </td>
                 <td>
                   0
@@ -144,20 +158,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.handler.InvocationHandler.java">dev/sympho/modular_commands/api/command/handler/InvocationHandler.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.AccessManager.java">dev/sympho/modular_commands/execute/AccessManager.java</a>
                 </td>
                 <td>
@@ -172,7 +172,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.NumberParser.java">dev/sympho/modular_commands/api/command/parameter/parse/NumberParser.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.handler.InvocationHandler.java">dev/sympho/modular_commands/api/command/handler/InvocationHandler.java</a>
                 </td>
                 <td>
                   0
@@ -187,6 +187,20 @@ under the License.
                           <tr>
                 <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.ChannelArgumentParser.java">dev/sympho/modular_commands/api/command/parameter/parse/ChannelArgumentParser.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.NumberParser.java">dev/sympho/modular_commands/api/command/parameter/parse/NumberParser.java</a>
                 </td>
                 <td>
                   0
@@ -315,6 +329,20 @@ under the License.
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.impl.context.ContextImpl.java">dev/sympho/modular_commands/impl/context/ContextImpl.java</a>
                 </td>
                 <td>
+                  1
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.impl.context.MessageContextImpl.java">dev/sympho/modular_commands/impl/context/MessageContextImpl.java</a>
+                </td>
+                <td>
                   0
                 </td>
                 <td>
@@ -327,20 +355,6 @@ under the License.
                           <tr>
                 <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.parse.package-info.java">dev/sympho/modular_commands/utils/parse/package-info.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.impl.context.MessageContextImpl.java">dev/sympho/modular_commands/impl/context/MessageContextImpl.java</a>
                 </td>
                 <td>
                   0
@@ -564,20 +578,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.ReactiveLatch.java">dev/sympho/modular_commands/utils/ReactiveLatch.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.BooleanParser.java">dev/sympho/modular_commands/api/command/parameter/parse/BooleanParser.java</a>
                 </td>
                 <td>
@@ -746,7 +746,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.package-info.java">dev/sympho/modular_commands/utils/package-info.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.ReplySpec.java">dev/sympho/modular_commands/api/command/reply/ReplySpec.java</a>
                 </td>
                 <td>
                   0
@@ -760,7 +760,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.impl.CommandImpl.java">dev/sympho/modular_commands/impl/CommandImpl.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.package-info.java">dev/sympho/modular_commands/utils/package-info.java</a>
                 </td>
                 <td>
                   0
@@ -788,7 +788,21 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.builder.Builder.java">dev/sympho/modular_commands/utils/builder/Builder.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.Metrics.java">dev/sympho/modular_commands/execute/Metrics.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.SpecStyle.java">dev/sympho/modular_commands/utils/SpecStyle.java</a>
                 </td>
                 <td>
                   0
@@ -928,6 +942,20 @@ under the License.
               </tr>
                           <tr>
                 <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.Parsers.java">dev/sympho/modular_commands/api/command/parameter/parse/Parsers.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.package-info.java">dev/sympho/modular_commands/api/command/parameter/parse/package-info.java</a>
                 </td>
                 <td>
@@ -942,7 +970,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.Parsers.java">dev/sympho/modular_commands/api/command/parameter/parse/Parsers.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.CommandReplySpecGenerator.java">dev/sympho/modular_commands/api/command/reply/CommandReplySpecGenerator.java</a>
                 </td>
                 <td>
                   0
@@ -1068,7 +1096,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.builder.package-info.java">dev/sympho/modular_commands/utils/builder/package-info.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.Reply.java">dev/sympho/modular_commands/api/command/reply/Reply.java</a>
                 </td>
                 <td>
                   0
@@ -1323,6 +1351,20 @@ under the License.
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.Parameter.java">dev/sympho/modular_commands/api/command/parameter/Parameter.java</a>
                 </td>
                 <td>
+                  1
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.result.CommandResult.java">dev/sympho/modular_commands/api/command/result/CommandResult.java</a>
+                </td>
+                <td>
                   0
                 </td>
                 <td>
@@ -1348,7 +1390,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.result.CommandResult.java">dev/sympho/modular_commands/api/command/result/CommandResult.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.CommandExecutor.java">dev/sympho/modular_commands/execute/CommandExecutor.java</a>
                 </td>
                 <td>
                   0
@@ -1362,7 +1404,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.CommandExecutor.java">dev/sympho/modular_commands/execute/CommandExecutor.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.ReplyManager.java">dev/sympho/modular_commands/api/command/reply/ReplyManager.java</a>
                 </td>
                 <td>
                   0
@@ -1460,20 +1502,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.builder.ParameterBuilder.java">dev/sympho/modular_commands/utils/builder/ParameterBuilder.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.OptionalUtils.java">dev/sympho/modular_commands/utils/OptionalUtils.java</a>
                 </td>
                 <td>
@@ -1530,7 +1558,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.BaseHandler.java">dev/sympho/modular_commands/execute/BaseHandler.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.CommandReplyMonoGenerator.java">dev/sympho/modular_commands/api/command/reply/CommandReplyMonoGenerator.java</a>
                 </td>
                 <td>
                   0
@@ -1544,7 +1572,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.permission.Group.java">dev/sympho/modular_commands/api/permission/Group.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.BaseHandler.java">dev/sympho/modular_commands/execute/BaseHandler.java</a>
                 </td>
                 <td>
                   0
@@ -1572,7 +1600,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.parse.UrlParserUtils.java">dev/sympho/modular_commands/utils/parse/UrlParserUtils.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.permission.Group.java">dev/sympho/modular_commands/api/permission/Group.java</a>
                 </td>
                 <td>
                   0
@@ -1587,6 +1615,20 @@ under the License.
                           <tr>
                 <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.AliasProvider.java">dev/sympho/modular_commands/execute/AliasProvider.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.parse.UrlParserUtils.java">dev/sympho/modular_commands/utils/parse/UrlParserUtils.java</a>
                 </td>
                 <td>
                   0
@@ -1642,7 +1684,7 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.builder.CommandBuilder.java">dev/sympho/modular_commands/utils/builder/CommandBuilder.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.InstrumentedContext.java">dev/sympho/modular_commands/execute/InstrumentedContext.java</a>
                 </td>
                 <td>
                   0
@@ -1671,6 +1713,20 @@ under the License.
                           <tr>
                 <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.StringParser.java">dev/sympho/modular_commands/api/command/parameter/parse/StringParser.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.CommandReplyEditMonoGenerator.java">dev/sympho/modular_commands/api/command/reply/CommandReplyEditMonoGenerator.java</a>
                 </td>
                 <td>
                   0
@@ -1726,20 +1782,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.result.CommandContinue.java">dev/sympho/modular_commands/api/command/result/CommandContinue.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.utils.parse.RawParser.java">dev/sympho/modular_commands/utils/parse/RawParser.java</a>
                 </td>
                 <td>
@@ -1757,7 +1799,7 @@ under the License.
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.execute.PipelineBuilder.java">dev/sympho/modular_commands/execute/PipelineBuilder.java</a>
                 </td>
                 <td>
-                  0
+                  12
                 </td>
                 <td>
                   0
@@ -1810,20 +1852,6 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParserStages.java">dev/sympho/modular_commands/api/command/parameter/parse/AttachmentParserStages.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
                   <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.exception.CommandException.java">dev/sympho/modular_commands/api/exception/CommandException.java</a>
                 </td>
                 <td>
@@ -1838,7 +1866,35 @@ under the License.
               </tr>
                           <tr>
                 <td>
-                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.ReplyManager.java">dev/sympho/modular_commands/api/command/ReplyManager.java</a>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParserStages.java">dev/sympho/modular_commands/api/command/parameter/parse/AttachmentParserStages.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.impl.context.AbstractReplyManager.java">dev/sympho/modular_commands/impl/context/AbstractReplyManager.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://modular-commands.sympho.dev/checkstyle.html#dev.sympho.modular_commands.api.command.reply.package-info.java">dev/sympho/modular_commands/api/command/reply/package-info.java</a>
                 </td>
                 <td>
                   0

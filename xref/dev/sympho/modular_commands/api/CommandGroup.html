@@ -8,91 +8,89 @@
 <div id="overview"><a href="../../../../../apidocs/dev/sympho/modular_commands/api/CommandGroup.html">View Javadoc</a></div><pre>
 <a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> dev.sympho.modular_commands.api;
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   
-<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.Collection;
-<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.Set;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.stream.Collectors;
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.checkerframework.checker.nullness.qual.KeyFor;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.Pure;
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.SideEffectFree;
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.registry.Registry;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * Encapsulates a group of commands.</em>
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * @version 1.0</em>
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @since 1.0</em>
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @apiNote This interface is provided primarily to facilitate the use of dependency-injection</em>
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> *          (IoC) frameworks. For example, commands can be easily registered using Spring's</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> *          autowiring capabilities by grouping them into {@link CommandGroup} beans then</em>
-<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> *          having Spring collect and provide them to the initializer of a {@link Registry}</em>
-<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> *          bean, which can then register them.</em>
-<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L27" href="#L27">27</a>  @FunctionalInterface
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> {
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * Retrieves the commands contained in this group, keyed by their IDs.</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * @return The ID-keyed command group.</em>
-<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     * @implSpec As specified by the {@link Pure} annotation, this method should always return</em>
-<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">     *           the same map instance for a given {@link CommandGroup} instance. Additionally,</em>
-<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">     *           the map should be immutable. </em>
-<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>      @Pure
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>      Map&lt;String, Command&lt;?&gt;&gt; commands();
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * Retrives the IDs of the commands in this group.</em>
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     * @return The command IDs.</em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>      @Pure
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">default</strong> Set&lt;@KeyFor( <span class="jxr_string">"this.commands()"</span> ) String&gt; ids() {
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">return</strong> commands().keySet();
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>      }
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.Pure;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.SideEffectFree;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment"> * Encapsulates a group of commands.</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * @version 1.0</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @since 1.0</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * @apiNote This interface is provided primarily to facilitate the use of dependency-injection</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> *          (IoC) frameworks when commands must be created in distinct groups (i.e. cannot be</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> *          created individually) and the framework does not have a native way of merging</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> *          collections. In those cases, this type can be used to encapsulate these groups,</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> *          which can then be combined using {@link #merge(Collection)}.</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  @FunctionalInterface
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * Retrieves the commands contained in this group.</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * @return The command group.</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * @implSpec As specified by the {@link Pure} annotation, this method should always return</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     *           the same instance for a given {@link CommandGroup} instance. Additionally,</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     *           the collection should be immutable. </em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      @Pure
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      Collection&lt;Command&lt;?&gt;&gt; commands();
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     * Creates a command group from the given commands.</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">     * &lt;p&gt;Changes made to the given collection are not reflected in the returned instance.</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * @param commands The commands to turn into a command group.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     * @return The equivalent command group.</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      @SideEffectFree
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">static</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> of( <strong class="jxr_keyword">final</strong> Collection&lt;? <strong class="jxr_keyword">extends</strong> Command&lt;?&gt;&gt; commands ) {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">final</strong> Collection&lt;Command&lt;?&gt;&gt; copy = List.copyOf( commands );
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">return</strong> () -&gt; copy;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>  
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * Creates a command group from the given mappings.</em>
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     * </em>
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     * &lt;p&gt;Changes made to the given map are not reflected in the returned instance.</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     * Creates a command group from the given commands.</em>
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @param commands The ID-command mappings to turn into a command group.</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @param commands The commands to turn into a command group.</em>
 <a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     * @return The equivalent command group.</em>
 <a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L59" href="#L59">59</a>      @SideEffectFree
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">static</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> of( <strong class="jxr_keyword">final</strong> Map&lt;String, ? <strong class="jxr_keyword">extends</strong> Command&lt;?&gt;&gt; commands ) {
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <strong class="jxr_keyword">final</strong> Map&lt;String, Command&lt;?&gt;&gt; copy = Map.copyOf( commands );
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">return</strong> () -&gt; copy;
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment">     * Merges multiple command groups into one.</em>
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">     * @param groups The groups to merge.</em>
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">     * @return A group that contains all the commands in the merged groups.</em>
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">     * @throws IllegalStateException if there are duplicate command IDs.</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">static</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> of( <strong class="jxr_keyword">final</strong> Command&lt;?&gt;... commands ) {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">return</strong> of( Arrays.asList( commands ) );
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      }
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">     * Merges multiple command groups into one.</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  <em class="jxr_javadoccomment">     * @param groups The groups to merge.</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">     * @return A group that contains all the commands in the merged groups.</em>
 <a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L72" href="#L72">72</a>      @SideEffectFree
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>      @SuppressWarnings( <span class="jxr_string">"methodref.return"</span> )
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">static</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> merge( <strong class="jxr_keyword">final</strong> Collection&lt;CommandGroup&gt; groups )
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>              <strong class="jxr_keyword">throws</strong> IllegalStateException {
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> commands = groups.stream()
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  .map( CommandGroup::commands )
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  .map( Map::entrySet )
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>                  .flatMap( Set::stream )
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>                  .collect( Collectors.toMap( Entry::getKey, Entry::getValue ) );
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <em class="jxr_comment">//@SuppressWarnings( "methodref.return" )</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">static</strong> <a name="CommandGroup" href="../../../../dev/sympho/modular_commands/api/CommandGroup.html#CommandGroup">CommandGroup</a> merge( <strong class="jxr_keyword">final</strong> Collection&lt;CommandGroup&gt; groups ) {
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> commands = groups.stream()
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  .map( CommandGroup::commands )
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  .flatMap( Collection::stream )
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  .toList();
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">return</strong> of( commands );
 <a class="jxr_linenumber" name="L82" href="#L82">82</a>  
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">return</strong> of( commands );
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>      }
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>      
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>  }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2023. All rights reserved.</div>

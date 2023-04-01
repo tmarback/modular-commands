@@ -33,9 +33,9 @@
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">     * @param context The context of the command.</em>
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment">     * @param result The result of the command.</em>
 <a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">     * @return A Mono that issues</em>
-<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     *         {@code true} if the result should continue to be processed by subsequent handlers,</em>
-<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     *         {@code false} if the result was fully handled and no longer needs to be processed.</em>
-<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     *         The Mono may also be empty, in which case handling stops (as if {@code false}).</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     *         {@code true} if the result was fully handled and no longer needs to be processed,</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     *         {@code false} if the result should continue to be processed by subsequent handlers.</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     *         The Mono may also be empty, in which case it is equivalent to {@code false}.</em>
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * @apiNote Unlike an invocation handler, this handler is &lt;i&gt;not&lt;/i&gt; free to throw any </em>
 <a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     *          exceptions. This is due to the fact that no further handling will be done if</em>
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     *          a result handler encounters an error, other than logging the exception.</em>
