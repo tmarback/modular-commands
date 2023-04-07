@@ -9,6 +9,7 @@ import org.immutables.value.Value;
 import dev.sympho.d4j_encoding_extra.MetaExtraEncodingEnabled;
 import dev.sympho.modular_commands.utils.SpecStyle;
 import discord4j.core.object.component.LayoutComponent;
+import discord4j.core.object.entity.Attachment;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.core.spec.MessageCreateFields;
@@ -76,8 +77,12 @@ interface CommandReplyEditSpecGenerator {
      */
     Possible<Optional<List<LayoutComponent>>> components();
 
-    // TODO: Upcoming in D4J
-    // Possible<Optional<List<Attachment>>> attachments();
+    /**
+     * The new attachments.
+     *
+     * @return The value.
+     */
+    Possible<Optional<List<Attachment>>> attachments();
 
     /**
      * Converts this spec into a message edit spec.
@@ -94,6 +99,7 @@ interface CommandReplyEditSpecGenerator {
                 .fileSpoilers( fileSpoilers() )
                 .allowedMentions( allowedMentions() )
                 .components( components() )
+                .attachments( attachments() )
                 .build();
 
     }
@@ -114,6 +120,7 @@ interface CommandReplyEditSpecGenerator {
                 .fileSpoilers( spec.fileSpoilers() )
                 .allowedMentions( spec.allowedMentions() )
                 .components( spec.components() )
+                .attachments( spec.attachments() )
                 .build();
 
     }
@@ -133,6 +140,7 @@ interface CommandReplyEditSpecGenerator {
                 .fileSpoilers( fileSpoilers() )
                 .allowedMentions( allowedMentions() )
                 .components( components() )
+                .attachments( attachments() )
                 .build();
 
     }
@@ -153,6 +161,7 @@ interface CommandReplyEditSpecGenerator {
                 .fileSpoilers( spec.fileSpoilers() )
                 .allowedMentions( spec.allowedMentions() )
                 .components( spec.components() )
+                .attachments( spec.attachments() )
                 .build();
 
     }
