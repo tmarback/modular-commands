@@ -3,15 +3,11 @@ package dev.sympho.modular_commands.execute;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.apache.commons.collections4.ListUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.modular_commands.api.command.Invocation;
-import discord4j.common.util.Snowflake;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -123,78 +119,6 @@ public final class Metrics {
             @Override
             public String value() {
                 return name().toLowerCase();
-            }
-
-        }
-
-        /** 
-         * The tag that indicates the command invocation.
-         *
-         * @param invocation The invocation.
-         * @param canonical {@code true} if the invocation is the canonical one 
-         *                  (with aliases resolved).
-         *                  {@code false} if the invocation is the one called by user 
-         *                  (may have aliases).
-         * @since 1.0
-         */
-        record CommandInvocation(
-                Invocation invocation,
-                boolean canonical
-        ) implements Tag {
-
-            /** The prefix for the tag names. */
-            public static final String NAME_PREFIX = "invocation";
-
-            /** The tag name for a called invocation. */
-            private static final String NAME_CALLED = Metrics.name( NAME_PREFIX );
-
-            /** The tag name for a canonical invocation. */
-            private static final String NAME_CANONICAL = Metrics.name( NAME_PREFIX, "canonical" );
-
-            /**
-             * Creates a new instance.
-             *
-             * @param invocation The invocation.
-             * @param canonical {@code true} if the invocation is the canonical one 
-             *                  (with aliases resolved).
-             *                  {@code false} if the invocation is the one called by user 
-             *                  (may have aliases).
-             */
-            public CommandInvocation( final Invocation invocation, final boolean canonical ) {
-                
-                this.invocation = Objects.requireNonNull( invocation );
-                this.canonical = canonical;
-
-            }
-
-            /**
-             * Creates a tag with the given called invocation as value.
-             *
-             * @param invocation The invocation.
-             * @return The created tag.
-             */
-            public static CommandInvocation called( final Invocation invocation ) {
-                return new CommandInvocation( invocation, false );
-            }
-
-            /**
-             * Creates a tag with the given canonical invocation as value.
-             *
-             * @param invocation The invocation.
-             * @return The created tag.
-             */
-            public static CommandInvocation canonical( final Invocation invocation ) {
-                return new CommandInvocation( invocation, true );
-            }
-
-            @Override
-            public String key() {
-                return canonical ? NAME_CANONICAL : NAME_CALLED;
-            }
-
-            @Override
-            public String value() {
-                return String.join( ",", invocation );
             }
 
         }
