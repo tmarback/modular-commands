@@ -148,13 +148,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
     }
 
-    @Override
-    public final <T> Mono<T> addTags( final Mono<T> mono ) {
-
-        return mono.transform( tagType()::apply );
-
-    }
-
     /**
      * Creates the initial reply manager.
      *
