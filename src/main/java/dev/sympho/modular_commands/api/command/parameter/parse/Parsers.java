@@ -967,7 +967,7 @@ public final class Parsers {
      *
      * @param <T> The parsed argument type.
      * @param validator The validator to use.
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @param parser The parser to use.
      * @return The parser.
      * @throws IllegalArgumentException if the size is negative.
@@ -998,7 +998,7 @@ public final class Parsers {
      * receiving attachment data (other than the size limit).
      *
      * @param <T> The parsed argument type.
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @param parser The parser to use.
      * @return The parser.
      */
@@ -1035,7 +1035,7 @@ public final class Parsers {
      * received in a text file.
      *
      * @param <T> The parsed argument type.
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @param parser The parser to use.
      * @return The parser.
      */
@@ -1069,7 +1069,7 @@ public final class Parsers {
     /**
      * Creates a parser that receives the plain contents of a text file.
      *
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @return The parser.
      */
     @SideEffectFree
@@ -1686,7 +1686,7 @@ public final class Parsers {
      *
      * @param <T> The argument type.
      * @param validator The validator to use.
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @param parser The parser to use.
      * @since 1.0
      */
@@ -1724,7 +1724,7 @@ public final class Parsers {
      * A parser for text file attachment values.
      *
      * @param <T> The argument type.
-     * @param maxSize The maximum file size allowed.
+     * @param maxSize The maximum file size allowed, in bytes.
      * @param parser The function to use to parse values.
      * @since 1.0
      */

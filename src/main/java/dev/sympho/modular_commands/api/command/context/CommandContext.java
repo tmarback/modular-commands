@@ -95,7 +95,7 @@ public interface CommandContext extends AccessValidator {
     User getCaller();
 
     /**
-     * Retries the user that called the command as a guild
+     * Retrieves the user that called the command as a guild
      * member as provided by the triggering event, if
      * present.
      *
