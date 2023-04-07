@@ -48,7 +48,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
-        <checker.version>3.29.0</checker.version> <!-- Version of the Checker framework used -->
+        <checker.version>3.33.0</checker.version> <!-- Version of the Checker framework used -->
         <d4j.version>3.2.3</d4j.version> <!-- Version of Discord4J used -->
         <reporter.version>1.1.0</reporter.version> <!-- Version of the tree reporter used -->
     </properties>
@@ -723,20 +723,20 @@
                                         <annotationProcessor>org.checkerframework.checker.interning.InterningChecker</annotationProcessor>
                                         <!-- <annotationProcessor>org.checkerframework.checker.lock.LockChecker</annotationProcessor> --> <!-- Not currently compatible with Streams (https://github.com/typetools/checker-framework/issues/5012) -->
                                         <!-- <annotationProcessor>org.checkerframework.checker.index.IndexChecker</annotationProcessor> --> <!-- Crashes with pattern matching (https://github.com/typetools/checker-framework/issues/5013) -->
-                                        <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor>
+                                        <!-- <annotationProcessor>org.checkerframework.checker.fenum.FenumChecker</annotationProcessor> --> <!-- Causes bound issues, not using fenum anyway -->
                                         <annotationProcessor>org.checkerframework.checker.tainting.TaintingChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.regex.RegexChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.formatter.FormatterChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.signedness.SignednessChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.common.initializedfields.InitializedFieldsChecker</annotationProcessor>
                                         <annotationProcessor>org.checkerframework.checker.resourceleak.ResourceLeakChecker</annotationProcessor>
-                                        
                                     </annotationProcessors>
                                     <compilerArgs>
                                         <arg>-Xlint:all,-processing,-requires-transitive-automatic,-requires-automatic</arg>
                                         <!-- <arg>-AreportEvalWarns</arg> --> <!-- TODO: Too many issues for the time being -->
                                         <arg>-Astubs=./stubs</arg>
                                         <arg>-AstubWarnIfNotFoundIgnoresClasses</arg>
+                                        <arg>-AshowPrefixInWarningMessages</arg>
                                         <!-- I don't need to know what didn't run, spammy -->
                                         <arg>-AsuppressWarnings=type.checking.not.run</arg>
                                         <!-- Manually open JDK packages until checker supports modules -->
