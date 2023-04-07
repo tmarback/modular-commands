@@ -352,6 +352,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
         return getter.apply( parameter.name() )
                 .switchIfEmpty( handleMissingArgument( parameter ) )
+                .map( parser::validateRaw )
                 // Note flatMap automatically packs exceptions thrown by parse()
                 .flatMap( raw -> parser.parse( this, raw ) )
                 .switchIfEmpty( Mono.justOrEmpty( parameter.defaultValue() ) )
