@@ -204,7 +204,7 @@ jobs:
           find . ! -path './.git/*' ! -path './.git' ! -path . -type d -exec rm -rf {} +
           find . ! -path './.git/*' ! -path './CNAME' -type f -exec rm -f {} +
       - name: Download site artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: site
       - name: Unpack the artifact
