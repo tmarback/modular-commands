@@ -1,7 +1,6 @@
 package dev.sympho.modular_commands.api.command.parameter.parse;
 
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -117,7 +116,7 @@ public interface AttachmentDataParser<T extends @NonNull Object>
     final class Resources {
 
         /**
-         * The default {@link #setClientGetter(Function) HTTP client getter}.
+         * The default {@link #setClientGetter(HttpClientRetriever) HTTP client getter}.
          * 
          * <p>It uses the client in the 
          * {@link discord4j.rest.RestResources#getReactorResources() reactor resources}
