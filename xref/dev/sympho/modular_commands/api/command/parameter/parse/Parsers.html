@@ -975,7 +975,7 @@
 <a class="jxr_linenumber" name="L967" href="#L967">967</a> <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L968" href="#L968">968</a> <em class="jxr_javadoccomment">     * @param &lt;T&gt; The parsed argument type.</em>
 <a class="jxr_linenumber" name="L969" href="#L969">969</a> <em class="jxr_javadoccomment">     * @param validator The validator to use.</em>
-<a class="jxr_linenumber" name="L970" href="#L970">970</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L970" href="#L970">970</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L971" href="#L971">971</a> <em class="jxr_javadoccomment">     * @param parser The parser to use.</em>
 <a class="jxr_linenumber" name="L972" href="#L972">972</a> <em class="jxr_javadoccomment">     * @return The parser.</em>
 <a class="jxr_linenumber" name="L973" href="#L973">973</a> <em class="jxr_javadoccomment">     * @throws IllegalArgumentException if the size is negative.</em>
@@ -1006,7 +1006,7 @@
 <a class="jxr_linenumber" name="L998" href="#L998">998</a> <em class="jxr_javadoccomment">     * receiving attachment data (other than the size limit).</em>
 <a class="jxr_linenumber" name="L999" href="#L999">999</a> <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L1000" href="#L1000">1000</a> <em class="jxr_javadoccomment">     * @param &lt;T&gt; The parsed argument type.</em>
-<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L1002" href="#L1002">1002</a> <em class="jxr_javadoccomment">     * @param parser The parser to use.</em>
 <a class="jxr_linenumber" name="L1003" href="#L1003">1003</a> <em class="jxr_javadoccomment">     * @return The parser.</em>
 <a class="jxr_linenumber" name="L1004" href="#L1004">1004</a> <em class="jxr_javadoccomment">     */</em>
@@ -1043,7 +1043,7 @@
 <a class="jxr_linenumber" name="L1035" href="#L1035">1035</a> <em class="jxr_javadoccomment">     * received in a text file.</em>
 <a class="jxr_linenumber" name="L1036" href="#L1036">1036</a> <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L1037" href="#L1037">1037</a> <em class="jxr_javadoccomment">     * @param &lt;T&gt; The parsed argument type.</em>
-<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L1039" href="#L1039">1039</a> <em class="jxr_javadoccomment">     * @param parser The parser to use.</em>
 <a class="jxr_linenumber" name="L1040" href="#L1040">1040</a> <em class="jxr_javadoccomment">     * @return The parser.</em>
 <a class="jxr_linenumber" name="L1041" href="#L1041">1041</a> <em class="jxr_javadoccomment">     */</em>
@@ -1077,7 +1077,7 @@
 <a class="jxr_linenumber" name="L1069" href="#L1069">1069</a>     <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L1070" href="#L1070">1070</a> <em class="jxr_javadoccomment">     * Creates a parser that receives the plain contents of a text file.</em>
 <a class="jxr_linenumber" name="L1071" href="#L1071">1071</a> <em class="jxr_javadoccomment">     *</em>
-<a class="jxr_linenumber" name="L1072" href="#L1072">1072</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L1072" href="#L1072">1072</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L1073" href="#L1073">1073</a> <em class="jxr_javadoccomment">     * @return The parser.</em>
 <a class="jxr_linenumber" name="L1074" href="#L1074">1074</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1075" href="#L1075">1075</a>     @SideEffectFree
@@ -1694,7 +1694,7 @@
 <a class="jxr_linenumber" name="L1686" href="#L1686">1686</a> <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L1687" href="#L1687">1687</a> <em class="jxr_javadoccomment">     * @param &lt;T&gt; The argument type.</em>
 <a class="jxr_linenumber" name="L1688" href="#L1688">1688</a> <em class="jxr_javadoccomment">     * @param validator The validator to use.</em>
-<a class="jxr_linenumber" name="L1689" href="#L1689">1689</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L1689" href="#L1689">1689</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L1690" href="#L1690">1690</a> <em class="jxr_javadoccomment">     * @param parser The parser to use.</em>
 <a class="jxr_linenumber" name="L1691" href="#L1691">1691</a> <em class="jxr_javadoccomment">     * @since 1.0</em>
 <a class="jxr_linenumber" name="L1692" href="#L1692">1692</a> <em class="jxr_javadoccomment">     */</em>
@@ -1732,7 +1732,7 @@
 <a class="jxr_linenumber" name="L1724" href="#L1724">1724</a> <em class="jxr_javadoccomment">     * A parser for text file attachment values.</em>
 <a class="jxr_linenumber" name="L1725" href="#L1725">1725</a> <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L1726" href="#L1726">1726</a> <em class="jxr_javadoccomment">     * @param &lt;T&gt; The argument type.</em>
-<a class="jxr_linenumber" name="L1727" href="#L1727">1727</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed.</em>
+<a class="jxr_linenumber" name="L1727" href="#L1727">1727</a> <em class="jxr_javadoccomment">     * @param maxSize The maximum file size allowed, in bytes.</em>
 <a class="jxr_linenumber" name="L1728" href="#L1728">1728</a> <em class="jxr_javadoccomment">     * @param parser The function to use to parse values.</em>
 <a class="jxr_linenumber" name="L1729" href="#L1729">1729</a> <em class="jxr_javadoccomment">     * @since 1.0</em>
 <a class="jxr_linenumber" name="L1730" href="#L1730">1730</a> <em class="jxr_javadoccomment">     */</em>
