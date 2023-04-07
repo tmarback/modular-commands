@@ -1,8 +1,13 @@
 package dev.sympho.modular_commands.api.command.parameter.parse;
 
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
 import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParserStages.Parser;
@@ -24,6 +29,9 @@ import reactor.netty.http.client.HttpClientResponse;
 @FunctionalInterface
 public interface AttachmentDataParser<T extends @NonNull Object> 
         extends AttachmentParser<T>, Validator, Parser<T> {
+
+    /** Resources used by all instances. */
+    Resources GLOBAL_RESOURCES = new Resources();
 
     /**
      * @implSpec The default is a no-op.
@@ -72,6 +80,21 @@ public interface AttachmentDataParser<T extends @NonNull Object>
     }
 
     /**
+     * Determines the HTTP client to use to fetch the attachment.
+     *
+     * @param context The execution context.
+     * @return The HTTP client to use.
+     * @implSpec The default delegates to 
+     *           {@link #GLOBAL_RESOURCES}.{@link Resources#getClientGetter()}.
+     */
+    @SideEffectFree
+    default HttpClient getHttpClient( final CommandContext context ) {
+
+        return GLOBAL_RESOURCES.getClientGetter().getClient( context );
+
+    }
+
+    /**
      * @implSpec Fetches the attachment from the {@link #getUrl(Attachment) URL} using a 
      *           client obtained by {@link HttpClient#create()} then delegates to
      *           {@link #parse(CommandContext, HttpClientResponse, ByteBufMono)}.
@@ -80,9 +103,113 @@ public interface AttachmentDataParser<T extends @NonNull Object>
     default Mono<T> parseArgument( final CommandContext context, final Attachment raw ) 
             throws InvalidArgumentException {
 
-        return HttpClient.create().get()
+        return getHttpClient( context ).get()
                 .uri( getUrl( raw ) )
                 .responseSingle( ( response, body ) -> parse( context, response, body ) );
+
+    }
+
+    /**
+     * Resources used by an instance.
+     *
+     * @since 1.0
+     */
+    final class Resources {
+
+        /**
+         * The default {@link #setClientGetter(Function) HTTP client getter}.
+         * 
+         * <p>It uses the client in the 
+         * {@link discord4j.rest.RestResources#getReactorResources() reactor resources}
+         * of the invoking {@link CommandContext#getClient() discord client}'s
+         * {@link discord4j.core.GatewayDiscordClient#getCoreResources() core resources}
+         * (the client used for interacting with Discord's API).
+         */
+        public static final HttpClientRetriever DEFAULT_CLIENT_GETTER = 
+                c -> c.getClient()
+                        .getCoreResources()
+                        .getReactorResources()
+                        .getHttpClient();
+
+        /** The HTTP client getter. */
+        private HttpClientRetriever clientGetter = DEFAULT_CLIENT_GETTER;
+
+        /** Creates a new instance. */
+        private Resources() {}
+
+        /**
+         * Sets the given function to be used to obtain an HTTP client for fetching attachment
+         * data unless overriden by the parser.
+         *
+         * @param getter The getter function to use.
+         * @return The getter that was replaced.
+         */
+        public synchronized HttpClientRetriever setClientGetter( 
+                final HttpClientRetriever getter ) {
+
+            final var cur = clientGetter;
+            clientGetter = Objects.requireNonNull( getter );
+            return cur;
+    
+        }
+
+        /**
+         * Sets the given supplier to be used to obtain an HTTP client for fetching attachment
+         * data unless overriden by the parser.
+         *
+         * @param supplier The supplier to use.
+         * @return The getter that was replaced.
+         */
+        public HttpClientRetriever setClientGetter( 
+                final Supplier<? extends HttpClient> supplier ) {
+
+            return setClientGetter( ctx -> supplier.get() );
+    
+        }
+
+        /**
+         * Sets the given HTTP client to be used for fetching attachment
+         * data unless overriden by the parser.
+         *
+         * @param client The client to use.
+         * @return The getter that was replaced.
+         */
+        public HttpClientRetriever setClientGetter( final HttpClient client ) {
+
+            return setClientGetter( ctx -> client );
+    
+        }
+
+        /**
+         * Retrieves the function to be used to obtain an HTTP client for fetching attachment
+         * data unless overriden by the parser.
+         *
+         * @return The getter function.
+         */
+        public HttpClientRetriever getClientGetter() {
+
+            return clientGetter;
+
+        }
+
+        /**
+         * A function that determines the HTTP client that should be used to fetch an attachment's
+         * data based on the execution context.
+         *
+         * @since 1.0
+         */
+        @FunctionalInterface
+        public interface HttpClientRetriever {
+
+            /**
+             * Determines the HTTP client to use with the given execution context.
+             *
+             * @param context The execution context.
+             * @return The HTTP client to use.
+             */
+            HttpClient getClient( CommandContext context );
+
+        }
 
     }
     
