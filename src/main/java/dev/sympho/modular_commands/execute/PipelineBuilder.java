@@ -278,11 +278,7 @@ public abstract class PipelineBuilder<E extends Event,
     @SideEffectFree
     protected final <T> Function<Mono<T>, Mono<T>> addTags( final E event ) {
 
-        return m -> m
-                .transform( tagType()::apply )
-                .transform( Metrics.Tag.Guild.from( getGuildId( event ) )::apply )
-                .transform( Metrics.Tag.Channel.from( getChannelId( event ) )::apply )
-                .transform( Metrics.Tag.Caller.from( getCaller( event ).getId() )::apply );
+        return m -> m.transform( tagType()::apply );
 
     }
 

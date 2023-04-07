@@ -151,11 +151,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     @Override
     public final <T> Mono<T> addTags( final Mono<T> mono ) {
 
-        return mono
-                .transform( tagType()::apply )
-                .transform( Metrics.Tag.Guild.from( getGuildId() )::apply )
-                .transform( Metrics.Tag.Channel.from( getChannelId() )::apply )
-                .transform( Metrics.Tag.Caller.from( getCaller().getId() )::apply );
+        return mono.transform( tagType()::apply );
 
     }
 

@@ -44,9 +44,6 @@ public interface InstrumentedContext extends CommandContext {
 
         return mono
                 .transform( tagType()::apply )
-                .transform( Metrics.Tag.Guild.from( getGuildId() )::apply )
-                .transform( Metrics.Tag.Channel.from( getChannelId() )::apply )
-                .transform( Metrics.Tag.Caller.from( getCaller().getId() )::apply )
                 .transform( Metrics.Tag.CommandInvocation.called( getInvocation() )::apply )
                 .transform( Metrics.Tag.CommandInvocation.canonical( 
                         getCommandInvocation() )::apply )
