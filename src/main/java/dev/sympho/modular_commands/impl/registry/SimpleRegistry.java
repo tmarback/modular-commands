@@ -85,6 +85,10 @@ public final class SimpleRegistry implements Registry {
         CommandUtils.validateCommand( command );
 
         final String id = command.id();
+        if ( commands.containsKey( id ) ) {
+            LOGGER.error( "Attempting to register command with duplicate ID {}", id );
+            return false;
+        }
 
         LOGGER.info( "Registering command {}", id );
 
