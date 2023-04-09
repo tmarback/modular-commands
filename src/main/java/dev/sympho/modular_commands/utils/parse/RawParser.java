@@ -7,6 +7,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
+import dev.sympho.modular_commands.api.command.parameter.parse.ParserFunction;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
@@ -77,6 +78,29 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
     };
 
     /**
+     * Creates a raw parser that deletegates to the given parser function with the given context.
+     *
+     * @param <R> The raw value type.
+     * @param context The execution context.
+     * @param parser The parser to delegate to.
+     * @return The created parser.
+     */
+    private static <R extends @NonNull Object> RawParser<R> from( 
+            final CommandContext context, final ParserFunction<String, R> parser ) {
+
+        return raw -> {
+
+            try {
+                return parser.parse( context, raw );
+            } catch ( final InvalidArgumentException ex ) {
+                return Mono.error( ex );
+            }
+
+        };
+
+    }
+
+    /**
      * Creates a parser for messages with the given context.
      *
      * @param context The context to use.
@@ -84,7 +108,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Message> message( final CommandContext context ) {
-        return raw -> ParseUtils.MESSAGE.parse( context, raw );
+        return from( context, ParseUtils.MESSAGE );
     }
 
     /**
@@ -95,7 +119,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<User> user( final CommandContext context ) {
-        return raw -> ParseUtils.USER.parse( context, raw );
+        return from( context, ParseUtils.USER );
     }
 
     /**
@@ -106,7 +130,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Role> role( final CommandContext context ) {
-        return raw -> ParseUtils.ROLE.parse( context, raw );
+        return from( context, ParseUtils.ROLE );
     }
 
     /**
@@ -121,8 +145,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
     static <C extends @NonNull Channel> RawParser<C> channel( 
             final CommandContext context, final Class<C> type ) {
         // Can't use a static parser due to the generics
-        final var parser = ParseUtils.channel( type );
-        return raw -> parser.parse( context, raw );
+        return from( context, ParseUtils.channel( type ) );
     }
 
     /**
@@ -133,7 +156,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Snowflake> messageId( final CommandContext context ) {
-        return raw -> ParseUtils.MESSAGE_ID.parse( context, raw );
+        return from( context, ParseUtils.MESSAGE_ID );
     }
 
     /**
@@ -144,7 +167,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Snowflake> userId( final CommandContext context ) {
-        return raw -> ParseUtils.USER_ID.parse( context, raw );
+        return from( context, ParseUtils.USER_ID );
     }
 
     /**
@@ -155,7 +178,7 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Snowflake> roleId( final CommandContext context ) {
-        return raw -> ParseUtils.ROLE_ID.parse( context, raw );
+        return from( context, ParseUtils.ROLE_ID );
     }
 
     /**
@@ -166,14 +189,15 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
      */
     @SideEffectFree
     static RawParser<Snowflake> channelId( final CommandContext context ) {
-        return raw -> ParseUtils.CHANNEL_ID.parse( context, raw );
+        return from( context, ParseUtils.CHANNEL_ID );
     }
 
     /**
      * Parses the given string into a raw value.
      *
      * @param raw The original string.
-     * @return The pre-parsed raw value.
+     * @return The pre-parsed raw value. May fail with a {@link InvalidArgumentException}
+     *         if the received value is invalid.
      */
     @SideEffectFree
     Mono<R> parse( String raw );
