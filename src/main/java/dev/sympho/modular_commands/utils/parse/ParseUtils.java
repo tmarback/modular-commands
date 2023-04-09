@@ -8,9 +8,17 @@ import dev.sympho.modular_commands.api.command.parameter.parse.ParserFunction;
 import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.utils.parse.entity.ChannelParser;
+import dev.sympho.modular_commands.utils.parse.entity.ChannelRefParser;
+import dev.sympho.modular_commands.utils.parse.entity.EntityRef.ChannelRef;
+import dev.sympho.modular_commands.utils.parse.entity.EntityRef.MessageRef;
+import dev.sympho.modular_commands.utils.parse.entity.EntityRef.RoleRef;
+import dev.sympho.modular_commands.utils.parse.entity.EntityRef.UserRef;
 import dev.sympho.modular_commands.utils.parse.entity.MessageParser;
+import dev.sympho.modular_commands.utils.parse.entity.MessageRefParser;
 import dev.sympho.modular_commands.utils.parse.entity.RoleParser;
+import dev.sympho.modular_commands.utils.parse.entity.RoleRefParser;
 import dev.sympho.modular_commands.utils.parse.entity.UserParser;
+import dev.sympho.modular_commands.utils.parse.entity.UserRefParser;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
@@ -58,6 +66,32 @@ public final class ParseUtils {
     /** Parser for roles from strings. */
     public static final RoleParser ROLE = new RoleParser();
 
+    /** Parser for message references from strings. */
+    public static final MessageRefParser MESSAGE_REF = new MessageRefParser();
+
+    /** Parser for user references from strings. */
+    public static final UserRefParser USER_REF = new UserRefParser();
+
+    /** Parser for role references from strings. */
+    public static final RoleRefParser ROLE_REF = new RoleRefParser();
+
+    /** Parser for message IDs from strings. */
+    public static final ParserFunction<String, Snowflake> MESSAGE_ID = 
+            MESSAGE_REF.then( Parsers.simple( MessageRef::id ) );
+
+    /** Parser for user IDs from strings. */
+    public static final ParserFunction<String, Snowflake> USER_ID = 
+            USER_REF.then( Parsers.simple( UserRef::id ) );
+
+    /** Parser for role IDs from strings. */
+    public static final ParserFunction<String, Snowflake> ROLE_ID = 
+            ROLE_REF.then( Parsers.simple( RoleRef::id ) );
+
+    /** Parser for channel IDs from strings. */
+    // Since it's just ID the type doesn't make a difference, so just use the bound
+    public static final ParserFunction<String, Snowflake> CHANNEL_ID =
+            channelRef( Channel.class ).then( Parsers.simple( ChannelRef::id ) );
+
     /**
      * Creates a parser for channels of the given type.
      *
@@ -70,6 +104,20 @@ public final class ParseUtils {
             final Class<C> type ) {
         // Can't use a static parser due to the generics
         return new ChannelParser<>( type );
+    }
+
+    /**
+     * Creates a parser for channel references of the given type.
+     *
+     * @param <C> The channel type.
+     * @param type The type.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <C extends @NonNull Channel> ChannelRefParser<C> channelRef( 
+            final Class<C> type ) {
+        // Can't use a static parser due to the generics
+        return new ChannelRefParser<>( type );
     }
     
     /* Adapters */

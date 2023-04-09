@@ -126,6 +126,50 @@ public interface RawParser<R extends @NonNull Object> extends Function<String, M
     }
 
     /**
+     * Creates a parser for message IDs with the given context.
+     *
+     * @param context The context to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    static RawParser<Snowflake> messageId( final CommandContext context ) {
+        return raw -> ParseUtils.MESSAGE_ID.parse( context, raw );
+    }
+
+    /**
+     * Creates a parser for user IDs with the given context.
+     *
+     * @param context The context to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    static RawParser<Snowflake> userId( final CommandContext context ) {
+        return raw -> ParseUtils.USER_ID.parse( context, raw );
+    }
+
+    /**
+     * Creates a parser for role IDs with the given context.
+     *
+     * @param context The context to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    static RawParser<Snowflake> roleId( final CommandContext context ) {
+        return raw -> ParseUtils.ROLE_ID.parse( context, raw );
+    }
+
+    /**
+     * Creates a parser for channel IDs with the given context.
+     *
+     * @param context The context to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    static RawParser<Snowflake> channelId( final CommandContext context ) {
+        return raw -> ParseUtils.CHANNEL_ID.parse( context, raw );
+    }
+
+    /**
      * Parses the given string into a raw value.
      *
      * @param raw The original string.

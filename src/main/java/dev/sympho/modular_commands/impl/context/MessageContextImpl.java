@@ -273,7 +273,13 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     protected Mono<Snowflake> getSnowflakeArgument( final String name,
             final SnowflakeParser.Type type ) throws InvalidArgumentException {
 
-        return parse( name, RawParser.SNOWFLAKE );
+        return parse( name, switch ( type ) {
+            case ANY -> RawParser.SNOWFLAKE;
+            case CHANNEL -> RawParser.channelId( this );
+            case MESSAGE -> RawParser.messageId( this );
+            case ROLE -> RawParser.roleId( this );
+            case USER -> RawParser.userId( this );
+        } );
 
     }
 
