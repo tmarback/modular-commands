@@ -1,4 +1,4 @@
-package dev.sympho.modular_commands.utils.parse;
+package dev.sympho.modular_commands.utils.parse.entity;
 
 import java.net.URL;
 
@@ -9,18 +9,20 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
-import discord4j.core.GatewayDiscordClient;
+import dev.sympho.modular_commands.utils.parse.UrlParser;
+import dev.sympho.modular_commands.utils.parse.UrlParserUtils;
 import discord4j.core.object.entity.Entity;
 import reactor.core.publisher.Mono;
 
 /**
- * A parser for URLs of Discord entities.
+ * A parser for URLs of Discord entities to references.
  *
- * @param <E> The entity type.
+ * @param <R> The reference type.
  * @version 1.0
  * @since 1.0
  */
-public abstract class EntityUrlParser<E extends @NonNull Entity> implements UrlParser<E> {
+public abstract class EntityRefUrlParser<R extends EntityRef<? extends @NonNull Entity>> 
+        implements UrlParser<R> {
 
     /**
      * Checks if the given path (endpoint) is valid for the entity type of this parser.
@@ -34,12 +36,11 @@ public abstract class EntityUrlParser<E extends @NonNull Entity> implements UrlP
     /**
      * Parses the URL path.
      *
-     * @param client The Discord client.
      * @param path The path.
      * @return The parsed entity, or {@code null} if the path is not valid.
      */
     @SideEffectFree
-    protected abstract @Nullable Mono<E> parsePath( GatewayDiscordClient client, String path );
+    protected abstract @Nullable R parsePath( String path );
 
     /**
      * Gets the display name for this type.
@@ -71,21 +72,50 @@ public abstract class EntityUrlParser<E extends @NonNull Entity> implements UrlP
 
     }
 
-    @Override
-    public Mono<E> parse( final CommandContext context, final URL url ) 
-            throws InvalidArgumentException {
+    /**
+     * Parses the given URL into the corresponding reference.
+     *
+     * @param url The URL to parse.
+     * @return The parsed reference. May fail with a {@link InvalidArgumentException} if not
+     *         a valid reference URL.
+     * @throws InvalidArgumentException if not a valid reference URL.
+     */
+    @SideEffectFree
+    public final R parse( final URL url ) throws InvalidArgumentException {
 
         if ( !baseValid( url ) ) {
             throw new InvalidArgumentException( "Not a valid Discord URL: %s".formatted( url ) );
         }
 
-        final var res = parsePath( context.getClient(), url.getPath() );
+        final var res = parsePath( url.getPath() );
         if ( res == null ) {
             throw new InvalidArgumentException( "Not a valid %s URL: %s".formatted( 
                     typeName(), url ) );
         } else {
             return res;
         }
+
+    }
+
+    /**
+     * Parses the given string as a reference URL.
+     *
+     * @param raw The string to parse.
+     * @return The parsed reference.
+     * @throws InvalidArgumentException if the given string is not a valid reference URL.
+     */
+    @SideEffectFree
+    public final R parse( final String raw ) throws InvalidArgumentException {
+
+        return parse( UrlParser.getUrl( raw ) );
+
+    }
+
+    @Override
+    public final Mono<R> parse( final CommandContext context, final URL url ) 
+            throws InvalidArgumentException {
+
+        return Mono.just( parse( url ) );
 
     }
     

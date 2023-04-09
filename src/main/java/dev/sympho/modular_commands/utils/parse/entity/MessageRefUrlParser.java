@@ -1,14 +1,12 @@
-package dev.sympho.modular_commands.utils.parse;
+package dev.sympho.modular_commands.utils.parse.entity;
 
 import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.checker.nullness.util.NullnessUtil;
 
+import dev.sympho.modular_commands.utils.parse.entity.EntityRef.MessageRef;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.Message;
-import reactor.core.publisher.Mono;
 
 /**
  * A parser for message URLs.
@@ -16,7 +14,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public class MessageUrlParser extends EntityUrlParser<Message> {
+public class MessageRefUrlParser extends EntityRefUrlParser<MessageRef> {
 
     /** The path pattern. */
     private static final Pattern PATH_PATTERN = Pattern.compile(
@@ -24,7 +22,7 @@ public class MessageUrlParser extends EntityUrlParser<Message> {
     );
 
     /** Creates a new instance. */
-    public MessageUrlParser() {}
+    public MessageRefUrlParser() {}
 
     @Override
     public String typeName() {
@@ -41,8 +39,7 @@ public class MessageUrlParser extends EntityUrlParser<Message> {
     }
 
     @Override
-    protected @Nullable Mono<Message> parsePath( final GatewayDiscordClient client, 
-            final String path ) {
+    protected @Nullable MessageRef parsePath( final String path ) {
 
         final var match = PATH_PATTERN.matcher( path );
         if ( !match.matches() ) {
@@ -55,7 +52,7 @@ public class MessageUrlParser extends EntityUrlParser<Message> {
         final Snowflake channelId = Snowflake.of( channelString );
         final Snowflake messageId = Snowflake.of( messageString );
 
-        return client.getMessageById( channelId, messageId );
+        return new MessageRef( messageId, channelId );
 
     }
     
