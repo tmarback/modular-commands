@@ -101,7 +101,17 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     private static <T> Map<String, T> assign( final List<? extends Parameter<?>> parameters,
             final List<T> arguments, final Function<T, String> toString ) throws ResultException {
 
-        final var merged = Streams.zip( 
+        if ( arguments.size() > parameters.size() ) {
+
+            final var extra = arguments.stream()
+                    .skip( parameters.size() )
+                    .map( toString )
+                    .toList();
+            throw new ResultException( new CommandFailureArgumentExtra( extra ) );
+
+        }
+
+        return Streams.zip( 
                     parameters.stream().map( Parameter::name ),
                     arguments.stream(), 
                     Map::entry 
@@ -111,20 +121,11 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
                     Entry::getValue 
                 ) );
 
-        if ( merged.size() < arguments.size() ) {
-
-            final var extra = arguments.stream().skip( merged.size() ).map( toString ).toList();
-            throw new ResultException( new CommandFailureArgumentExtra( extra ) );
-
-        }
-
-        return merged;
-
     }
 
     /**
      * Adjusts the args received so that trailing arguments are merged into the
-     * final argument, if the final parameter is a string.
+     * final argument, if the final parameter is a string and allows merging.
      * 
      * <p>This is to allow multi-word arguments without needing to use quotation marks.
      *
