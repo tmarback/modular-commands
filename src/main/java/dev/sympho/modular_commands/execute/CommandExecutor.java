@@ -1,12 +1,11 @@
 package dev.sympho.modular_commands.execute;
 
+import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dev.sympho.modular_commands.api.registry.Registry;
-import discord4j.core.GatewayDiscordClient;
 import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 import reactor.util.annotation.Nullable;
 
 /**
@@ -15,32 +14,28 @@ import reactor.util.annotation.Nullable;
  * @version 1.0
  * @since 1.0
  */
-public class CommandExecutor {
+public abstract class CommandExecutor {
 
-    /** Logger. */
-    private final Logger logger = LoggerFactory.getLogger( this.getClass() );
-
-    /** The event processing pipeline. */
-    private final Mono<Void> pipeline;
+    /** The logger. */
+    protected final Logger logger = LoggerFactory.getLogger( this.getClass() );
 
     /** The current processing task. */
     private @Nullable Disposable live;
 
     /**
      * Creates a new instance.
-     *
-     * @param client The client to receive events from.
-     * @param registry The registry to use to look up commands.
-     * @param builder The builder to use for constructing the event processing pipeline.
      */
-    protected CommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final PipelineBuilder<?, ?, ?, ?> builder ) {
+    protected CommandExecutor() {}
 
-        pipeline = builder.buildPipeline( client, registry );
+    /**
+     * Constructs the processing pipeline that processes command events.
+     *
+     * @return The constructed pipeline.
+     */
+    @SideEffectFree
+    protected abstract Flux<?> buildPipeline();
 
-    }
-
-    /* Public interface methods */
+    /* Lifecycle methods */
 
     /**
      * Start receiving events and executing commands.
@@ -55,7 +50,7 @@ public class CommandExecutor {
         }
 
         logger.info( "Starting command executor" );
-        live = pipeline.subscribe();
+        live = buildPipeline().subscribe();
         return true;
 
     }

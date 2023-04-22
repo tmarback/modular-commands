@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.checkerframework.checker.optional.qual.Present;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -31,10 +30,17 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public class MessageCommandExecutor extends CommandExecutor {
+public class MessageCommandExecutor extends BaseCommandExecutor<MessageCreateEvent, 
+        MessageContextImpl, MessageHandlers, Iterator> {
 
-    /** The validator used to validate invocations. */
-    private static final Validator validator = new Validator();
+    /** Splitter to use for separating arguments in received messages. */
+    private final StringSplitter.Async splitter = new StringSplitter.Shell();
+
+    /** Provides the prefixes that commands should have. */
+    private final PrefixProvider prefixProvider;
+
+    /** Provides the aliases that should be applied. */
+    private final AliasProvider aliases;
 
     /**
      * Creates a new instance.
@@ -52,191 +58,115 @@ public class MessageCommandExecutor extends CommandExecutor {
             final MeterRegistry meters, final ObservationRegistry observations,
             final PrefixProvider prefixProvider, final AliasProvider aliases ) {
 
-        super( client, registry, 
-                new Builder( accessManager, meters, observations, prefixProvider, aliases ) );
+        super( client, registry, accessManager, meters, observations );
+
+        this.prefixProvider = prefixProvider;
+        this.aliases = aliases;
 
     }
 
-    /**
-     * Builder used to construct the processing pipeline.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private static class Builder extends PipelineBuilder<MessageCreateEvent, 
-             MessageContextImpl, MessageHandlers, Iterator> {
+    @Override
+    protected Metrics.Tag.Type tagType() {
+        return Metrics.Tag.Type.MESSAGE;
+    }
 
-        /** Splitter to use for separating arguments in received messages. */
-        private final StringSplitter.Async splitter = new StringSplitter.Shell();
+    @Override
+    protected Class<MessageCreateEvent> eventType() {
+        return MessageCreateEvent.class;
+    }
 
-        /** Provides the prefixes that commands should have. */
-        private final PrefixProvider prefixProvider;
+    @Override
+    protected Class<MessageHandlers> commandType() {
+        return MessageHandlers.class;
+    }
 
-        /** Provides the aliases that should be applied. */
-        private final AliasProvider aliases;
+    @Override
+    protected boolean fullMatch() {
+        return false;
+    }
 
-        /** 
-         * Creates a new instance. 
-         *
-         * @param accessManager The access manager to use for access checks.
-         * @param meters The meter registry to use.
-         * @param observations The observation registry to use.
-         * @param prefixProvider Provides the prefixes that commands should have.
-         * @param aliases Provides the aliases that should be applied.
-         */
-        Builder( final AccessManager accessManager, 
-                final MeterRegistry meters, final ObservationRegistry observations,
-                final PrefixProvider prefixProvider, final AliasProvider aliases ) {
+    @Override
+    protected boolean eventFilter( final MessageCreateEvent event ) {
+        final var selfId = event.getClient().getSelfId();
+        return event.getMessage().getAuthor()
+                .map( User::getId )
+                .map( selfId::equals )
+                .map( BooleanUtils::negate )
+                .orElse( false );
+    }
 
-            super( accessManager, meters, observations );
+    @Override
+    protected Iterator parse( final MessageCreateEvent event ) {
 
-            this.prefixProvider = prefixProvider;
-            this.aliases = aliases;
-
+        final String message = event.getMessage().getContent();
+        if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
+            return splitter.emptyIterator();
         }
 
-        @Override
-        protected Metrics.Tag.Type tagType() {
-            return Metrics.Tag.Type.MESSAGE;
-        }
-
-        @Override
-        protected Class<MessageCreateEvent> eventType() {
-            return MessageCreateEvent.class;
-        }
-    
-        @Override
-        protected Class<MessageHandlers> commandType() {
-            return MessageHandlers.class;
-        }
-    
-        @Override
-        protected boolean fullMatch() {
-            return false;
-        }
-    
-        @Override
-        protected boolean eventFilter( final MessageCreateEvent event ) {
-            final var selfId = event.getClient().getSelfId();
-            return event.getMessage().getAuthor()
-                    .map( User::getId )
-                    .map( selfId::equals )
-                    .map( BooleanUtils::negate )
-                    .orElse( false );
-        }
-    
-        @Override
-        protected InvocationValidator<MessageCreateEvent> getValidator() {
-            return validator;
-        }
-    
-        @Override
-        protected Iterator parse( final MessageCreateEvent event ) {
-
-            final String message = event.getMessage().getContent();
-            if ( message.isEmpty() || Character.isWhitespace( message.codePointAt( 0 ) ) ) {
-                return splitter.emptyIterator();
-            }
-
-            final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
-            if ( message.startsWith( prefix ) ) {
-                final var iter = splitter.iterate( message.substring( prefix.length() ).trim() );
-                return aliases.apply( iter );
-            } else {
-                return splitter.emptyIterator();
-            }
-    
-        }
-    
-        @Override
-        protected MessageContextImpl makeContext( final MessageCreateEvent event,
-                final Command<? extends MessageHandlers> command, final Invocation invocation, 
-                final Iterator args ) {
-
-            final var access = accessValidator( event );
-            return new MessageContextImpl( event, invocation, command, args, access );
-    
-        }
-    
-        @Override
-        protected Optional<Snowflake> getGuildId( final MessageCreateEvent event ) {
-            return event.getGuildId();
-        }
-
-        @Override
-        protected Mono<Guild> getGuild( final MessageCreateEvent event ) {
-            return event.getGuild();
-        }
-
-        @Override
-        protected Snowflake getChannelId( final MessageCreateEvent event ) {
-            return event.getMessage().getChannelId();
-        }
-
-        @Override
-        protected Mono<MessageChannel> getChannel( final MessageCreateEvent event ) {
-            return event.getMessage().getChannel();
-        }
-
-        @Override
-        protected User getCaller( final MessageCreateEvent event ) {
-
-            final var author = event.getMessage().getAuthor();
-            if ( author.isPresent() ) {
-                return author.get();
-            } else {
-                throw new IllegalStateException( "Message with no author." );
-            }
-
-        }
-    
-        @Override
-        @SuppressWarnings( "override.return" )
-        protected InvocationHandler<? super MessageContextImpl> getInvocationHandler( 
-                final MessageHandlers handlers ) {
-            return handlers.invocation();
-        }
-
-        @Override
-        @SuppressWarnings( "override.return" )
-        protected List<? extends ResultHandler<? super MessageContextImpl>> getResultHandlers(
-                final MessageHandlers handlers ) {
-            return handlers.result();
+        final String prefix = prefixProvider.getPrefix( event.getGuildId().orElse( null ) );
+        if ( message.startsWith( prefix ) ) {
+            final var iter = splitter.iterate( message.substring( prefix.length() ).trim() );
+            return aliases.apply( iter );
+        } else {
+            return splitter.emptyIterator();
         }
 
     }
 
-    /**
-     * The validator used to validate invocations.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private static class Validator extends InvocationValidator<MessageCreateEvent> {
+    @Override
+    protected MessageContextImpl makeContext( final MessageCreateEvent event,
+            final Command<? extends MessageHandlers> command, final Invocation invocation, 
+            final Iterator args ) {
 
-        /** Creates a new instance. */
-        Validator() {}
+        final var access = accessValidator( event );
+        return new MessageContextImpl( event, invocation, command, args, access );
 
-        @Override
-        protected User getCaller( final MessageCreateEvent event ) {
+    }
 
-            // Guaranteed to be present due to the event filter.
-            @SuppressWarnings( "cast.unsafe" )
-            final var author = ( @Present Optional<User> ) event.getMessage().getAuthor();
+    @Override
+    protected Optional<Snowflake> getGuildId( final MessageCreateEvent event ) {
+        return event.getGuildId();
+    }
+
+    @Override
+    protected Mono<Guild> getGuild( final MessageCreateEvent event ) {
+        return event.getGuild();
+    }
+
+    @Override
+    protected Snowflake getChannelId( final MessageCreateEvent event ) {
+        return event.getMessage().getChannelId();
+    }
+
+    @Override
+    protected Mono<MessageChannel> getChannel( final MessageCreateEvent event ) {
+        return event.getMessage().getChannel();
+    }
+
+    @Override
+    protected User getCaller( final MessageCreateEvent event ) {
+
+        final var author = event.getMessage().getAuthor();
+        if ( author.isPresent() ) {
             return author.get();
-
+        } else {
+            throw new IllegalStateException( "Message with no author." );
         }
 
-        @Override
-        protected Mono<MessageChannel> getChannel( final MessageCreateEvent event ) {
-            return event.getMessage().getChannel();
-        }
+    }
 
-        @Override
-        protected Mono<Guild> getGuild( final MessageCreateEvent event ) {
-            return event.getGuild();
-        }
+    @Override
+    @SuppressWarnings( "override.return" )
+    protected InvocationHandler<? super MessageContextImpl> getInvocationHandler( 
+            final MessageHandlers handlers ) {
+        return handlers.invocation();
+    }
 
+    @Override
+    @SuppressWarnings( "override.return" )
+    protected List<? extends ResultHandler<? super MessageContextImpl>> getResultHandlers(
+            final MessageHandlers handlers ) {
+        return handlers.result();
     }
     
 }

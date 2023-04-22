@@ -6,12 +6,9 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.apache.commons.collections4.ListUtils;
-import org.checkerframework.checker.initialization.qual.UnknownInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
@@ -45,7 +42,7 @@ import reactor.util.function.Tuples;
 import reactor.util.retry.Retry;
 
 /**
- * Type responsible for building a command processing pipeline.
+ * Base implementation for a command executor.
  *
  * @param <E> The type of event that triggers commands.
  * @param <CTX> The type of command context.
@@ -53,22 +50,10 @@ import reactor.util.retry.Retry;
  * @param <I> The iterator type used to traverse the received arguments.
  * @version 1.0
  * @since 1.0
- * @apiNote Note that, for the purposes of this class, there is a distinction between <i>args</i>
- *          and <i>arguments</i>:
- * 
- *          <ul>
- *              <li><i>args</i> is the raw sequence of strings provided by the triggering event
- *                  that identifies the command to execute. It may or may not also contain, after
- *                  the command identifiers, strings that should be parsed into command 
- *                  <i>arguments</i>.</li>
- *              <li><i>arguments</i> are the values that satisfy the defined parameters of a
- *                  command. They may be obtain from <i>args</i> that appear after the command
- *                  identification, or directly from the event in some way (or both).</li>
- *          </ul>
  */
-public abstract class PipelineBuilder<E extends Event, 
+public abstract class BaseCommandExecutor<E extends Event, 
         CTX extends InstrumentedContext & LazyContext, H extends Handlers, 
-        I extends SmartIterator<String>> {
+        I extends SmartIterator<String>> extends CommandExecutor {
 
     /** The metric prefix for the overall pipeline. */
     private static final String METRIC_NAME_PIPELINE = Metrics.name( "pipeline" );
@@ -99,8 +84,11 @@ public abstract class PipelineBuilder<E extends Event,
     /** The maximum backoff period after an error. */
     private static final Duration MAX_BACKOFF = Duration.ofHours( 1 );
 
-    /** Logger. */
-    protected final Logger logger = LoggerFactory.getLogger( executorClass() );
+    /** The client to receive events from. */
+    protected final GatewayDiscordClient client;
+    
+    /** The registry to use to look up commands. */
+    protected final Registry registry;
 
     /** The access manager to use for access checks. */
     protected final AccessManager accessManager;
@@ -111,30 +99,29 @@ public abstract class PipelineBuilder<E extends Event,
     /** The observation registry to use. */
     protected final ObservationRegistry observations;
 
+    /** The validator used to validate invocations. */
+    private final Validator validator = new Validator();
+
     /** 
      * Creates a new instance. 
      *
+     * @param client The client to receive events from.
+     * @param registry The registry to use to look up commands.
      * @param accessManager The access manager to use for access checks.
      * @param meters The meter registry to use.
      * @param observations The observation registry to use.
      */
-    protected PipelineBuilder( final AccessManager accessManager, 
+    protected BaseCommandExecutor( final GatewayDiscordClient client, final Registry registry,
+            final AccessManager accessManager, 
             final MeterRegistry meters, final ObservationRegistry observations ) {
 
+        this.client = client;
+        this.registry = registry;
         this.accessManager = accessManager;
         this.meters = meters;
         this.observations = observations;
 
     }
-
-    /**
-     * Obtains the executor class that this builder serves.
-     *
-     * @return The executor class.
-     */
-    @Pure
-    protected abstract Class<?> executorClass( 
-            @UnknownInitialization PipelineBuilder<E, CTX, H, I> this );
 
     /* Tag value helpers */
 
@@ -184,37 +171,18 @@ public abstract class PipelineBuilder<E extends Event,
 
     }
 
-    /* Public interface */
+    /* Pipeline creation */
 
-    /**
-     * Builds a new pipeline with the given client and registry.
-     *
-     * @param client The client to receive events from.
-     * @param registry The registry to use to look up commands.
-     * @return The built processing pipeline.
-     */
-    public Mono<Void> buildPipeline( final GatewayDiscordClient client, final Registry registry ) {
+    @Override
+    protected Flux<?> buildPipeline() {
 
         final Flux<E> source = client.on( eventType() )
                 .filter( this::eventFilter )
                 .doOnNext( e -> {
                     logger.trace( "Received event: {}", e );
                 } );
-        return buildPipeline( source, registry ).retry();
 
-    }
-
-    /**
-     * Builds the processing pipeline.
-     *
-     * @param source The event source.
-     * @param registry The registry to use to look up commands.
-     * @return The built processing pipeline.
-     */
-    @SideEffectFree
-    private Mono<Void> buildPipeline( final Flux<E> source, final Registry registry ) {
-
-        return source.flatMap( event -> parseEvent( event, registry )
+        return source.flatMap( event -> parseEvent( event )
                     .switchIfEmpty( Mono.fromRunnable( 
                             () -> addTag( METRIC_TAG_RESULT, "not_command" ) 
                     ) )
@@ -259,8 +227,7 @@ public abstract class PipelineBuilder<E extends Event,
                     .maxBackoff( MAX_BACKOFF )
                     .transientErrors( true )
             )
-            .doOnError( e -> logger.error( "Pipeline closed due to too many errors" ) )
-            .then();
+            .doOnError( e -> logger.error( "Pipeline closed due to too many errors" ) );
 
     }
 
@@ -347,21 +314,6 @@ public abstract class PipelineBuilder<E extends Event,
     protected boolean eventFilter( final E event ) {
         return true;
     }
-
-    /**
-     * Retrieves the validator to use for validating command invocations.
-     * 
-     * <p>For performance reasons, the validator should be implemented statelessly, with a single
-     * instance being created by the implenting builder which is then returned every time. This
-     * avoids the cost of constructing a new instance every time.
-     * 
-     * <p>Note that there is no reason why a validator implementation would need to keep
-     * state, as it is intended to be a simple filter.
-     *
-     * @return The validator to use.
-     */
-    @Pure
-    protected abstract InvocationValidator<E> getValidator();
 
     /**
      * Parses the raw args from the event. This includes the names that identify the command
@@ -521,12 +473,10 @@ public abstract class PipelineBuilder<E extends Event,
      * be invoked by itself are pre-filtered and will return an empty Mono.
      *
      * @param event The event.
-     * @param registry The registry to use for command lookups.
      * @return A Mono that issues the parsed command, if any. 
      */
     @SideEffectFree
-    private Mono<Tuple4<E, List<Command<? extends H>>, Invocation, I>> parseEvent( 
-            final E event, final Registry registry ) {
+    private Mono<Tuple4<E, List<Command<? extends H>>, Invocation, I>> parseEvent( final E event ) {
 
         return Mono.just( event )
                 .map( e -> Tuples.of( e, parse( e ) ) )
@@ -579,7 +529,6 @@ public abstract class PipelineBuilder<E extends Event,
     private Mono<CommandResult> validateCommand( final E event, final CTX context,
             final List<? extends Command<? extends H>> chain ) {
 
-        final var validator = getValidator();
         final var access = accessValidator( event );
 
         return validator.validateSettings( event, chain )
@@ -723,6 +672,34 @@ public abstract class PipelineBuilder<E extends Event,
                 .transform( context::addTags )
                 .tag( METRIC_TAG_RESULT, tagResult( result ) )
                 .tap( Micrometer.observation( observations ) );
+
+    }
+
+    /**
+     * The validator used to validate invocations.
+     *
+     * @version 1.0
+     * @since 1.0
+     */
+    private class Validator extends InvocationValidator<E> {
+
+        /** Creates a new instance. */
+        Validator() {}
+
+        @Override
+        protected User getCaller( final E event ) {
+            return BaseCommandExecutor.this.getCaller( event );
+        }
+
+        @Override
+        protected Mono<MessageChannel> getChannel( final E event ) {
+            return BaseCommandExecutor.this.getChannel( event );
+        }
+
+        @Override
+        protected Mono<Guild> getGuild( final E event ) {
+            return BaseCommandExecutor.this.getGuild( event );
+        }
 
     }
     
