@@ -106,6 +106,25 @@ public interface CommandContext extends AccessValidator {
     @Nullable Member getCallerMember();
 
     /**
+     * Retrieves the user that called the command as a guild
+     * member of the given guild.
+     *
+     * @param guildId The ID of the target guild.
+     * @return The calling user as a guild member of the given guild.
+     * @implNote The default implementation will re-use the member instance
+     *           {@link #getCallerMember() provided by the event} if appropriate (that is, if the
+     *           given guild is the same that the command was invoked from) to avoid making an
+     *           API request.
+     */
+    @Pure
+    default Mono<Member> getCallerMember( final Snowflake guildId ) {
+
+        return Objects.requireNonNullElse( getCallerMember(), getCaller() )
+                .asMember( guildId );
+
+    }
+
+    /**
      * Retrieves the channel that the command was invoked in.
      *
      * @return The invoking channel.
