@@ -18,10 +18,8 @@ import dev.sympho.modular_commands.api.permission.Group;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
-import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
@@ -34,7 +32,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public interface CommandContext extends AccessValidator {
+public interface CommandContext extends ChannelAccessContext, AccessValidator {
 
     /**
      * Retrieves the event that triggered the command.
@@ -44,16 +42,9 @@ public interface CommandContext extends AccessValidator {
     @Pure
     Event getEvent();
 
-    /**
-     * Retrieves the client where the command was received.
-     *
-     * @return The client.
-     */
-    @Pure
+    @Override
     default GatewayDiscordClient getClient() {
-
         return getEvent().getClient();
-
     }
 
     /**
@@ -125,48 +116,27 @@ public interface CommandContext extends AccessValidator {
     }
 
     /**
-     * Retrieves the channel that the command was invoked in.
-     *
-     * @return The invoking channel.
+     * @see #getCaller()
      */
-    Mono<MessageChannel> getChannel();
+    @Override
+    default User getUser() {
+        return getCaller();
+    }
 
     /**
-     * Retrieves the ID of the channel that the command was invoked in.
-     *
-     * @return The invoking channel's ID.
+     * @see #getCallerMember()
      */
-    @Pure
-    Snowflake getChannelId();
+    @Override
+    default Mono<Member> getMember() {
+        return Mono.justOrEmpty( getCallerMember() );
+    }
 
     /**
-     * Retrieves the guild that the command was invoked in, if there
-     * is one.
-     *
-     * @return The invoking guild.
+     * @see #getCallerMember(Snowflake)
      */
-    Mono<Guild> getGuild();
-
-    /**
-     * Retrieves the ID of the guild that the command was invoked in, if there
-     * is one.
-     *
-     * @return The invoking guild's ID, or {@code null} if the command was
-     *         invoked in a private channel.
-     */
-    @Pure
-    @Nullable Snowflake getGuildId();
-
-    /**
-     * Determines if the invocation ocurred in a private channel.
-     *
-     * @return Whether the invocation was made from a private channel.
-     */
-    @Pure
-    default boolean isPrivate() {
-
-        return getGuildId() == null;
-
+    @Override
+    default Mono<Member> getMember( final Snowflake guildId ) {
+        return getCallerMember( guildId );
     }
 
     /**
@@ -521,7 +491,7 @@ public interface CommandContext extends AccessValidator {
     @SideEffectFree
     default Mono<Boolean> belongs( final User user, final Group group ) {
 
-        return group.belongs( getGuild(), getChannel(), user )
+        return group.belongs( user, this )
                 .defaultIfEmpty( false ); // Just to be safe
 
     }

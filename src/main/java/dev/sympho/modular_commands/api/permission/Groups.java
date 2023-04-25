@@ -8,6 +8,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.sympho.modular_commands.api.command.context.AccessContext;
+import dev.sympho.modular_commands.api.command.context.ChannelAccessContext;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.ApplicationInfo;
 import discord4j.core.object.entity.Guild;
@@ -15,7 +17,6 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.GuildChannel;
-import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 import reactor.core.publisher.Flux;
@@ -30,14 +31,14 @@ import reactor.core.publisher.Mono;
 public final class Groups {
 
     /** The group of all Discord users (matches everyone). */
-    public static final NamedGroup EVERYONE = named( 
-            ( guild, channel, user ) -> Mono.just( true ), 
+    public static final NamedGuildGroup EVERYONE = named( 
+            ctx -> Mono.just( true ), 
             "Everyone" 
     );
 
     /** The empty group (matches nobody). */
-    public static final NamedGroup NOBODY = named( 
-            ( guild, channel, user ) -> Mono.just( false ),
+    public static final NamedGuildGroup NOBODY = named( 
+            ctx -> Mono.just( false ),
             "Nobody"
     );
 
@@ -45,24 +46,24 @@ public final class Groups {
      * The group of server admins (matches users with the 
      * {@link Permission#ADMINISTRATOR administrator} permission).
      */
-    public static final NamedGroup ADMINS = named(
+    public static final NamedGuildGroup ADMINS = named(
             hasGuildPermissions( PermissionSet.of( Permission.ADMINISTRATOR ) ),
             "Administrators"
     );
 
     /** The group that only matches the server owner. */
-    public static final NamedGroup SERVER_OWNER = named(
-            ( guild, channel, user ) -> guild
+    public static final NamedGuildGroup SERVER_OWNER = named(
+            ctx -> ctx.getGuild()
                     .map( Guild::getOwnerId )
-                    .map( user.getId()::equals ),
+                    .map( ctx.getUser().getId()::equals ),
             "Server Owner"
     );
 
     /** The group that only matches the bot owner. */
-    public static final NamedGroup BOT_OWNER = named(
-            ( guild, channel, user ) -> user.getClient().getApplicationInfo()
+    public static final NamedGuildGroup BOT_OWNER = named(
+            ctx -> ctx.getClient().getApplicationInfo()
                     .map( ApplicationInfo::getOwnerId )
-                    .map( user.getId()::equals ), 
+                    .map( ctx.getUser().getId()::equals ), 
             "Bot Owner" 
     );
 
@@ -74,8 +75,8 @@ public final class Groups {
      * a private channel, as usually the goal is paywalling a feature rather than limiting
      * permissions.
      */
-    public static final NamedGroup BOOSTER = named(
-            ( guild, channel, user ) -> guild.flatMap( g -> user.asMember( g.getId() ) )
+    public static final NamedGuildGroup BOOSTER = named(
+            ctx -> ctx.getMember()
                     .map( Member::getPremiumTime )
                     .map( Optional::isPresent )
                     .defaultIfEmpty( false ),
@@ -101,11 +102,24 @@ public final class Groups {
     }
 
     /**
+     * Adds a name to an existing group.
+     *
+     * @param group The group.
+     * @param name The name.
+     * @return The given group with the name set to the given name.
+     */
+    public static NamedGuildGroup named( final GuildGroup group, final String name ) {
+
+        return new NamedGuild( group, name );
+
+    }
+
+    /**
      * Decorates a group so that membership is always checked in relation to the given guild,
      * rather than the guild where the command was executed in.
      * 
      * <p>In other words, this overrides the {@code guild} parameter provided to the
-     * {@link Group#belongs(Mono, Mono, User)} method to the given guild, before delegating
+     * {@link Group#belongs(ChannelAccessContext)} method to the given guild, before delegating
      * to the given group.
      * 
      * <p>This allows for permission checking on commands that always operate on some remote
@@ -113,10 +127,10 @@ public final class Groups {
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for. The issued value
-     *              may change over time.
+     *              may change over time, but may <i>not</i> be empty.
      * @return The decorated group.
      */
-    public static Group remote( final Group group, final Mono<Snowflake> guild ) {
+    public static GuildGroup remote( final GuildGroup group, final Mono<Snowflake> guild ) {
 
         return new Remote( group, guild );
 
@@ -127,7 +141,7 @@ public final class Groups {
      * rather than the guild where the command was executed in.
      * 
      * <p>In other words, this overrides the {@code guild} parameter provided to the
-     * {@link Group#belongs(Mono, Mono, User)} method to the given guild, before delegating
+     * {@link Group#belongs(ChannelAccessContext)} method to the given guild, before delegating
      * to the given group.
      * 
      * <p>This allows for permission checking on commands that always operate on some remote
@@ -137,15 +151,16 @@ public final class Groups {
      *
      * @param group The group.
      * @param guild The guild where group membership should be checked for. The issued value
-     *              may change over time.
+     *              may change over time, but may <i>not</i> be empty.
      * @return The decorated group.
      * @apiNote If the name of the group will be overriden, an explicit cast to the
      *          non-named variant may be used to avoid an unecessary wrapping layer:
-     *          {@code named(remote((Group) group, guild), "some name")}
+     *          {@code named(remote((GuildGroup) group, guild), "some name")}
      */
-    public static NamedGroup remote( final NamedGroup group, final Mono<Snowflake> guild ) {
+    public static NamedGuildGroup remote( final NamedGuildGroup group, 
+            final Mono<Snowflake> guild ) {
 
-        return named( remote( ( Group ) group, guild ), group.name() );
+        return named( remote( ( GuildGroup ) group, guild ), group.name() );
 
     }
 
@@ -161,7 +176,7 @@ public final class Groups {
      *              may change over time.
      * @return The decorated group.
      */
-    public static Group remote( final Group group, final Supplier<Snowflake> guild ) {
+    public static GuildGroup remote( final GuildGroup group, final Supplier<Snowflake> guild ) {
 
         return remote( group, Mono.fromSupplier( guild ) );
 
@@ -182,9 +197,10 @@ public final class Groups {
      * @return The decorated group.
      * @apiNote If the name of the group will be overriden, an explicit cast to the
      *          non-named variant may be used to avoid an unecessary wrapping layer:
-     *          {@code named(remote((Group) group, guild), "some name")}
+     *          {@code named(remote((GuildGroup) group, guild), "some name")}
      */
-    public static NamedGroup remote( final NamedGroup group, final Supplier<Snowflake> guild ) {
+    public static NamedGuildGroup remote( final NamedGuildGroup group, 
+            final Supplier<Snowflake> guild ) {
 
         return remote( group, Mono.fromSupplier( guild ) );
 
@@ -201,7 +217,7 @@ public final class Groups {
      * @param guild The guild where group membership should be checked for.
      * @return The decorated group.
      */
-    public static Group remote( final Group group, final Snowflake guild ) {
+    public static GuildGroup remote( final GuildGroup group, final Snowflake guild ) {
 
         return remote( group, Mono.just( guild ) );
 
@@ -223,11 +239,13 @@ public final class Groups {
      *          non-named variant may be used to avoid an unecessary wrapping layer:
      *          {@code named(remote((Group) group, guild), "some name")}
      */
-    public static NamedGroup remote( final NamedGroup group, final Snowflake guild ) {
+    public static NamedGuildGroup remote( final NamedGuildGroup group, final Snowflake guild ) {
 
         return remote( group, Mono.just( guild ) );
 
     }
+
+    /* OR operator */
 
     /**
      * Composes multiple groups into a single group where a user is only a member
@@ -239,12 +257,8 @@ public final class Groups {
      */
     public static Group any( final Flux<Group> groups ) {
 
-        return ( guild, channel, caller ) -> {
-
-            return groups.flatMap( g -> g.belongs( guild, channel, caller ) )
-                    .any( Boolean::booleanValue );
-
-        };
+        return ctx -> groups.flatMap( g -> g.belongs( ctx ) )
+                .any( Boolean::booleanValue );
 
     }
 
@@ -283,6 +297,69 @@ public final class Groups {
 
     /**
      * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>any</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup any( final GuildGroup... groups ) {
+        return anyGuild( groups );
+    }
+
+    /* OR operator (guild version) */
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>any</b> of the given groups.
+     *
+     * @param groups The groups to compose. The issued values may change over time 
+     *               (between subscriptions).
+     * @return The composed group.
+     */
+    public static GuildGroup anyGuild( final Flux<GuildGroup> groups ) {
+
+        return ctx -> groups.flatMap( g -> g.belongs( ctx ) )
+                .any( Boolean::booleanValue );
+
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>any</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup anyGuild( final Stream<GuildGroup> groups ) {
+        return anyGuild( Flux.fromStream( groups ) );
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>any</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup anyGuild( final Iterable<GuildGroup> groups ) {
+        return anyGuild( Flux.fromIterable( groups ) );
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>any</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup anyGuild( final GuildGroup... groups ) {
+        return anyGuild( Flux.fromArray( groups ) );
+    }
+
+    /* AND operator */
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
      * if they are a member of <b>all</b> of the given groups.
      *
      * @param groups The groups to compose. The issued values may change over time 
@@ -291,12 +368,8 @@ public final class Groups {
      */
     public static Group all( final Flux<Group> groups ) {
 
-        return ( guild, channel, caller ) -> {
-
-            return groups.flatMap( g -> g.belongs( guild, channel, caller ) )
-                    .all( Boolean::booleanValue );
-
-        };
+        return ctx -> groups.flatMap( g -> g.belongs( ctx ) )
+                .all( Boolean::booleanValue );
 
     }
 
@@ -333,6 +406,67 @@ public final class Groups {
         return all( Flux.fromArray( groups ) );
     }
 
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>all</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup all( final GuildGroup... groups ) {
+        return allGuild( groups );
+    }
+
+    /* AND operator (guild version) */
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>all</b> of the given groups.
+     *
+     * @param groups The groups to compose. The issued values may change over time 
+     *               (between subscriptions).
+     * @return The composed group.
+     */
+    public static GuildGroup allGuild( final Flux<GuildGroup> groups ) {
+
+        return ctx -> groups.flatMap( g -> g.belongs( ctx ) )
+                .all( Boolean::booleanValue );
+
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>all</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup allGuild( final Stream<GuildGroup> groups ) {
+        return allGuild( Flux.fromStream( groups ) );
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>all</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup allGuild( final Iterable<GuildGroup> groups ) {
+        return allGuild( Flux.fromIterable( groups ) );
+    }
+
+    /**
+     * Composes multiple groups into a single group where a user is only a member
+     * if they are a member of <b>all</b> of the given groups.
+     *
+     * @param groups The groups to compose.
+     * @return The composed group.
+     */
+    public static GuildGroup allGuild( final GuildGroup... groups ) {
+        return allGuild( Flux.fromArray( groups ) );
+    }
+
     /* Default groups */
 
     /**
@@ -341,9 +475,9 @@ public final class Groups {
      * @param user The user. The issued value may change over time.
      * @return The group.
      */
-    public static Group isUser( final Mono<Snowflake> user ) {
+    public static GuildGroup isUser( final Mono<Snowflake> user ) {
 
-        return ( guild, channel, caller ) -> user.map( caller.getId()::equals );
+        return ctx -> user.map( ctx.getUser().getId()::equals );
 
     }
 
@@ -353,7 +487,7 @@ public final class Groups {
      * @param user The user. The issued value may change over time.
      * @return The group.
      */
-    public static Group isUser( final Supplier<Snowflake> user ) {
+    public static GuildGroup isUser( final Supplier<Snowflake> user ) {
 
         return isUser( Mono.fromSupplier( user ) );
 
@@ -365,7 +499,7 @@ public final class Groups {
      * @param user The user.
      * @return The group.
      */
-    public static Group isUser( final Snowflake user ) {
+    public static GuildGroup isUser( final Snowflake user ) {
 
         return isUser( Mono.just( user ) );
 
@@ -378,9 +512,9 @@ public final class Groups {
      *              time (between subscriptions).
      * @return The group.
      */
-    public static Group inWhitelist( final Flux<Snowflake> users ) {
+    public static GuildGroup inWhitelist( final Flux<Snowflake> users ) {
 
-        return ( guild, channel, caller ) -> users.any( caller.getId()::equals );
+        return ctx -> users.any( ctx.getUser().getId()::equals );
 
     }
 
@@ -391,9 +525,9 @@ public final class Groups {
      *              time (between subscriptions).
      * @return The group.
      */
-    public static Group inWhitelist( final Mono<? extends Collection<Snowflake>> users ) {
+    public static GuildGroup inWhitelist( final Mono<? extends Collection<Snowflake>> users ) {
 
-        return ( guild, channel, caller ) -> users.map( u -> u.contains( caller.getId() ) );
+        return ctx -> users.map( u -> u.contains( ctx.getUser().getId() ) );
 
     }
 
@@ -404,7 +538,7 @@ public final class Groups {
      *              time (between requests).
      * @return The group.
      */
-    public static Group inWhitelist( final Supplier<? extends Collection<Snowflake>> users ) {
+    public static GuildGroup inWhitelist( final Supplier<? extends Collection<Snowflake>> users ) {
 
         return inWhitelist( Mono.fromSupplier( users ) );
 
@@ -416,7 +550,7 @@ public final class Groups {
      * @param users The users that belong to the group.
      * @return The group.
      */
-    public static Group inWhitelist( final Collection<Snowflake> users ) {
+    public static GuildGroup inWhitelist( final Collection<Snowflake> users ) {
 
         final var allowed = Set.copyOf( users );
         return inWhitelist( Mono.just( allowed ) );
@@ -429,7 +563,7 @@ public final class Groups {
      * @param users The users that belong to the group.
      * @return The group.
      */
-    public static Group inWhitelist( final Snowflake... users ) {
+    public static GuildGroup inWhitelist( final Snowflake... users ) {
         return inWhitelist( Arrays.asList( users ) );
     }
 
@@ -439,13 +573,12 @@ public final class Groups {
      * @param role The role. The issued value may vary over time.
      * @return The group.
      */
-    public static Group hasRole( final Mono<Snowflake> role ) {
+    public static GuildGroup hasRole( final Mono<Snowflake> role ) {
 
-        return ( guild, channel, caller ) -> {
+        return ctx -> {
             
-            final Flux<Snowflake> roles = guild
-                    .flatMap( g -> g.getMemberById( caller.getId() ) )
-                    .flatMapMany( m -> m.getRoles() )
+            final Flux<Snowflake> roles = ctx.getMember()
+                    .flatMapMany( Member::getRoles )
                     .map( Role::getId );
             
             return role.flatMap( r -> roles.any( r::equals ) );
@@ -460,7 +593,7 @@ public final class Groups {
      * @param role The role. The issued value may vary over time.
      * @return The group.
      */
-    public static Group hasRole( final Supplier<Snowflake> role ) {
+    public static GuildGroup hasRole( final Supplier<Snowflake> role ) {
 
         return hasRole( Mono.fromSupplier( role ) );
 
@@ -472,7 +605,7 @@ public final class Groups {
      * @param role The role.
      * @return The group.
      */
-    public static Group hasRole( final Snowflake role ) {
+    public static GuildGroup hasRole( final Snowflake role ) {
 
         return hasRole( Mono.just( role ) );
 
@@ -484,13 +617,12 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time (between subscriptions).
      * @return The group.
      */
-    public static Group hasRolesAny( final Mono<? extends Collection<Snowflake>> roles ) {
+    public static GuildGroup hasRolesAny( final Mono<? extends Collection<Snowflake>> roles ) {
 
-        return ( guild, channel, caller ) -> {
+        return ctx -> {
             
-            final Flux<Snowflake> has = guild
-                    .flatMap( g -> g.getMemberById( caller.getId() ) )
-                    .flatMapMany( m -> m.getRoles() )
+            final Flux<Snowflake> has = ctx.getMember()
+                    .flatMapMany( Member::getRoles )
                     .map( Role::getId );
 
             return roles.flatMap( r -> has.any( r::contains ) );
@@ -505,7 +637,7 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time (between subscriptions).
      * @return The group.
      */
-    public static Group hasRolesAny( final Flux<Snowflake> roles ) {
+    public static GuildGroup hasRolesAny( final Flux<Snowflake> roles ) {
 
         final var allowed = roles.collect( Collectors.toSet() );
         return hasRolesAny( allowed );
@@ -518,7 +650,7 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time.
      * @return The group.
      */
-    public static Group hasRolesAny( final Supplier<? extends Collection<Snowflake>> roles ) {
+    public static GuildGroup hasRolesAny( final Supplier<? extends Collection<Snowflake>> roles ) {
 
         return hasRolesAny( Mono.fromSupplier( roles ) );
 
@@ -530,7 +662,7 @@ public final class Groups {
      * @param roles The roles.
      * @return The group.
      */
-    public static Group hasRolesAny( final Collection<Snowflake> roles ) {
+    public static GuildGroup hasRolesAny( final Collection<Snowflake> roles ) {
 
         final var allowed = Set.copyOf( roles );
         return hasRolesAny( Mono.just( allowed ) );
@@ -543,7 +675,7 @@ public final class Groups {
      * @param roles The roles.
      * @return The group.
      */
-    public static Group hasRolesAny( final Snowflake... roles ) {
+    public static GuildGroup hasRolesAny( final Snowflake... roles ) {
         return hasRolesAny( Arrays.asList( roles ) );
     }
 
@@ -553,13 +685,12 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time (between subscriptions).
      * @return The group.
      */
-    public static Group hasRolesAll( final Flux<Snowflake> roles ) {
+    public static GuildGroup hasRolesAll( final Flux<Snowflake> roles ) {
 
-        return ( guild, channel, caller ) -> {
+        return ctx -> {
             
-            final Mono<Set<Snowflake>> has = guild
-                    .flatMap( g -> g.getMemberById( caller.getId() ) )
-                    .flatMapMany( m -> m.getRoles() )
+            final Mono<Set<Snowflake>> has = ctx.getMember()
+                    .flatMapMany( Member::getRoles )
                     .map( Role::getId )
                     .collect( Collectors.toSet() );
 
@@ -575,13 +706,12 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time (between subscriptions).
      * @return The group.
      */
-    public static Group hasRolesAll( final Mono<? extends Collection<Snowflake>> roles ) {
+    public static GuildGroup hasRolesAll( final Mono<? extends Collection<Snowflake>> roles ) {
 
-        return ( guild, channel, caller ) -> {
+        return ctx -> {
             
-            final Mono<Set<Snowflake>> has = guild
-                    .flatMap( g -> g.getMemberById( caller.getId() ) )
-                    .flatMapMany( m -> m.getRoles() )
+            final Mono<Set<Snowflake>> has = ctx.getMember()
+                    .flatMapMany( Member::getRoles )
                     .map( Role::getId )
                     .collect( Collectors.toSet() );
 
@@ -598,7 +728,7 @@ public final class Groups {
      * @param roles The roles. The issued values may vary over time.
      * @return The group.
      */
-    public static Group hasRolesAll( final Supplier<? extends Collection<Snowflake>> roles ) {
+    public static GuildGroup hasRolesAll( final Supplier<? extends Collection<Snowflake>> roles ) {
 
         return hasRolesAll( Mono.fromSupplier( roles ) );
 
@@ -610,7 +740,7 @@ public final class Groups {
      * @param roles The roles.
      * @return The group.
      */
-    public static Group hasRolesAll( final Collection<Snowflake> roles ) {
+    public static GuildGroup hasRolesAll( final Collection<Snowflake> roles ) {
 
         final var required = Set.copyOf( roles );
         return hasRolesAll( Mono.just( required ) );
@@ -623,7 +753,7 @@ public final class Groups {
      * @param roles The roles.
      * @return The group.
      */
-    public static Group hasRolesAll( final Snowflake... roles ) {
+    public static GuildGroup hasRolesAll( final Snowflake... roles ) {
         return hasRolesAll( Arrays.asList( roles ) );
     }
 
@@ -633,11 +763,10 @@ public final class Groups {
      * @param permissions The permissions. The issued value may vary over time.
      * @return The group.
      */
-    public static Group hasGuildPermissions( final Mono<PermissionSet> permissions ) {
+    public static GuildGroup hasGuildPermissions( final Mono<PermissionSet> permissions ) {
 
-        return ( guild, channel, caller ) -> guild
-                .flatMap( g -> g.getMemberById( caller.getId() ) )
-                .flatMap( m -> m.getBasePermissions() )
+        return ctx -> ctx.getMember()
+                .flatMap( Member::getBasePermissions )
                 .flatMap( p -> permissions.map( p::containsAll ) )
                 .defaultIfEmpty( true ); // Not in a guild
 
@@ -649,7 +778,7 @@ public final class Groups {
      * @param permissions The permissions. The issued value may vary over time.
      * @return The group.
      */
-    public static Group hasGuildPermissions( final Supplier<PermissionSet> permissions ) {
+    public static GuildGroup hasGuildPermissions( final Supplier<PermissionSet> permissions ) {
 
         return hasGuildPermissions( Mono.fromSupplier( permissions ) );
 
@@ -661,7 +790,7 @@ public final class Groups {
      * @param permissions The permissions.
      * @return The group.
      */
-    public static Group hasGuildPermissions( final PermissionSet permissions ) {
+    public static GuildGroup hasGuildPermissions( final PermissionSet permissions ) {
 
         return hasGuildPermissions( Mono.just( permissions ) );
 
@@ -675,10 +804,9 @@ public final class Groups {
      */
     public static Group hasChannelPermissions( final Mono<PermissionSet> permissions ) {
 
-        return ( guild, channel, caller ) -> channel
-                .filter( GuildChannel.class::isInstance )
-                .cast( GuildChannel.class )
-                .flatMap( c -> c.getEffectivePermissions( caller.getId() ) )
+        return ctx -> ctx.getChannel()
+                .ofType( GuildChannel.class )
+                .flatMap( c -> c.getEffectivePermissions( ctx.getUser().getId() ) )
                 .flatMap( p -> permissions.map( p::containsAll ) )
                 .defaultIfEmpty( true ); // Not in a guild
 
@@ -721,10 +849,35 @@ public final class Groups {
     private record Named( Group group, String name ) implements NamedGroup {
 
         @Override
-        public Mono<Boolean> belongs( final Mono<Guild> guild, 
-                final Mono<MessageChannel> channel, final User caller ) {
+        public Mono<Boolean> belongs( final ChannelAccessContext context ) {
 
-            return group.belongs( guild, channel, caller );
+            return group.belongs( context );
+
+        }
+
+        @Override
+        public String name() {
+
+            return name;
+
+        }
+
+    }
+
+    /**
+     * Wrapper for a guild group that adds a name to it.
+     *
+     * @param group The wrapped group.
+     * @param name The name of the group.
+     * @version 1.0
+     * @since 1.0
+     */
+    private record NamedGuild( GuildGroup group, String name ) implements NamedGuildGroup {
+
+        @Override
+        public Mono<Boolean> belongs( final AccessContext context ) {
+
+            return group.belongs( context );
 
         }
 
@@ -748,30 +901,16 @@ public final class Groups {
      * @version 1.0
      * @since 1.0
      */
-    private record Remote( Group group, Mono<Snowflake> remoteGuild ) implements Group {
-
-        /**
-         * Creates the exception to be thrown when the guild does not exist.
-         *
-         * @param guild The remote guild ID.
-         * @return The exception to throw.
-         */
-        private static Throwable notFound( final Snowflake guild ) {
-
-            final var message = "Guild %s not found".formatted( guild );
-            return new IllegalArgumentException( message );
-
-        }
+    private record Remote( GuildGroup group, Mono<Snowflake> remoteGuild ) implements GuildGroup {
 
         @Override
-        public Mono<Boolean> belongs( final Mono<Guild> guild, 
-                final Mono<MessageChannel> channel, final User caller ) {
+        public Mono<Boolean> belongs( final AccessContext context ) {
 
-            final var client = caller.getClient();
-            final var remote = remoteGuild.flatMap( g -> client.getGuildById( g )
-                    .switchIfEmpty( Mono.error( () -> notFound( g ) ) )
-            );
-            return group.belongs( remote, channel, caller );
+            return remoteGuild.map( context::asGuild )
+                    .switchIfEmpty( Mono.error( () -> new IllegalStateException(
+                            "No remote guild provided"
+                    ) ) )
+                    .flatMap( group::belongs );
 
         }
 

@@ -118,8 +118,7 @@ public class MessageCommandExecutor extends BaseCommandExecutor<MessageCreateEve
             final Command<? extends MessageHandlers> command, final Invocation invocation, 
             final Iterator args ) {
 
-        final var access = accessValidator( event );
-        return new MessageContextImpl( event, invocation, command, args, access );
+        return new MessageContextImpl( event, invocation, command, args, accessManager );
 
     }
 

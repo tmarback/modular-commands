@@ -3,6 +3,7 @@ package dev.sympho.modular_commands.api.permission;
 import org.apache.commons.lang3.BooleanUtils;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.context.ChannelAccessContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import reactor.core.publisher.Mono;
@@ -21,12 +22,11 @@ import reactor.core.publisher.Mono;
 public interface AccessValidator {
 
     /**
-     * Determines whether the invoking user in the current execution context (guild and
-     * channel) has access equivalent to the given group.
+     * Determines whether the invoking user in the current execution context has access 
+     * equivalent to the given group.
      * 
      * <p>Note that while the most straightforward implementation of this interface is
-     * to simply check if the caller 
-     * {@link Group#belongs(Mono, Mono, discord4j.core.object.entity.User) belongs}
+     * to simply check if the caller {@link Group#belongs(ChannelAccessContext) belongs}
      * to the given group, implementations are allowed to add other conditions under
      * which a user has equivalent permissions despite not belonging to the group
      * (or conversely does <i>not</i> have permissions despite <i>belonging</i> to
@@ -40,8 +40,8 @@ public interface AccessValidator {
     Mono<Boolean> hasAccess( Group group );
 
     /**
-     * Determines whether the invoking user in the current execution context (guild and
-     * channel) has access equivalent to the given group, otherwise generating an 
+     * Determines whether the invoking user in the current execution context
+     * has access equivalent to the given group, otherwise generating an 
      * appropriate result.
      *
      * @param group The group required for access.

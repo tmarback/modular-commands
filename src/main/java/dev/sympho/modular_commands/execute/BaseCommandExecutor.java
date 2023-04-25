@@ -22,7 +22,6 @@ import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.CommandSuccess;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.utils.SmartIterator;
 import discord4j.common.util.Snowflake;
@@ -393,23 +392,6 @@ public abstract class BaseCommandExecutor<E extends Event,
     protected abstract User getCaller( E event );
 
     /**
-     * Creates an access validator for the context of the given event.
-     *
-     * @param event The triggering event.
-     * @return The access validator.
-     */
-    @SideEffectFree
-    protected AccessValidator accessValidator( final E event ) {
-
-        final var guild = getGuild( event );
-        final var channel = getChannel( event );
-        final var caller = getCaller( event );
-
-        return accessManager.validator( guild, channel, caller );
-        
-    }
-
-    /**
      * Retrieves the invocation handler specified by the given hander set.
      *
      * @param handlers The handler set.
@@ -529,11 +511,9 @@ public abstract class BaseCommandExecutor<E extends Event,
     private Mono<CommandResult> validateCommand( final E event, final CTX context,
             final List<? extends Command<? extends H>> chain ) {
 
-        final var access = accessValidator( event );
-
         return validator.validateSettings( event, chain )
                 .doOnNext( r -> addTag( METRIC_TAG_RESULT, "invalid" ) )
-                .switchIfEmpty( validator.validateAccess( access, chain ) )
+                .switchIfEmpty( validator.validateAccess( context, chain ) )
                 .doOnNext( r -> addTag( METRIC_TAG_RESULT, "no_access" ) )
                 .switchIfEmpty( Mono.fromRunnable( 
                         () -> addTag( METRIC_TAG_RESULT, "allowed" ) 

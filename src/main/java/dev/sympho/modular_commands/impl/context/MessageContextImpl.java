@@ -28,7 +28,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.RawParser;
@@ -71,15 +71,15 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @param invocation The invocation that triggered execution.
      * @param command The invoked command.
      * @param args The raw arguments received.
-     * @param access The validator to use for access checks.
+     * @param accessManager The access manager to use.
      * @throws ResultException if there is a mismatch between parameters and
      *                         arguments.
      */
     public MessageContextImpl( final MessageCreateEvent event, 
             final Invocation invocation, final Command<?> command, 
-            final Iterator args, final AccessValidator access ) throws ResultException {
+            final Iterator args, final AccessManager accessManager ) throws ResultException {
 
-        super( invocation, command, access );
+        super( invocation, command, accessManager );
 
         this.event = event;
         this.arguments = args;

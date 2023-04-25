@@ -2,9 +2,8 @@ package dev.sympho.modular_commands.api.permission;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import discord4j.core.object.entity.Guild;
+import dev.sympho.modular_commands.api.command.context.ChannelAccessContext;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Mono;
 
 /**
@@ -21,17 +20,36 @@ import reactor.core.publisher.Mono;
 public interface Group {
     
     /**
+     * Determines whether the user in the given context belongs to this group.
+     *
+     * @param context The access context being checked.
+     * @return A Mono that issues {@code true} if the user belongs to this group under
+     *         the context, or {@code false} otherwise.
+     * @implSpec Implementations should prefer using the monos provided by the context directly
+     *           instead of obtaining them through other means (such as through the client), as
+     *           the context is optimized when possible to reuse existing instances instead of
+     *           issuing new API calls.
+     */
+    @SideEffectFree
+    Mono<Boolean> belongs( ChannelAccessContext context );
+
+    /**
      * Determines whether the given user belongs to this group in the context of the 
      * given guild and channel.
      *
-     * @param guild The guild in which group membership is being checked for. It may be
-     *              empty in the case of a private channel.
-     * @param channel The channel in which group membership is being checked for.
-     * @param user The user to check group membership for.
+     * @param user The user to check for.
+     * @param context The access context being checked.
      * @return A Mono that issues {@code true} if the user belongs to this group under
-     *         the given guild and channel, or {@code false} otherwise.
+     *         the given context, or {@code false} otherwise.
+     * @apiNote This is equivalent to using {@link ChannelAccessContext#asUser(User)} and
+     *          delegating to {@link #belongs(ChannelAccessContext)}. The user in the given
+     *          context is ignored.
      */
     @SideEffectFree
-    Mono<Boolean> belongs( Mono<Guild> guild, Mono<MessageChannel> channel, User user );
+    default Mono<Boolean> belongs( final User user, final ChannelAccessContext context ) {
+
+        return belongs( context.asUser( user ) );
+
+    }
 
 }

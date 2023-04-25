@@ -2,11 +2,9 @@ package dev.sympho.modular_commands.execute;
 
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.context.ChannelAccessContext;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
-import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,14 +17,12 @@ import reactor.core.publisher.Mono;
 public interface AccessManager {
 
     /**
-     * Creates an access validator under the context of the given guild, channel, and caller.
+     * Creates an access validator under the given context.
      *
-     * @param guild The guild of the current execution.
-     * @param channel The channel of the current execution.
-     * @param caller The caller that invoked the execution.
+     * @param context The access context for the current execution.
      * @return The appropriate access validator.
      */
-    AccessValidator validator( Mono<Guild> guild, Mono<MessageChannel> channel, User caller );
+    AccessValidator validator( ChannelAccessContext context );
 
     /**
      * Creates a manager for which all validators always allow access.
@@ -38,7 +34,7 @@ public interface AccessManager {
     @SideEffectFree
     static AccessManager alwaysAllow() {
 
-        return ( guild, channel, caller ) -> group -> Mono.just( true );
+        return ctx -> group -> Mono.just( true );
 
     }
 
@@ -52,7 +48,7 @@ public interface AccessManager {
     @SideEffectFree
     static AccessManager alwaysDeny() {
 
-        return ( guild, channel, caller ) -> group -> Mono.just( false );
+        return ctx -> group -> Mono.just( false );
 
     }
 
@@ -66,7 +62,7 @@ public interface AccessManager {
     @SideEffectFree
     static AccessManager basic() {
 
-        return ( guild, channel, caller ) -> group -> group.belongs( guild, channel, caller );
+        return ctx -> group -> group.belongs( ctx );
 
     }
 
@@ -81,10 +77,10 @@ public interface AccessManager {
     @SideEffectFree
     static AccessManager overridable( final Group overrideGroup ) {
 
-        return ( guild, channel, caller ) -> group -> group.belongs( guild, channel, caller )
+        return ctx -> group -> group.belongs( ctx )
                 .filter( Boolean::booleanValue ) // Make empty if not allowed
                 .switchIfEmpty( Mono.defer( // If not allowed, check override
-                        () -> overrideGroup.belongs( guild, channel, caller ) 
+                        () -> overrideGroup.belongs( ctx ) 
                 ) )
                 .defaultIfEmpty( false );
 

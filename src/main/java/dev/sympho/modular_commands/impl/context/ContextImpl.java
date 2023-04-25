@@ -41,6 +41,7 @@ import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.InstrumentedContext;
 import dev.sympho.modular_commands.execute.LazyContext;
 import dev.sympho.modular_commands.execute.Metrics;
@@ -96,17 +97,23 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /** The tag name for the parameter name. */
     private static final String METRIC_TAG_PARAMETER = Metrics.name( "parameter" );
 
+    /** Error for methods called before initialize. */
+    private static final String ERROR_NOT_INITIALIZED = "Not initialized yet";
+
     /** The invoked command. */
     protected final Command<?> command;
 
     /** The invocation that triggered this context. */
     private final Invocation invocation;
 
-    /** The validator to use for access checks. */
-    private final AccessValidator access;
-
     /** Storage for context objects. */
     private final Map<String, @Nullable Object> context;
+
+    /** The access manager to use. */
+    private final AccessManager accessManager;
+
+    /** The validator to use for access checks. */
+    private @MonotonicNonNull AccessValidator access;
 
     /** The parsed arguments. */
     private @MonotonicNonNull Map<String, ? extends Argument<?>> arguments;
@@ -128,20 +135,21 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      *
      * @param invocation The invocation that triggered execution.
      * @param command The invoked command.
-     * @param access The validator to use for access checks.
+     * @param accessManager The access manager to use.
      */
     protected ContextImpl( final Invocation invocation, final Command<?> command, 
-            final AccessValidator access ) {
+            final AccessManager accessManager ) {
 
         this.command = command;
-
         this.invocation = invocation;
-        this.access = access;
+        this.accessManager = accessManager;
 
         this.context = new HashMap<>();
 
+        this.access = null;
         this.arguments = null;
         this.reply = null;
+
         this.initialized = new AtomicBoolean( false );
         this.initializeLatch = new ReactiveLatch();
         this.loadResult = null;
@@ -568,16 +576,32 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     }
 
     /**
-     * @throws IllegalStateException if the context was not loaded yet.
+     * @throws IllegalStateException if the context was not initialized yet.
      */
     @Override
     @Pure
     public ReplyManager replies() throws IllegalStateException {
 
         if ( reply == null ) {
-            throw new IllegalStateException();
+            throw new IllegalStateException( ERROR_NOT_INITIALIZED );
         } else {
             return reply;
+        }
+
+    }
+
+    /**
+     * Retrieves the access validator.
+     *
+     * @return The validator.
+     * @throws IllegalStateException if the context was not initialized yet.
+     */
+    private AccessValidator getValidator() throws IllegalStateException {
+
+        if ( access == null ) {
+            throw new IllegalStateException( ERROR_NOT_INITIALIZED );
+        } else {
+            return access;
         }
 
     }
@@ -585,14 +609,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     @Override
     public final Mono<Boolean> hasAccess( final Group group ) {
 
-        return access.hasAccess( group );
+        return getValidator().hasAccess( group );
 
     }
 
     @Override
     public final Mono<CommandResult> validate( final Group group ) {
 
-        return access.validate( group );
+        return getValidator().validate( group );
 
     }
 
@@ -611,6 +635,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
 
         // Initialize reply manager
         this.reply = new ReplyManagerWrapper( makeReplyManager() );
+
+        // Create delegate access validator
+        this.access = accessManager.validator( this );
 
         LOGGER.trace( "Context initialized" );
 
