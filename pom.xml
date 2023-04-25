@@ -5,7 +5,7 @@
 
     <groupId>dev.sympho</groupId>
     <artifactId>modular-commands</artifactId>
-    <version>0.4.3-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
 
     <name>Modular Commands</name>
     <description>Framework for creating and managing chat commands for Discord bots that use Discord4J.</description>
