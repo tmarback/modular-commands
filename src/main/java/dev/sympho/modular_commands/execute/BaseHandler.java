@@ -3,12 +3,14 @@ package dev.sympho.modular_commands.execute;
 import java.util.Objects;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.result.CommandError;
 import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandFailureMessage;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.CommandSuccess;
+import dev.sympho.modular_commands.api.command.result.CommandSuccessAck;
 import dev.sympho.modular_commands.api.command.result.CommandSuccessMessage;
 import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.permission.NamedGroup;
@@ -104,6 +106,17 @@ public final class BaseHandler {
                     .build();
 
             return context.reply( embed ).thenReturn( true );
+        } else if ( result instanceof CommandSuccessAck res ) {
+            if ( context instanceof MessageCommandContext ctx ) {
+                return ctx.getMessage()
+                        .addReaction( res.react() )
+                        .thenReturn( true );
+            } else {
+                return context.replies().add()
+                        .withContent( res.message() )
+                        .withPrivately( true )
+                        .thenReturn( true );
+            }
         } else {
             return Mono.just( true );
         }

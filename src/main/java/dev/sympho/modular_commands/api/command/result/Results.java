@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands.api.command.result;
 
+import discord4j.core.object.reaction.ReactionEmoji;
 import reactor.core.publisher.Mono;
 
 /**
@@ -242,12 +243,52 @@ public final class Results {
 
     }
 
+    /**
+     * Generates a result that acknowledges to the user that the command finished executing.
+     *
+     * @param react The react to use if the command was triggered by a message.
+     * @param message The message to send if the command was not triggered by a message.
+     * @return The result.
+     */
+    public static CommandSuccessAck ack( final ReactionEmoji react, final String message ) {
+
+        return new ResultSuccessAck( react, message );
+        
+    }
+
+    /**
+     * Alias for {@link #ack(ReactionEmoji, String)} that casts to a 
+     * plain Result to avoid Generics issues.
+     *
+     * @param react The react to use if the command was triggered by a message.
+     * @param message The message to send if the command was not triggered by a message.
+     * @return The result.
+     */
+    public static CommandResult ackR( final ReactionEmoji react, final String message ) {
+
+        return ack( react, message );
+        
+    }
+
+    /**
+     * Generates a result that acknowledges to the user that the command finished executing.
+     *
+     * @param react The react to use if the command was triggered by a message.
+     * @param message The message to send if the command was not triggered by a message.
+     * @return A Mono that issues the generated result.
+     * @see #ack(ReactionEmoji, String)
+     */
+    public static Mono<CommandResult> ackMono( final ReactionEmoji react, final String message ) {
+
+        return Mono.just( ack( react, message ) );
+        
+    }
+
     /* Implementations for the returns */
 
     /** 
      * Implementation for {@link Results#ok()}. 
      *
-     * @version 1.0
      * @since 1.0
      */
     record ResultOK() implements CommandSuccess {}
@@ -255,7 +296,6 @@ public final class Results {
     /** 
      * Implementation for {@link Results#fail()}. 
      *
-     * @version 1.0
      * @since 1.0
      */
     record ResultFail() implements CommandFailure {}
@@ -264,7 +304,6 @@ public final class Results {
      * Implementation for {@link Results#success(String)}.
      *
      * @param message The message to the user.
-     * @version 1.0
      * @since 1.0
      */
     record ResultSuccessMessage( String message ) implements CommandSuccessMessage {}
@@ -273,7 +312,6 @@ public final class Results {
      * Implementation for {@link Results#failure(String)}.
      *
      * @param message The message to the user.
-     * @version 1.0
      * @since 1.0
      */
     record ResultFailureMessage( String message ) implements CommandFailureMessage {}
@@ -282,7 +320,6 @@ public final class Results {
      * Implementation for {@link Results#error(String)}.
      *
      * @param message The error message.
-     * @version 1.0
      * @since 1.0
      */
     record ResultError( String message ) implements CommandError {}
@@ -291,9 +328,17 @@ public final class Results {
      * Implementation for {@link Results#exception(Throwable)}.
      *
      * @param cause The exception that caused the error.
-     * @version 1.0
      * @since 1.0
      */
     record ResultException( Throwable cause ) implements CommandErrorException {}
+
+    /**
+     * Implementation for {@link Results#ack(ReactionEmoji, String)}.
+     *
+     * @param react The react to use if the command was triggered by a message.
+     * @param message The message to send if the command was not triggered by a message.
+     * @since 1.0
+     */
+    record ResultSuccessAck( ReactionEmoji react, String message ) implements CommandSuccessAck {}
     
 }

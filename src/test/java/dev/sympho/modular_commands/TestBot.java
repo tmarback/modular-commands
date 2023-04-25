@@ -29,6 +29,7 @@ import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 import io.micrometer.core.instrument.Measurement;
@@ -143,7 +144,7 @@ public class TestBot {
                     final Channel c = ctx.requireArgument( param, Channel.class );
                     if ( c instanceof MessageChannel ch ) {
                         return ch.createMessage( "Tweet" )
-                                .then( Results.successMono( "Sent." ) );
+                                .then( Results.ackMono( ReactionEmoji.unicode( "💯" ), "Sent." ) );
                     } else {
                         return Results.failMono();
                     }
