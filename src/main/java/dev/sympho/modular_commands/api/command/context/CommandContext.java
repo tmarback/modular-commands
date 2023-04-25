@@ -20,6 +20,7 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
@@ -138,6 +139,9 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
     default Mono<Member> getMember( final Snowflake guildId ) {
         return getCallerMember( guildId );
     }
+
+    @Override
+    Mono<MessageChannel> getChannel();
 
     /**
      * Retrieves one of the arguments to the command.
