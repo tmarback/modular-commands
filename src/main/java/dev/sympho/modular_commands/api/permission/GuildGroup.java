@@ -4,6 +4,7 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.AccessContext;
 import dev.sympho.modular_commands.api.command.context.ChannelAccessContext;
+import discord4j.core.object.entity.User;
 import reactor.core.publisher.Mono;
 
 /**
@@ -38,6 +39,25 @@ public interface GuildGroup extends Group {
     @Override
     default Mono<Boolean> belongs( final ChannelAccessContext context ) {
         return belongs( ( AccessContext ) context );
+    }
+
+    /**
+     * Determines whether the given user belongs to this group in the context of the 
+     * given guild and channel.
+     *
+     * @param user The user to check for.
+     * @param context The access context being checked.
+     * @return A Mono that issues {@code true} if the user belongs to this group under
+     *         the given context, or {@code false} otherwise.
+     * @apiNote This is equivalent to using {@link AccessContext#asUser(User)} and
+     *          delegating to {@link #belongs(AccessContext)}. The user in the given
+     *          context is ignored.
+     */
+    @SideEffectFree
+    default Mono<Boolean> belongs( final User user, final AccessContext context ) {
+
+        return belongs( context.asUser( user ) );
+
     }
     
 }
