@@ -140,5 +140,84 @@ public interface AccessContext {
         return new UserOverrideAccessContext<>( this, user );
 
     }
+
+    /**
+     * Creates an access context for the given member, in the guild that the member is from.
+     *
+     * @param member The member.
+     * @return The access context.
+     */
+    static AccessContext of( final Member member ) {
+
+        return new AccessContext() {
+
+            @Override
+            public GatewayDiscordClient getClient() {
+                return member.getClient();
+            }
+
+            @Override
+            public User getUser() {
+                return member;
+            }
+
+            @Override
+            public Mono<Member> getMember() {
+                return Mono.just( member );
+            }
+
+            @Override
+            public Mono<Guild> getGuild() {
+                return member.getGuild();
+            }
+
+            @Override
+            public @Nullable Snowflake getGuildId() {
+                return member.getGuildId();
+            }
+
+            @Override
+            public boolean isPrivate() {
+                return false;
+            }
+
+        };
+
+    }
+
+    /**
+     * Creates an access context for the given user in the given guild.
+     *
+     * @param user The user.
+     * @param guild The guild, or {@code null} for a private channel.
+     * @return The access context.
+     */
+    static AccessContext of( final User user, final @Nullable Snowflake guild ) {
+
+        return new AccessContext() {
+
+            @Override
+            public GatewayDiscordClient getClient() {
+                return user.getClient();
+            }
+
+            @Override
+            public User getUser() {
+                return user;
+            }
+
+            @Override
+            public Mono<Guild> getGuild() {
+                return guild == null ? Mono.empty() : getClient().getGuildById( guild );
+            }
+
+            @Override
+            public @Nullable Snowflake getGuildId() {
+                return guild;
+            }
+
+        };
+
+    }
     
 }
