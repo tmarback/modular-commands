@@ -1,12 +1,17 @@
 package dev.sympho.modular_commands.utils.parse;
 
+import java.util.function.Function;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.modular_commands.api.command.context.CommandContext;
+import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.api.command.parameter.parse.ListParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.ParserFunction;
 import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
+import dev.sympho.modular_commands.api.command.parameter.parse.UserArgumentParser;
 import dev.sympho.modular_commands.utils.parse.entity.ChannelParser;
 import dev.sympho.modular_commands.utils.parse.entity.ChannelRefParser;
 import dev.sympho.modular_commands.utils.parse.entity.EntityRef.ChannelRef;
@@ -20,10 +25,13 @@ import dev.sympho.modular_commands.utils.parse.entity.RoleRefParser;
 import dev.sympho.modular_commands.utils.parse.entity.UserParser;
 import dev.sympho.modular_commands.utils.parse.entity.UserRefParser;
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
+import discord4j.rest.http.client.ClientException;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -339,6 +347,96 @@ public final class ParseUtils {
     public static <C extends Channel> ListParser<C> channels( final Class<C> type ) {
 
         return Parsers.list( channel( type ) );
+
+    }
+
+    /* Entity post-processors */
+
+    /**
+     * Creates a parser that parses from members of the guild determined by the given function.
+     *
+     * @param <T> The parsed argument type.
+     * @param guildFinder The function to use to determine the target guild ID.
+     * @param parser The parser to use.
+     * @return The parser.
+     */
+    private static <T extends @NonNull Object> UserArgumentParser<T> memberParser(
+            final Function<CommandContext, Snowflake> guildFinder, 
+            final ParserFunction<Member, T> parser ) {
+
+        return Parsers.user( ( ctx, user ) -> user.asMember( guildFinder.apply( ctx ) )
+                .onErrorMap( ClientException.class, 
+                        ex -> HttpResponseStatus.NOT_FOUND.equals( ex.getStatus() )
+                                ? new InvalidArgumentException( "User is not in the server", ex )
+                                : ex
+                )
+                .flatMap( m -> parser.parse( ctx, m ) )
+        );
+
+    }
+
+    /**
+     * Creates a parser that receives members of the guild where the command is called in.
+     *
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static UserArgumentParser<Member> member() {
+
+        return member( Parsers::raw );
+
+    }
+
+    /**
+     * Creates a parser that parses from members of the guild where the command is called in.
+     *
+     * @param <T> The parsed argument type.
+     * @param parser The parser to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> UserArgumentParser<T> member(
+            final ParserFunction<Member, T> parser
+    ) {
+
+        return memberParser( ctx -> {
+            if ( ctx.getGuildId() == null ) {
+                throw new InvalidArgumentException( "Not in a guild" );
+            } else {
+                return ctx.getGuildId();
+            }
+        }, parser );
+
+    }
+
+    /**
+     * Creates a parser that receives members of the given guild.
+     *
+     * @param guild The ID of the target guild.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static UserArgumentParser<Member> member( final Snowflake guild ) {
+
+        return member( guild, Parsers::raw );
+
+    }
+
+    /**
+     * Creates a parser that parses from members of the given guild.
+     *
+     * @param <T> The parsed argument type.
+     * @param guild The ID of the target guild.
+     * @param parser The parser to use.
+     * @return The parser.
+     */
+    @SideEffectFree
+    public static <T extends @NonNull Object> UserArgumentParser<T> member(
+            final Snowflake guild,
+            final ParserFunction<Member, T> parser
+    ) {
+
+        return memberParser( ctx -> guild, parser );
 
     }
     

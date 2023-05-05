@@ -1,5 +1,6 @@
 package dev.sympho.modular_commands;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
@@ -27,9 +28,11 @@ import dev.sympho.modular_commands.utils.Registries;
 import dev.sympho.modular_commands.utils.SizeUtils;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 import io.micrometer.core.instrument.Measurement;
@@ -298,6 +301,48 @@ public class TestBot {
     }
 
     /**
+     * Creates a command to show member data.
+     *
+     * @return The command.
+     */
+    private static Command<?> memberCommand() {
+
+        final var param = Parameter.<Member>builder()
+                .name( "target" )
+                .description( "The target user" )
+                .required( true )
+                .parser( ParseUtils.member() )
+                .build();
+
+        return Command.builder()
+                .name( "member" )
+                .displayName( "Get member info" )
+                .description( "Show info about a server member" )
+                .addParameters( param )
+                .handlers( Handlers.text( ctx -> {
+
+                    final var target = ctx.requireArgument( param );
+                    final var embed = EmbedCreateSpec.builder()
+                            .author( target.getUsername(), null, target.getAvatarUrl() )
+                            .addField( "Nickname", 
+                                    target.getNickname().orElse( "N/A" ), 
+                                    true 
+                            )
+                            .addField( "Member since", 
+                                    target.getJoinTime().orElse( Instant.now() ).toString(), 
+                                    true 
+                            )
+                            .build();
+
+                    return ctx.reply( embed ).thenReturn( Results.ok() );
+
+                } ) )
+                .id( "member" )
+                .build();
+
+    }
+
+    /**
      * Creates a command for showing meter values.
      *
      * @param registry The meter registry to use.
@@ -425,6 +470,8 @@ public class TestBot {
                 botOwnerCommand(),
 
                 fileTextCommand(),
+
+                memberCommand(),
 
                 metersCommand( meters )
         );
