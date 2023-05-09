@@ -38,6 +38,7 @@ import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.command.result.Results;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.api.permission.AccessValidator;
 import dev.sympho.modular_commands.api.permission.Group;
@@ -328,6 +329,27 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     }
 
     /**
+     * Wraps an error encountered during parameter parsing into an error result.
+     *
+     * @param parameter The parameter.
+     * @param error The error.
+     * @return The wrapped result.
+     */
+    @SideEffectFree
+    private ResultException wrapParamError( final Parameter<?> parameter, final Throwable error ) {
+
+        // Sanity check
+        if ( error instanceof ResultException res ) {
+            LOGGER.warn( "Result exception would be wrapped" );
+            return res;
+        }
+
+        LOGGER.error( "Error while parsing parameter {}: {}", parameter, error.getMessage() );
+        return new ResultException( Results.exceptionR( error ) );
+
+    }
+
+    /**
      * Parses an argument.
      *
      * @param <R> The raw argument type.
@@ -337,7 +359,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      * @param parser The parser to use.
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link ResultException} if the raw value is invalid or missing 
-     *         (and required), and may be empty if no value.
+     *         (and required) or if an error happened, and may be empty if no value.
      */
     @SideEffectFree
     @SuppressWarnings( { "conditional", "return" } ) // Weird Optional stuff
@@ -355,6 +377,9 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
                 .switchIfEmpty( Mono.justOrEmpty( parameter.defaultValue() ) )
                 .onErrorMap( InvalidArgumentException.class, 
                         e -> wrapInvalidParam( parameter, e ) 
+                )
+                .onErrorMap( e -> !( e instanceof ResultException ), 
+                        e -> wrapParamError( parameter, e ) 
                 );
 
     }
@@ -368,7 +393,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      * @param parser The parser to use.
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link ResultException} if the raw value is invalid or missing 
-     *         (and required), and may be empty if no value.
+     *         (and required) or if an error happened, and may be empty if no value.
      * @apiNote Channel gets an additional wrapper in order to carry the C generic.
      */
     private <C extends @NonNull Channel, T extends @NonNull Object> Mono<T> parseArgument(
@@ -391,7 +416,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      * @param parameter The parameter to parse.
      * @return A Mono that issues the parsed argument. May fail with a 
      *         {@link ResultException} if the raw value is invalid or missing 
-     *         (and required), and may be empty if no value.
+     *         (and required) or if an error happened, and may be empty if no value.
      */
     @SideEffectFree
     @SuppressWarnings( { "JavadocMethod", "unchecked" } ) // Ignore undeclared exception
@@ -440,7 +465,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
      * @param parameter The parameter specification.
      * @return A Mono that issues the parameter name and the processed argument. May fail 
      *         with a {@link ResultException} if the raw value is invalid or is missing 
-     *         (and is required).
+     *         (and is required) or if an error happened.
      */
     @SideEffectFree
     @SuppressWarnings( { 
