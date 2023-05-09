@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.api.command;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -572,6 +573,30 @@ public interface Command<H extends @NonNull Handlers> {
      * @since 1.0
      */
     @SuppressWarnings( "MissingCtor" )
-    class Builder<H extends @NonNull Handlers> extends ImmutableCommand.Builder<H> {}
+    class Builder<H extends @NonNull Handlers> extends ImmutableCommand.Builder<H> {
+
+        /**
+         * Initializes the value for the {@link Command#parent() parent} attribute.
+         * 
+         * <p><em>If not set, this attribute will have a default value as returned by 
+         * the initializer of {@link Command#parent() parent}.</em>
+         *
+         * @param parent The parent command.
+         * @return {@code this} builder for use in a chained invocation.
+         * @see #parent(Invocation)
+         * @see Command#invocation()
+         * @apiNote This is a shortcut to use an existing command instance instead of having
+         *          to separately maintain the parent invocation. However, note that creating
+         *          entirely new instances for this may have performance implications; it is
+         *          best used with an existing instance (such as the one to be registered)
+         *          when possible.
+         */
+        public final Command.Builder<H> parent( final Command<?> parent ) {
+
+            return parent( Objects.requireNonNull( parent, "parent" ).invocation() );
+            
+        }
+
+    }
     
 }
