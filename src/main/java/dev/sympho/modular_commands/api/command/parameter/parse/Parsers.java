@@ -1013,19 +1013,25 @@ public final class Parsers {
 
     /**
      * Creates a parser that uses the given parser to parse the contents
-     * received in an attachment, with no validation performed prior to
-     * receiving attachment data, and with unbounded file size.
+     * received in an attachment, with unbounded file size.
      *
      * @param <T> The parsed argument type.
+     * @param validator The validator to use. If {@code null}, no validation is performed.
      * @param parser The parser to use.
      * @return The parser.
+     * @apiNote Validation is applied before fetching the attachment data.
      */
     @SideEffectFree
     public static <T extends @NonNull Object> AttachmentDataParser<T> attachment(
+            final AttachmentParserStages.@Nullable Validator validator,
             final AttachmentParserStages.Parser<T> parser
     ) {
 
-        return attachment( Integer.MAX_VALUE, parser );
+        return attachment( 
+                Objects.requireNonNullElse( validator, attachment -> {} ), 
+                Integer.MAX_VALUE, 
+                parser 
+        );
 
     }
 
