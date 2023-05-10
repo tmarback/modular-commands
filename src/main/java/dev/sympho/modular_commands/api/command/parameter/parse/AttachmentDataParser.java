@@ -13,6 +13,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParserS
 import dev.sympho.modular_commands.api.command.parameter.parse.AttachmentParserStages.Validator;
 import dev.sympho.modular_commands.utils.SizeUtils;
 import discord4j.core.object.entity.Attachment;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -94,9 +95,29 @@ public interface AttachmentDataParser<T extends @NonNull Object>
     }
 
     /**
+     * Validates that the attachment fetch request was successful.
+     *
+     * @param response The response metadata.
+     * @throws AttachmentFetchFailedException if the request failed.
+     * @implSpec The default checks if the {@link HttpClientResponse#status() status code}
+     *           of the response was {@link HttpResponseStatus#OK OK}.
+     */
+    default void validateResponse( final HttpClientResponse response ) 
+            throws AttachmentFetchFailedException {
+
+        final var status = response.status();
+        if ( !HttpResponseStatus.OK.equals( status ) ) {
+            throw new AttachmentFetchFailedException( 
+                    "Could not fetch attachment: response was " + status 
+            );
+        }
+
+    }
+
+    /**
      * @implSpec Fetches the attachment from the {@link #getUrl(Attachment) URL} using a 
      *           client obtained by {@link HttpClient#create()} then delegates to
-     *           {@link #parse(CommandContext, HttpClientResponse, ByteBufMono)}.
+     *           {@link #parse(CommandContext, Attachment, ByteBufMono)}.
      */
     @Override
     default Mono<T> parseArgument( final CommandContext context, final Attachment raw ) 
@@ -104,7 +125,12 @@ public interface AttachmentDataParser<T extends @NonNull Object>
 
         return getHttpClient( context ).get()
                 .uri( getUrl( raw ) )
-                .responseSingle( ( response, body ) -> parse( context, response, body ) );
+                .responseSingle( ( response, body ) -> {
+
+                    validateResponse( response );
+                    return parse( context, raw, body );
+
+                } );
 
     }
 

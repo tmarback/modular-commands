@@ -44,7 +44,7 @@ public final class HttpUtils {
         }
 
         final var contentType = response.responseHeaders()
-                .get( HttpHeaderNames.CONTENT_TYPE, "" );
+                .get( HttpHeaderNames.CONTENT_TYPE );
         return HttpUtil.getCharset( contentType );
 
     }

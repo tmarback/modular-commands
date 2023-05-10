@@ -8,11 +8,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.modular_commands.api.command.context.CommandContext;
-import dev.sympho.modular_commands.utils.HttpUtils;
 import discord4j.core.object.entity.Attachment;
+import io.netty.handler.codec.http.HttpUtil;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
-import reactor.netty.http.client.HttpClientResponse;
 
 /**
  * Parses an argument from an attached text file.
@@ -56,10 +55,10 @@ public interface TextFileParser<T extends @NonNull Object> extends AttachmentDat
      * @implSpec Parses the attachment file content using {@link #parse(CommandContext, String)}.
      */
     @Override
-    default Mono<T> parse( final CommandContext context, final HttpClientResponse response, 
+    default Mono<T> parse( final CommandContext context, final Attachment attachment, 
             final ByteBufMono body ) throws InvalidArgumentException {
 
-        final Charset encoding = HttpUtils.getCharset( response, InvalidArgumentException::new );
+        final Charset encoding = HttpUtil.getCharset( attachment.getContentType().orElse( null ) );
         return body.asString( encoding ).flatMap( c -> parse( context, c ) );
 
     }

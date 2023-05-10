@@ -26,7 +26,6 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
-import reactor.netty.http.client.HttpClientResponse;
 
 /**
  * Convenience functions for defining argument parsers.
@@ -1711,10 +1710,10 @@ public final class Parsers {
         }
 
         @Override
-        public Mono<T> parse( final CommandContext context, final HttpClientResponse response,
+        public Mono<T> parse( final CommandContext context, final Attachment attachment,
                 final ByteBufMono body ) throws InvalidArgumentException {
 
-            return parser.parse( context, response, body );
+            return parser.parse( context, attachment, body );
 
         }
 

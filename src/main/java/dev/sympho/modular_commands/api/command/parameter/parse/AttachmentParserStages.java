@@ -6,7 +6,6 @@ import dev.sympho.modular_commands.api.command.context.CommandContext;
 import discord4j.core.object.entity.Attachment;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
-import reactor.netty.http.client.HttpClientResponse;
 
 /**
  * Components of an attachment argument parser.
@@ -54,14 +53,14 @@ public final class AttachmentParserStages {
          * Parses the response from fetching the attachment file into the corresponding value.
          *
          * @param context The execution context.
-         * @param response The response metadata.
+         * @param attachment The attachment descriptor.
          * @param body The response body.
          * @return A Mono that issues the parsed argument. If the content is invalid, it may
          *         fail with a {@link InvalidArgumentException}.
          * @throws InvalidArgumentException if the given response is not valid.
          */
         @SideEffectFree
-        Mono<T> parse( CommandContext context, HttpClientResponse response, ByteBufMono body ) 
+        Mono<T> parse( CommandContext context, Attachment attachment, ByteBufMono body ) 
                 throws InvalidArgumentException;
 
     }
