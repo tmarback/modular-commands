@@ -52,7 +52,7 @@
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>          }
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> contentType = response.responseHeaders()
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  .get( HttpHeaderNames.CONTENT_TYPE, <span class="jxr_string">""</span> );
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  .get( HttpHeaderNames.CONTENT_TYPE );
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">return</strong> HttpUtil.getCharset( contentType );
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>      }
