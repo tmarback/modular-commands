@@ -26,6 +26,9 @@ import reactor.core.publisher.Mono;
 
 /**
  * Executor that receives and handles commands through text messages.
+ * 
+ * <p>Note that, as command names are restricted to only using lowercase characters,
+ * command matching is case insensitive (argument parsing is not affected).
  *
  * @version 1.0
  * @since 1.0
