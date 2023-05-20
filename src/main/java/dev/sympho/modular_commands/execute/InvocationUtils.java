@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.execute;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -43,6 +44,9 @@ public final class InvocationUtils {
      * <p>After this method returns, the given {@code args} iterator will be positioned
      * such that the next element is the first argument that did not match a subcommand
      * (and thus the first proper argument).
+     * 
+     * <p>Matching is performed case-insensitive by converting received args to lowercase
+     * before attempting to match (command names are always lowercase).
      *
      * @param <H> The handler type.
      * @param registry The registry to use for command lookups.
@@ -59,7 +63,8 @@ public final class InvocationUtils {
         Invocation current = Invocation.of();
         while ( args.hasNext() ) {
 
-            final var next = current.child( args.peek() );
+            final var arg = args.peek().toLowerCase( Locale.ROOT ); // Ignore case
+            final var next = current.child( arg );
             final var command = registry.findCommand( next, commandType );
             if ( command == null ) {
                 break;

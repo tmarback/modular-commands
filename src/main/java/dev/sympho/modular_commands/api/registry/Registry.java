@@ -22,7 +22,7 @@ import dev.sympho.modular_commands.api.command.handler.Handlers;
 public interface Registry {
 
     /**
-     * Retrieves the best command known to this registry that has the given parent and name,
+     * Retrieves the best command known to this registry that has the given invocation,
      * and is compatible with the given type.
      *
      * @param <H> The handler type that must be supported.
