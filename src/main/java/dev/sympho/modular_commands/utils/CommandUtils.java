@@ -1,6 +1,7 @@
 package dev.sympho.modular_commands.utils;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -87,27 +88,8 @@ public final class CommandUtils {
         if ( !NAME_PATTERN.matcher( name ).matches() ) {
             throw new IllegalArgumentException( "Invalid name." );
         }
-        if ( !name.equals( name.toLowerCase() ) ) {
+        if ( !name.equals( name.toLowerCase( Locale.ROOT ) ) ) {
             throw new IllegalArgumentException( "Name must be all lowercase." );
-        }
-
-    }
-
-    /**
-     * Validates the display name of a command.
-     *
-     * @param name The display name to validate.
-     * @throws IllegalArgumentException if the display name is not valid.
-     * @throws NullPointerException if a {@code null} value was found where not allowed. 
-     */
-    @SideEffectFree
-    public static void validateDisplayName( 
-            final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String name ) 
-            throws IllegalArgumentException, NullPointerException {
-
-        Objects.requireNonNull( name, "Display name cannot be null." );
-        if ( !DISPLAY_NAME_PATTERN.matcher( name ).matches() ) {
-            throw new IllegalArgumentException( "Invalid display name." );
         }
 
     }
@@ -128,6 +110,9 @@ public final class CommandUtils {
         if ( !NAME_PATTERN.matcher( alias ).matches() ) {
             throw new IllegalArgumentException( "Invalid alias." );
         }
+        if ( !alias.equals( alias.toLowerCase( Locale.ROOT ) ) ) {
+            throw new IllegalArgumentException( "Alias must be all lowercase." );
+        }
 
     }
 
@@ -145,6 +130,25 @@ public final class CommandUtils {
 
         Objects.requireNonNull( aliases, "Alias set cannot be null." )
                 .forEach( CommandUtils::validateAlias );
+
+    }
+
+    /**
+     * Validates the display name of a command.
+     *
+     * @param name The display name to validate.
+     * @throws IllegalArgumentException if the display name is not valid.
+     * @throws NullPointerException if a {@code null} value was found where not allowed. 
+     */
+    @SideEffectFree
+    public static void validateDisplayName( 
+            final @MatchesRegex( Command.DISPLAY_NAME_REGEX ) String name ) 
+            throws IllegalArgumentException, NullPointerException {
+
+        Objects.requireNonNull( name, "Display name cannot be null." );
+        if ( !DISPLAY_NAME_PATTERN.matcher( name ).matches() ) {
+            throw new IllegalArgumentException( "Invalid display name." );
+        }
 
     }
 

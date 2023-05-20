@@ -174,6 +174,10 @@ public interface Command<H extends @NonNull Handlers> {
     /**
      * The name of the command.
      * 
+     * <p>The name must be compatible with the Discord API, thus it must match the
+     * regex {@value #NAME_REGEX} and all letters used must be their lowercase variant,
+     * if there is one.
+     * 
      * <p>This is the name used to match the command internally and for accessing
      * text-based commands (slash and text commands). It is provided to the Discord
      * API for slash commands, but <i>not</i> for user and message commands (for
@@ -242,6 +246,9 @@ public interface Command<H extends @NonNull Handlers> {
 
     /**
      * The display name of the command.
+     * 
+     * <p>The name must be compatible with the Discord API, thus it must match the
+     * regex {@value #DISPLAY_NAME_REGEX}.
      * 
      * <p>This is displayed to the user in documentation-related functionality.
      * For user and message commands, this is also the value provided to the
