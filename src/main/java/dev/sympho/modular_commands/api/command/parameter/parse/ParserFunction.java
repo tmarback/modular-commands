@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
+@FunctionalInterface
 public interface ParserFunction<R extends @NonNull Object, T extends @NonNull Object>
         extends BiFunction<CommandContext, R, Mono<T>> {
 
