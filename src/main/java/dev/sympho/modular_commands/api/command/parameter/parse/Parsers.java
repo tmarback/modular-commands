@@ -226,6 +226,7 @@ public final class Parsers {
             throw new IllegalArgumentException( "There must be at least one choice." );
         }
 
+        @SuppressWarnings( "keyfor:return" )
         final Map<P, T> mapping = choices.stream()
                 .collect( Collectors.toMap( e -> e.getKey().value(), Entry::getValue ) );
 

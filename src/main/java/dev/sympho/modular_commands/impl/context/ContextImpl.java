@@ -588,6 +588,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     }
 
     @Override
+    @SuppressWarnings( "signedness:return" )
     public <T> @Nullable T getContext( final String key, final Class<? extends T> type )
             throws IllegalArgumentException, ClassCastException {
 
@@ -783,6 +784,7 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
          * @return The value.
          * @throws ClassCastException if the value is not compatible with the given type.
          */
+        @SuppressWarnings( "signedness:return" )
         public <E> @Nullable E getValue( final Class<E> argumentType ) throws ClassCastException {
 
             return argumentType.cast( value );

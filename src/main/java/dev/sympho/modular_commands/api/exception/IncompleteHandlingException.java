@@ -1,7 +1,5 @@
 package dev.sympho.modular_commands.api.exception;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.checkerframework.dataflow.qual.Pure;
@@ -40,7 +38,7 @@ public class IncompleteHandlingException extends CommandException {
         super( String.format( "Command %s under invocation %s was not completely handled.",
                 InvocationUtils.getInvokedCommand( chain ).invocation(), invocation ) );
 
-        this.chain = Collections.unmodifiableList( new ArrayList<>( chain ) );
+        this.chain = List.copyOf( chain );
         this.invocation = invocation;
         
     }
