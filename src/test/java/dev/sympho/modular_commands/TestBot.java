@@ -1,10 +1,14 @@
 package dev.sympho.modular_commands;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.commons.io.input.AutoCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +33,14 @@ import dev.sympho.modular_commands.utils.SizeUtils;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.possible.PossibleModule;
+import discord4j.gateway.intent.IntentSet;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 import io.micrometer.core.instrument.Measurement;
@@ -343,6 +351,51 @@ public class TestBot {
     }
 
     /**
+     * Creates a command to dump message data.
+     *
+     * @return The command.
+     */
+    private static Command<?> dumpMessageCommand() {
+
+        final var param = Parameter.<Message>builder()
+                .name( "target" )
+                .description( "The target message" )
+                .required( true )
+                .parser( Parsers.message() )
+                .build();
+
+        return Command.builder()
+                .name( "dump-message" )
+                .displayName( "Dump message" )
+                .description( "Dumps message content as JSON" )
+                .addParameters( param )
+                .handlers( Handlers.text( ctx -> {
+
+                    final var message = ctx.requireArgument( param );
+
+                    final var json = new ObjectMapper()
+                            .registerModule( new PossibleModule() )
+                            .writerWithDefaultPrettyPrinter()
+                            .writeValueAsString( message.getData() );
+
+                    final var stream = AutoCloseInputStream.builder()
+                            .setCharSequence( json )
+                            .setCharset( StandardCharsets.UTF_8 )
+                            .get();
+
+                    final var spec = MessageCreateSpec.builder()
+                            .addFile( "content.json", stream )
+                            .build();
+
+                    return ctx.reply( spec ).thenReturn( Results.ok() );
+
+                } ) )
+                .id( "dump-message" )
+                .build();
+
+    }
+
+    /**
      * Creates a command for showing meter values.
      *
      * @param registry The meter registry to use.
@@ -473,6 +526,8 @@ public class TestBot {
 
                 memberCommand(),
 
+                dumpMessageCommand(),
+
                 metersCommand( meters )
         );
 
@@ -481,6 +536,8 @@ public class TestBot {
         );
         
         DiscordClient.create( token )
+            .gateway()
+            .setEnabledIntents( IntentSet.all() )
             .withGateway( client -> {
 
                 final List<CommandExecutor> executors = List.of(
