@@ -11,13 +11,13 @@ import com.google.common.collect.ImmutableMultiset;
 import org.checkerframework.common.value.qual.MatchesRegex;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.bot_utils.access.Group;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import dev.sympho.modular_commands.api.permission.Group;
 
 /**
  * Utility functions for Commands.

@@ -16,6 +16,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
@@ -28,7 +29,6 @@ import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
-import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.RawParser;

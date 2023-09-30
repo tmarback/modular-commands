@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import dev.sympho.bot_utils.access.AccessValidator;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
@@ -96,7 +97,9 @@ public abstract class InvocationValidator<E extends Event> {
         // it is known to be necessary
         return Mono.fromSupplier( () -> InvocationUtils.accumulateGroups( chain ) )
                 .flatMapMany( Flux::fromIterable )
-                .flatMap( validator::validate )
+                .flatMap( g -> validator.validate( g )
+                        .map( b -> ( CommandResult ) new UserNotAllowed( g ) ) 
+                )
                 .next(); // Return first error
         
     }

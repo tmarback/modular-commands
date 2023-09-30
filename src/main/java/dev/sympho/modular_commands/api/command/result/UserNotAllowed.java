@@ -1,6 +1,6 @@
 package dev.sympho.modular_commands.api.command.result;
 
-import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.bot_utils.access.Group;
 
 /**
  * A failure result due to the user not being part of a specific group.

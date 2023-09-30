@@ -10,6 +10,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Command.Scope;
 import dev.sympho.modular_commands.api.command.Invocation;

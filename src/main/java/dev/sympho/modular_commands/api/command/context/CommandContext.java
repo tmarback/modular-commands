@@ -7,14 +7,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.bot_utils.access.AccessValidator;
+import dev.sympho.bot_utils.access.ChannelAccessContext;
+import dev.sympho.bot_utils.access.Group;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
 import dev.sympho.modular_commands.api.command.reply.Reply;
 import dev.sympho.modular_commands.api.command.reply.ReplyManager;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
-import dev.sympho.modular_commands.api.permission.Group;
+import dev.sympho.modular_commands.api.command.result.CommandResult;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
@@ -513,6 +516,19 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
     default Mono<Boolean> belongs( final Snowflake user, final Group group ) {
 
         return getClient().getUserById( user ).flatMap( u -> belongs( u, group ) );
+
+    }
+
+    /**
+     * @return A Mono that is empty if the caller has access equivalent to the given
+     *         group under the current execution context, or otherwise issues a 
+     *         failure result.
+     */
+    @Override
+    default Mono<CommandResult> validate( final Group group ) {
+        
+        return AccessValidator.super.validate( group )
+                .map( b -> new UserNotAllowed( group ) );
 
     }
     

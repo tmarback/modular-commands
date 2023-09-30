@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
 
+import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.InvocationHandler;

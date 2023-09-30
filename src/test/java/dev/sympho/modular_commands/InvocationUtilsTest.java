@@ -6,12 +6,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import dev.sympho.bot_utils.access.Group;
+import dev.sympho.bot_utils.access.Groups;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.result.Results;
-import dev.sympho.modular_commands.api.permission.Group;
-import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.execute.InvocationUtils;
 import discord4j.common.util.Snowflake;
 

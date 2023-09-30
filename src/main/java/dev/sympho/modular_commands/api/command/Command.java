@@ -13,6 +13,9 @@ import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.immutables.value.Value;
 
+import dev.sympho.bot_utils.access.AccessManager;
+import dev.sympho.bot_utils.access.Group;
+import dev.sympho.bot_utils.access.Groups;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InteractionHandlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
@@ -20,9 +23,6 @@ import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
 import dev.sympho.modular_commands.api.command.handler.TextHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
-import dev.sympho.modular_commands.api.permission.Group;
-import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.utils.CommandUtils;
 
 // BEGIN LONG LINES
@@ -287,7 +287,7 @@ public interface Command<H extends @NonNull Handlers> {
      * 
      * <p>Note that having access to a group is not necessarily the same as belonging
      * to that group (although it is the basic threshold); the specific definition
-     * depends on the {@link AccessValidator} implementation used to verify access.
+     * depends on the {@link AccessManager} implementation used to manage access.
      * 
      * <p>For application commands, be aware that this is completely disjoint from Discord's
      * own permission system, and so utilizing this feature may lead to user confusion due

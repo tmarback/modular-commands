@@ -16,6 +16,9 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.sympho.bot_utils.access.AccessManager;
+import dev.sympho.bot_utils.access.AccessValidator;
+import dev.sympho.bot_utils.access.Group;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -39,10 +42,8 @@ import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInva
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.exception.ResultException;
-import dev.sympho.modular_commands.api.permission.AccessValidator;
-import dev.sympho.modular_commands.api.permission.Group;
-import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.InstrumentedContext;
 import dev.sympho.modular_commands.execute.LazyContext;
 import dev.sympho.modular_commands.execute.Metrics;
@@ -642,7 +643,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     @Override
     public final Mono<CommandResult> validate( final Group group ) {
 
-        return getValidator().validate( group );
+        return getValidator().validate( group )
+                .map( b -> new UserNotAllowed( group ) );
 
     }
 

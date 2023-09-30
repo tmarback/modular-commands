@@ -12,6 +12,8 @@ import org.apache.commons.io.input.AutoCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.sympho.bot_utils.access.AccessManager;
+import dev.sympho.bot_utils.access.Groups;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
@@ -20,9 +22,7 @@ import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.command.parameter.parse.Parsers;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
-import dev.sympho.modular_commands.api.permission.Groups;
 import dev.sympho.modular_commands.api.registry.Registry;
-import dev.sympho.modular_commands.execute.AccessManager;
 import dev.sympho.modular_commands.execute.AliasProvider;
 import dev.sympho.modular_commands.execute.CommandExecutor;
 import dev.sympho.modular_commands.execute.MessageCommandExecutor;

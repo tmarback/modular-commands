@@ -2,6 +2,7 @@ package dev.sympho.modular_commands.execute;
 
 import java.util.Objects;
 
+import dev.sympho.bot_utils.access.NamedGroup;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
 import dev.sympho.modular_commands.api.command.handler.ResultHandler;
@@ -13,7 +14,6 @@ import dev.sympho.modular_commands.api.command.result.CommandSuccess;
 import dev.sympho.modular_commands.api.command.result.CommandSuccessAck;
 import dev.sympho.modular_commands.api.command.result.CommandSuccessMessage;
 import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
-import dev.sympho.modular_commands.api.permission.NamedGroup;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;

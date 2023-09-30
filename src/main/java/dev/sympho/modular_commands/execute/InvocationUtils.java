@@ -15,12 +15,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
+import dev.sympho.bot_utils.access.Group;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
 import dev.sympho.modular_commands.api.exception.InvalidChainException;
-import dev.sympho.modular_commands.api.permission.Group;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.utils.SmartIterator;
 import reactor.util.function.Tuple2;
