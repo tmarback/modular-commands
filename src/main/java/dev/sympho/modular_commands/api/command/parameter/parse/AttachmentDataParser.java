@@ -146,7 +146,7 @@ public interface AttachmentDataParser<T extends @NonNull Object>
          * 
          * <p>It uses the client in the 
          * {@link discord4j.rest.RestResources#getReactorResources() reactor resources}
-         * of the invoking {@link CommandContext#getClient() discord client}'s
+         * of the invoking {@link CommandContext#client() discord client}'s
          * {@link discord4j.core.GatewayDiscordClient#getCoreResources() core resources}
          * (the client used for interacting with Discord's API).
          */
