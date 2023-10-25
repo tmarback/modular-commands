@@ -15,7 +15,7 @@ public class InvalidListException extends InvalidArgumentException {
     private static final long serialVersionUID = -8131494020117717815L;
 
     /** The items that had errors. */
-    private final List<TryParser.Failure<?, ?>> errors;
+    private final transient List<TryParser.Failure<?, ?>> errors;
 
     /**
      * Creates a new instance.

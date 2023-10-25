@@ -400,10 +400,10 @@ public final class ParseUtils {
     ) {
 
         return memberParser( ctx -> {
-            if ( ctx.getGuildId() == null ) {
+            if ( ctx.guildId() == null ) {
                 throw new InvalidArgumentException( "Not in a guild" );
             } else {
-                return ctx.getGuildId();
+                return ctx.guildId();
             }
         }, parser );
 

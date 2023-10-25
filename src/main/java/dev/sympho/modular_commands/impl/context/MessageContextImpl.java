@@ -13,10 +13,10 @@ import com.google.common.collect.Streams;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
 import dev.sympho.bot_utils.access.AccessManager;
+import dev.sympho.bot_utils.event.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.context.MessageCommandContext;
@@ -26,7 +26,6 @@ import dev.sympho.modular_commands.api.command.parameter.parse.InputParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
-import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.execute.Metrics;
@@ -35,12 +34,9 @@ import dev.sympho.modular_commands.utils.parse.RawParser;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Attachment;
-import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
-import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,10 +46,8 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public final class MessageContextImpl extends ContextImpl<String> implements MessageCommandContext {
-
-    /** The event that triggered the invocation. */
-    private final MessageCreateEvent event;
+public final class MessageContextImpl extends ContextImpl<String, MessageCreateEvent> 
+        implements MessageCommandContext {
 
     /** The received inline arguments. */
     private final Iterator arguments;
@@ -72,16 +66,19 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
      * @param command The invoked command.
      * @param args The raw arguments received.
      * @param accessManager The access manager to use.
+     * @param replyManager The reply manager to use.
      * @throws ResultException if there is a mismatch between parameters and
      *                         arguments.
      */
-    public MessageContextImpl( final MessageCreateEvent event, 
+    public MessageContextImpl( 
+            final MessageCreateEvent event, 
             final Invocation invocation, final Command<?> command, 
-            final Iterator args, final AccessManager accessManager ) throws ResultException {
+            final Iterator args, 
+            final AccessManager accessManager, final ReplyManager replyManager 
+    ) throws ResultException {
 
-        super( invocation, command, accessManager );
+        super( event, invocation, command, accessManager, replyManager );
 
-        this.event = event;
         this.arguments = args;
 
     }
@@ -171,7 +168,7 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
             final var attachmentParams = command.parameters().stream()
                     .filter( p -> p.parser() instanceof AttachmentParser<?> ).toList();
 
-            final var attachments = event.getMessage().getAttachments();
+            final var attachments = event().getMessage().getAttachments();
             this.attachmentArgs = assign( attachmentParams, attachments, Attachment::getFilename );
 
             return adjustArgs( inputParams, arguments )
@@ -189,20 +186,6 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
     @Override
     public Metrics.Tag.Type tagType() {
         return Metrics.Tag.Type.MESSAGE;
-    }
-
-    @Override
-    protected ReplyManager makeReplyManager() {
-
-        final var message = getEvent().getMessage();
-        return new MessageReplyManager( 
-                message, 
-                Mono.defer( () -> getChannel() ), 
-                getGuildId() == null ? null : Mono.defer( () -> getCaller().getPrivateChannel() ),
-                command.repliesDefaultPrivate(),
-                command.deferReply()
-        );
-
     }
 
     /**
@@ -311,60 +294,6 @@ public final class MessageContextImpl extends ContextImpl<String> implements Mes
 
         final var attachment = getAttachmentArgs().get( name );
         return attachment == null ? Mono.empty() : Mono.just( attachment );
-
-    }
-
-    @Override
-    public User getCaller() {
-
-        final var author = event.getMessage().getAuthor();
-        if ( author.isPresent() ) {
-            return author.get();
-        } else {
-            throw new IllegalStateException( "Message with no author." );
-        }
-
-    }
-
-    @Override
-    public @Nullable Member getCallerMember() {
-
-        return event.getMember().orElse( null );
-
-    }
-
-    @Override
-    public Mono<MessageChannel> getChannel() {
-
-        return event.getMessage().getChannel();
-
-    }
-
-    @Override
-    public Snowflake getChannelId() {
-
-        return event.getMessage().getChannelId();
-
-    }
-
-    @Override
-    public Mono<Guild> getGuild() {
-
-        return event.getGuild();
-
-    }
-
-    @Override
-    public @Nullable Snowflake getGuildId() {
-
-        return event.getGuildId().orElse( null );
-
-    }
-
-    @Override
-    public MessageCreateEvent getEvent() {
-
-        return event;
 
     }
 

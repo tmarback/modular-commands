@@ -22,6 +22,7 @@ import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandFailure;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.CommandSuccess;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.exception.IncompleteHandlingException;
 import dev.sympho.modular_commands.api.registry.Registry;
 import dev.sympho.modular_commands.utils.SmartIterator;
@@ -133,7 +134,9 @@ public abstract class BaseCommandExecutor<E extends Event,
      */
     private static String tagResult( final CommandResult result ) {
 
-        if ( result instanceof CommandSuccess ) {
+        if ( result instanceof UserNotAllowed r ) {
+            return "no_access_dynamic";
+        } else if ( result instanceof CommandSuccess ) {
             return "success";
         } else if ( result instanceof CommandFailure ) {
             return "failure";
@@ -194,14 +197,14 @@ public abstract class BaseCommandExecutor<E extends Event,
                         if ( result instanceof CommandErrorException r ) {
                             final var cause = r.cause();
                             logger.error( String.format( "Exception while executing command %s", 
-                                    context.getInvocation() ), cause );
+                                    context.invocation() ), cause );
                         } else if ( result instanceof CommandError r ) {
                             logger.error( "Error while executing command {}: {}", 
-                                    context.getInvocation(), r.message() );
+                                    context.invocation(), r.message() );
                         } else {
                             logger.debug( "Finished command execution {} with result {}", 
-                                    context.getInvocation(), result.getClass().getSimpleName() );
-                            logger.trace( "{} => {}", context.getInvocation(), result );
+                                    context.invocation(), result.getClass().getSimpleName() );
+                            logger.trace( "{} => {}", context.invocation(), result );
                         }
 
                         addTagResult( result );
@@ -564,7 +567,7 @@ public abstract class BaseCommandExecutor<E extends Event,
                 )
                 .take( 1 ) // Ensures it stops at the first non-empty result
                 .switchIfEmpty( Mono.error( 
-                        () -> new IncompleteHandlingException( chain, context.getInvocation() ) 
+                        () -> new IncompleteHandlingException( chain, context.invocation() ) 
                 ) )
                 .single()
                 .doOnNext( this::addTagResult )
@@ -607,6 +610,10 @@ public abstract class BaseCommandExecutor<E extends Event,
         }
 
         return context.initialize( observations )
+                .then( command.deferReply() // Early defer if necessary
+                        ? Mono.defer( () -> context.replies().defer() )
+                        : Mono.empty()
+                )
                 .then( Mono.defer( () -> validateCommand( event, context, chain ) ) )
                 .switchIfEmpty( Mono.defer( () -> context.load() ) )
                 .switchIfEmpty( Mono.defer( () -> invokeCommand( chain, context ) ) )
@@ -645,7 +652,7 @@ public abstract class BaseCommandExecutor<E extends Event,
                 .filter( c -> c == 0 ) // No handler signaled complete
                 .doOnNext( c -> {
                     logger.warn( "Handling of result of command {} not complete", 
-                            context.getInvocation() );
+                            context.invocation() );
                 } )
                 .then()
                 .checkpoint( METRIC_NAME_RESULT )

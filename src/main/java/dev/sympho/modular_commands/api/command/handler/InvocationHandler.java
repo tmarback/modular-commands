@@ -4,10 +4,12 @@ import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import dev.sympho.bot_utils.access.AccessException;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandErrorException;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
+import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import reactor.core.publisher.Mono;
 
@@ -77,9 +79,14 @@ public interface InvocationHandler<C extends @NonNull CommandContext>
         try {
             return handle( context )
                     .onErrorResume( ResultException.class, e -> Mono.just( e.getResult() ) )
+                    .onErrorResume( AccessException.class, 
+                            ex -> Mono.just( new UserNotAllowed( ex.group ) ) 
+                    )
                     .onErrorResume( e -> Results.exceptionMono( e ) );
         } catch ( final ResultException e ) {
             return Mono.just( e.getResult() );
+        } catch ( final AccessException e ) {
+            return Mono.just( new UserNotAllowed( e.group ) );
         } catch ( final Exception e ) {
             return Results.exceptionMono( e );
         }

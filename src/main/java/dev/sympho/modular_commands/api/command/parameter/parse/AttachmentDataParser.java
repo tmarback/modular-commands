@@ -151,7 +151,7 @@ public interface AttachmentDataParser<T extends @NonNull Object>
          * (the client used for interacting with Discord's API).
          */
         public static final HttpClientRetriever DEFAULT_CLIENT_GETTER = 
-                c -> c.getClient()
+                c -> c.client()
                         .getCoreResources()
                         .getReactorResources()
                         .getHttpClient();

@@ -21,10 +21,10 @@ public class IncompleteHandlingException extends CommandException {
     private static final long serialVersionUID = -6242043843932336667L;
 
     /** The command chain that was being executed. */
-    private final List<Command<?>> chain;
+    private final transient List<Command<?>> chain;
 
     /** The invocation that triggered the command. */
-    private final Invocation invocation;
+    private final transient Invocation invocation;
 
     /**
      * Creates a new instance.

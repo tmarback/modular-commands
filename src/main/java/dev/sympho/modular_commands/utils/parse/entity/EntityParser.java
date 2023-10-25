@@ -35,7 +35,7 @@ public abstract class EntityParser<E extends @NonNull Entity> implements ParserF
     public Mono<E> parse( final CommandContext context, final String raw )
             throws InvalidArgumentException {
 
-        return parser.parseRef( context, raw ).get( context.getClient() );
+        return parser.parseRef( context, raw ).get( context.client() );
 
     }
     

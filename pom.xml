@@ -49,7 +49,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <checker.version>3.38.0</checker.version> <!-- Version of the Checker framework used -->
-        <d4j.version>3.2.4</d4j.version> <!-- Version of Discord4J used -->
+        <d4j.version>3.2.6</d4j.version> <!-- Version of Discord4J used -->
         <reporter.version>1.2.1</reporter.version> <!-- Version of the tree reporter used -->
     </properties>
 
@@ -88,13 +88,7 @@
         <dependency>
             <groupId>dev.sympho</groupId>
             <artifactId>bot-utils</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dev.sympho</groupId>
-            <artifactId>d4j-encoding-extra</artifactId>
-            <version>0.1.1</version>
+            <version>0.1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -109,13 +103,6 @@
                 </exclusion>
 
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.discord4j</groupId>
-            <artifactId>discord-json-encoding</artifactId>
-            <version>1.6.13</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -658,6 +645,17 @@
         <!-- Stricter compiler checking -->
         <profile>
             <id>lint</id>
+            <dependencies>
+
+                <!-- Crashes without this for some reason -->
+                <dependency>
+                    <groupId>com.discord4j</groupId>
+                    <artifactId>discord-json-encoding</artifactId>
+                    <version>1.6.13</version>
+                    <scope>provided</scope>
+                </dependency>
+
+            </dependencies>
             <build>
                 <plugins>
 

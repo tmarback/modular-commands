@@ -108,7 +108,7 @@ public final class BaseHandler {
             return context.reply( embed ).thenReturn( true );
         } else if ( result instanceof CommandSuccessAck res ) {
             if ( context instanceof MessageCommandContext ctx ) {
-                return ctx.getMessage()
+                return ctx.message()
                         .addReaction( res.react() )
                         .thenReturn( true );
             } else {

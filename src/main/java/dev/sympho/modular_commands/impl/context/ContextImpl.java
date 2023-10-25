@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.checkerframework.checker.interning.qual.FindDistinct;
@@ -17,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dev.sympho.bot_utils.access.AccessManager;
-import dev.sympho.bot_utils.access.AccessValidator;
-import dev.sympho.bot_utils.access.Group;
+import dev.sympho.bot_utils.event.AbstractRepliableContext;
+import dev.sympho.bot_utils.event.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
@@ -34,15 +33,10 @@ import dev.sympho.modular_commands.api.command.parameter.parse.RoleArgumentParse
 import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.UserArgumentParser;
-import dev.sympho.modular_commands.api.command.reply.CommandReplyMono;
-import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
-import dev.sympho.modular_commands.api.command.reply.Reply;
-import dev.sympho.modular_commands.api.command.reply.ReplyManager;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentInvalid;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentMissing;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
-import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import dev.sympho.modular_commands.api.exception.ResultException;
 import dev.sympho.modular_commands.execute.InstrumentedContext;
 import dev.sympho.modular_commands.execute.LazyContext;
@@ -50,15 +44,12 @@ import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.parse.ParseUtils;
 import dev.sympho.reactor_utils.concurrent.ReactiveLatch;
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Attachment;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.Role;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
-import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
-import discord4j.core.spec.MessageCreateSpec;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
@@ -68,11 +59,14 @@ import reactor.core.publisher.Mono;
  * Base implementation for context objects.
  *
  * @param <A> The type that raw arguments are received in.
+ * @param <E> The event type.
  * @version 1.0
  * @since 1.0
  */
 @SuppressWarnings( "MultipleStringLiterals" )
-abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, InstrumentedContext {
+abstract class ContextImpl<A extends @NonNull Object, E extends @NonNull Event> 
+        extends AbstractRepliableContext<E>
+        implements LazyContext, InstrumentedContext {
 
     /** The prefix for metrics in this class. */
     public static final String METRIC_NAME_PREFIX = "context";
@@ -99,9 +93,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /** The tag name for the parameter name. */
     private static final String METRIC_TAG_PARAMETER = Metrics.name( "parameter" );
 
-    /** Error for methods called before initialize. */
-    private static final String ERROR_NOT_INITIALIZED = "Not initialized yet";
-
     /** The invoked command. */
     protected final Command<?> command;
 
@@ -111,17 +102,8 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /** Storage for context objects. */
     private final Map<String, @Nullable Object> context;
 
-    /** The access manager to use. */
-    private final AccessManager accessManager;
-
-    /** The validator to use for access checks. */
-    private @MonotonicNonNull AccessValidator access;
-
     /** The parsed arguments. */
     private @MonotonicNonNull Map<String, ? extends Argument<?>> arguments;
-
-    /** The reply manager. */
-    private @MonotonicNonNull ReplyManager reply;
 
     /** Marks if loaded or not. */
     private final AtomicBoolean initialized;
@@ -135,35 +117,32 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     /**
      * Initializes a new context.
      *
+     * @param event The event that triggered the invocation.
      * @param invocation The invocation that triggered execution.
      * @param command The invoked command.
      * @param accessManager The access manager to use.
+     * @param replyManager The reply manager to use.
      */
-    protected ContextImpl( final Invocation invocation, final Command<?> command, 
-            final AccessManager accessManager ) {
+    protected ContextImpl( 
+            final E event,
+            final Invocation invocation, final Command<?> command, 
+            final AccessManager accessManager, final ReplyManager replyManager
+    ) {
+
+        super( event, accessManager, replyManager );
 
         this.command = command;
         this.invocation = invocation;
-        this.accessManager = accessManager;
 
         this.context = new HashMap<>();
 
-        this.access = null;
         this.arguments = null;
-        this.reply = null;
 
         this.initialized = new AtomicBoolean( false );
         this.initializeLatch = new ReactiveLatch();
         this.loadResult = null;
 
     }
-
-    /**
-     * Creates the initial reply manager.
-     *
-     * @return The initial reply manager.
-     */
-    protected abstract ReplyManager makeReplyManager();
 
     /* Argument getters */
 
@@ -510,14 +489,14 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     }
 
     @Override
-    public Invocation getInvocation() {
+    public Invocation invocation() {
 
         return invocation;
 
     }
 
     @Override
-    public Invocation getCommandInvocation() {
+    public Invocation commandInvocation() {
 
         return command.invocation();
 
@@ -603,52 +582,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
     }
 
     /**
-     * @throws IllegalStateException if the context was not initialized yet.
-     */
-    @Override
-    @Pure
-    public ReplyManager replies() throws IllegalStateException {
-
-        if ( reply == null ) {
-            throw new IllegalStateException( ERROR_NOT_INITIALIZED );
-        } else {
-            return reply;
-        }
-
-    }
-
-    /**
-     * Retrieves the access validator.
-     *
-     * @return The validator.
-     * @throws IllegalStateException if the context was not initialized yet.
-     */
-    private AccessValidator getValidator() throws IllegalStateException {
-
-        if ( access == null ) {
-            throw new IllegalStateException( ERROR_NOT_INITIALIZED );
-        } else {
-            return access;
-        }
-
-    }
-
-    @Override
-    public final Mono<Boolean> hasAccess( final Group group ) {
-
-        return getValidator().hasAccess( group );
-
-    }
-
-    @Override
-    public final Mono<CommandResult> validate( final Group group ) {
-
-        return getValidator().validate( group )
-                .map( b -> new UserNotAllowed( group ) );
-
-    }
-
-    /**
      * Performs the initialize operation.
      *
      * @param observations The observation registry to use.
@@ -660,12 +593,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         // Prepare load
         // cache() for idempotence and to prevent cancelling
         this.loadResult = Mono.just( observations ).flatMap( this::doLoad ).cache();
-
-        // Initialize reply manager
-        this.reply = new ReplyManagerWrapper( makeReplyManager() );
-
-        // Create delegate access validator
-        this.access = accessManager.validator( this );
 
         LOGGER.trace( "Context initialized" );
 
@@ -683,7 +610,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         // Prepare load
         // cache() for idempotence and to prevent cancelling
         this.loadResult = Mono.just( observations ).flatMap( this::doLoad ).cache();
-        this.reply = new ReplyManagerWrapper( makeReplyManager() );
 
         return Mono.fromRunnable( () -> doInitialize( observations ) )
                 .then()
@@ -790,107 +716,6 @@ abstract class ContextImpl<A extends @NonNull Object> implements LazyContext, In
         public <E> @Nullable E getValue( final Class<E> argumentType ) throws ClassCastException {
 
             return argumentType.cast( value );
-
-        }
-
-    }
-
-    /**
-     * Wraps the reply manager for this context.
-     *
-     * @version 1.0
-     * @since 1.0
-     */
-    private static final class ReplyManagerWrapper implements ReplyManager {
-
-        /** The backing manager. */
-        private final AtomicReference<ReplyManager> backing;
-
-        /**
-         * Creates a new instance.
-         *
-         * @param backing The manager to wrap.
-         */
-        ReplyManagerWrapper( final ReplyManager backing ) {
-
-            this.backing = new AtomicReference<>( backing );
-
-        }
-
-        @Override
-        public Mono<Reply> add( final CommandReplySpec spec ) {
-
-            return backing.get().add( spec );
-
-        }
-
-        @Override
-        public CommandReplyMono add() {
-
-            return backing.get().add();
-
-        }
-
-        @Override
-        public Mono<Reply> add( final MessageCreateSpec spec ) {
-
-            return backing.get().add( spec );
-
-        }
-
-        @Override
-        public Mono<Reply> add( final InteractionApplicationCommandCallbackSpec spec ) {
-
-            return backing.get().add( spec );
-
-        }
-
-        @Override
-        public Mono<Reply> add( final InteractionFollowupCreateSpec spec ) {
-
-            return backing.get().add( spec );
-
-        }
-
-        @Override
-        public Mono<Reply> add( final String content ) {
-
-            return backing.get().add( content );
-
-        }
-
-        @Override
-        public Mono<Reply> add( final EmbedCreateSpec... embeds ) {
-
-            return backing.get().add( embeds );
-
-        }
-
-        @Override
-        public Reply get( final int index ) throws IndexOutOfBoundsException {
-
-            return backing.get().get( index );
-
-        }
-
-        @Override
-        public Reply get() throws IllegalStateException {
-
-            return backing.get().get();
-
-        }
-
-        /**
-         * Replaces the backing manager with its long-term manager.
-         *
-         * @return This manager, after replacing the backing manager.
-         */
-        @Override
-        public synchronized ReplyManager longTerm() {
-
-            // Still synchronized since may have side effects
-            backing.updateAndGet( ReplyManager::longTerm );
-            return this;
 
         }
 

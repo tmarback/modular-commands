@@ -24,7 +24,7 @@ public interface LazyContext extends CommandContext {
      * 
      * <p>The only parts of the context API that are guaranteed to be ready to use
      * before this method is called are the ones that retrieve pieces of the invocation
-     * context, that is {@link #getEvent()}, {@link #getCaller()}, {@link #getChannel()}, 
+     * context, that is {@link #getEvent()}, {@link #caller()}, {@link #getChannel()}, 
      * etc, as well as this method itself. All other methods have undefined behavior.
      * 
      * <p>After this method is called and the returned mono completes <i>successfully</i>,

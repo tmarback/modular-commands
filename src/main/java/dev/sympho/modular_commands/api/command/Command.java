@@ -16,13 +16,14 @@ import org.immutables.value.Value;
 import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.bot_utils.access.Group;
 import dev.sympho.bot_utils.access.Groups;
+import dev.sympho.bot_utils.event.reply.ReplyManager;
+import dev.sympho.bot_utils.event.reply.ReplySpec;
 import dev.sympho.modular_commands.api.command.handler.Handlers;
 import dev.sympho.modular_commands.api.command.handler.InteractionHandlers;
 import dev.sympho.modular_commands.api.command.handler.MessageHandlers;
 import dev.sympho.modular_commands.api.command.handler.SlashHandlers;
 import dev.sympho.modular_commands.api.command.handler.TextHandlers;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
 import dev.sympho.modular_commands.utils.CommandUtils;
 
 // BEGIN LONG LINES
@@ -374,7 +375,7 @@ public interface Command<H extends @NonNull Handlers> {
      * specified otherwise on the individual reply).
      *
      * @return Whether this command's responses should be private by default.
-     * @see CommandReplySpec#privately()
+     * @see ReplySpec#privately()
      * @apiNote The specific mechanism used for private replies may vary depending on how 
      *          the command was invoked (message, slash command, etc).
      * @implSpec The default value is {@value #DEFAULT_PRIVATE}.
@@ -386,17 +387,20 @@ public interface Command<H extends @NonNull Handlers> {
     }
 
     /**
-     * Whether the initial reply to the command should be deferred, indicating to the user
-     * that a reply is pending.
+     * Whether the initial reply to the command should be automatically deferred.
      * 
      * <p>Note that whether the deferral is publicly visible or not is defined by the
      * {@link #repliesDefaultPrivate() default visibility of replies}. Note also that,
      * if deferral is used, the visibility of the first reply will be set to the default
-     * to match the deferral, with the value of {@link CommandReplySpec#privately()} 
+     * to match the deferral, with the value of {@link ReplySpec#privately()} 
      * being ignored if set. Further replies are not affected.
      * 
-     * <p>If using a deferral, it is expected that a reply will be sent at some point.
-     * It is an error to set this to {@code true} and not send any replies.
+     * <p>It is also possible to manually defer the response at handling time using
+     * {@link ReplyManager#defer()}, with the same effect (in fact, the handler will
+     * internally call that method if this is {@code true}). The advantage of setting
+     * this to {@code true} is, beyond avoiding the need for an extra function call
+     * and map, that the handler will defer <i>before</i> performing any access checks
+     * or argument parsing, which may be useful if any of those stages takes a long time.
      *
      * @return Whether this command's initial response is deferred.
      * @apiNote The specific mechanism used for deferral may vary depending on how 

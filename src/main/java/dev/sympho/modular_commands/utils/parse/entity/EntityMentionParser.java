@@ -40,7 +40,7 @@ public class EntityMentionParser<E extends @NonNull Entity> implements ParserFun
     public Mono<E> parse( final CommandContext context, final String raw ) 
             throws InvalidArgumentException {
 
-        return refParser.parse( context, raw ).flatMap( ref -> ref.get( context.getClient() ) );
+        return refParser.parse( context, raw ).flatMap( ref -> ref.get( context.client() ) );
 
     }
     

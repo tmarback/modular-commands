@@ -4,7 +4,8 @@ import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import dev.sympho.bot_utils.access.AccessValidator;
+import dev.sympho.bot_utils.access.AccessException;
+import dev.sympho.bot_utils.access.ChannelAccessValidator;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import dev.sympho.modular_commands.api.command.result.Results;
@@ -90,17 +91,19 @@ public abstract class InvocationValidator<E extends Event> {
      * @return A Mono that completes empty if the user has the required access,
      *         otherwise issuing a failure result.
      */
-    public Mono<CommandResult> validateAccess( final AccessValidator validator, 
+    public Mono<CommandResult> validateAccess( final ChannelAccessValidator validator,
             final List<? extends Command<?>> chain ) {
 
         // Defer first step to avoid relatively expensive accumulation until
         // it is known to be necessary
         return Mono.fromSupplier( () -> InvocationUtils.accumulateGroups( chain ) )
                 .flatMapMany( Flux::fromIterable )
-                .flatMap( g -> validator.validate( g )
-                        .map( b -> ( CommandResult ) new UserNotAllowed( g ) ) 
-                )
-                .next(); // Return first error
+                .concatMap( validator::validate )
+                .then()
+                .cast( CommandResult.class )
+                .onErrorResume( AccessException.class, 
+                        ex -> Mono.just( new UserNotAllowed( ex.group ) ) 
+                ); // Return first error
         
     }
 

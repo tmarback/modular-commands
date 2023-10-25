@@ -1,10 +1,11 @@
 package dev.sympho.modular_commands.api.command.context;
 
-import org.checkerframework.dataflow.qual.Pure;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import discord4j.common.util.Snowflake;
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import dev.sympho.bot_utils.event.MessageCreateEventContext;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.channel.MessageChannel;
+import reactor.core.publisher.Mono;
 
 /**
  * The execution context of an command invoked through a message.
@@ -12,29 +13,16 @@ import discord4j.core.object.entity.Message;
  * @version 1.0
  * @since 1.0
  */
-public interface MessageCommandContext extends CommandContext {
+public interface MessageCommandContext extends CommandContext, MessageCreateEventContext {
 
     @Override
-    MessageCreateEvent getEvent();
-
-    /**
-     * Retrieves the message that invoked the command.
-     *
-     * @return The invoking message.
-     */
-    @Pure
-    default Message getMessage() {
-        return getEvent().getMessage();
+    default Mono<MessageChannel> channel() {
+        return MessageCreateEventContext.super.channel();
     }
 
-    /**
-     * Retrieves the ID of the message that invoked the command.
-     *
-     * @return The invoking message ID.
-     */
-    @Pure
-    default Snowflake getMessageId() {
-        return getMessage().getId();
+    @Override
+    default @Nullable Member callerMember() {
+        return event().getMember().orElse( null );
     }
     
 }

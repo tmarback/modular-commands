@@ -45,7 +45,7 @@ public abstract class EntityUrlParser<E extends @NonNull Entity> implements UrlP
     public Mono<E> parse( final CommandContext context, final URL url ) 
             throws InvalidArgumentException {
 
-        return refParser.parse( url ).get( context.getClient() );
+        return refParser.parse( url ).get( context.client() );
 
     }
     

@@ -94,7 +94,7 @@ public interface EntityRef<E extends @NonNull Entity> {
         public static Snowflake defaultGuild( final CommandContext context ) 
                 throws InvalidArgumentException {
 
-            final var guild = context.getGuildId();
+            final var guild = context.guildId();
             if ( guild == null ) {
                 throw new InvalidArgumentException( 
                         "Currently in a private channel, please use a URL" 
@@ -190,7 +190,7 @@ public interface EntityRef<E extends @NonNull Entity> {
          * @implSpec Other values default to where the command was invoked in.
          */
         public MessageRef( final CommandContext context, final Snowflake id ) {
-            this( id, context.getChannelId() );
+            this( id, context.channelId() );
         }
 
         @Override

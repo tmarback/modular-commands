@@ -5,29 +5,15 @@ import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.dataflow.qual.Pure;
-import org.checkerframework.dataflow.qual.SideEffectFree;
 
-import dev.sympho.bot_utils.access.AccessValidator;
-import dev.sympho.bot_utils.access.ChannelAccessContext;
-import dev.sympho.bot_utils.access.Group;
+import dev.sympho.bot_utils.event.RepliableContext;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
 import dev.sympho.modular_commands.api.command.parameter.Parameter;
-import dev.sympho.modular_commands.api.command.reply.CommandReplySpec;
-import dev.sympho.modular_commands.api.command.reply.Reply;
-import dev.sympho.modular_commands.api.command.reply.ReplyManager;
-import dev.sympho.modular_commands.api.command.result.CommandResult;
-import dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 import discord4j.common.util.Snowflake;
-import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
-import discord4j.core.spec.MessageCreateSpec;
 import reactor.core.publisher.Mono;
 
 /**
@@ -36,50 +22,37 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public interface CommandContext extends ChannelAccessContext, AccessValidator {
-
-    /**
-     * Retrieves the event that triggered the command.
-     *
-     * @return The trigger event.
-     */
-    @Pure
-    Event getEvent();
-
-    @Override
-    default GatewayDiscordClient getClient() {
-        return getEvent().getClient();
-    }
+public interface CommandContext extends RepliableContext {
 
     /**
      * Retrieves the invocation that triggered the command.
      * 
-     * <p>Unlike {@link #getCommandInvocation()}, the returned value may be 
+     * <p>Unlike {@link #commandInvocation()}, the returned value may be 
      * different from the command's declared {@link Command#invocation()} if it 
      * was invoked using an alias (when supported).
      * 
      * <p>If the command has no aliases, or was invoked through a method that does not 
      * support aliases, the return of this method is the same as the return of 
-     * {@link #getCommandInvocation()}.
+     * {@link #commandInvocation()}.
      *
      * @return The trigger invocation.
      */
     @Pure
-    Invocation getInvocation();
+    Invocation invocation();
 
     /**
      * Retrieves the canonical invocation of the triggered command, that is, the value
      * of {@link Command#invocation()}. This is equivalent to the 
-     * {@link #getInvocation() triggering invocation} after resolving any aliases.
+     * {@link #invocation() triggering invocation} after resolving any aliases.
      * 
      * <p>If the command has no aliases, or was invoked through a method that does not 
      * support aliases, the return of this method is the same as the return of 
-     * {@link #getInvocation()}.
+     * {@link #invocation()}.
      *
      * @return The normalized trigger invocation.
      */
     @Pure
-    Invocation getCommandInvocation();
+    Invocation commandInvocation();
 
     /**
      * Retrieves the user that called the command.
@@ -87,7 +60,9 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
      * @return The calling user.
      */
     @Pure
-    User getCaller();
+    default User caller() {
+        return user();
+    }
 
     /**
      * Retrieves the user that called the command as a guild
@@ -98,7 +73,7 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
      *         if the command was invoked in a private channel.
      */
     @Pure
-    @Nullable Member getCallerMember();
+    @Nullable Member callerMember();
 
     /**
      * Retrieves the user that called the command as a guild
@@ -107,44 +82,36 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
      * @param guildId The ID of the target guild.
      * @return The calling user as a guild member of the given guild.
      * @implNote The default implementation will re-use the member instance
-     *           {@link #getCallerMember() provided by the event} if appropriate (that is, if the
+     *           {@link #callerMember() provided by the event} if appropriate (that is, if the
      *           given guild is the same that the command was invoked from) to avoid making an
      *           API request.
      */
     @Pure
-    default Mono<Member> getCallerMember( final Snowflake guildId ) {
+    default Mono<Member> callerMember( final Snowflake guildId ) {
 
-        return Objects.requireNonNullElse( getCallerMember(), getCaller() )
+        return Objects.requireNonNullElse( callerMember(), caller() )
                 .asMember( guildId );
 
     }
 
     /**
-     * @see #getCaller()
+     * @see #callerMember()
      */
     @Override
-    default User getUser() {
-        return getCaller();
+    default Mono<Member> member() {
+        return Mono.justOrEmpty( callerMember() );
     }
 
     /**
-     * @see #getCallerMember()
+     * @see #callerMember(Snowflake)
      */
     @Override
-    default Mono<Member> getMember() {
-        return Mono.justOrEmpty( getCallerMember() );
-    }
-
-    /**
-     * @see #getCallerMember(Snowflake)
-     */
-    @Override
-    default Mono<Member> getMember( final Snowflake guildId ) {
-        return getCallerMember( guildId );
+    default Mono<Member> member( final Snowflake guildId ) {
+        return callerMember( guildId );
     }
 
     @Override
-    Mono<MessageChannel> getChannel();
+    Mono<MessageChannel> channel();
 
     /**
      * Retrieves one of the arguments to the command.
@@ -363,172 +330,6 @@ public interface CommandContext extends ChannelAccessContext, AccessValidator {
             throws IllegalArgumentException, ClassCastException, NullPointerException {
 
         return Objects.requireNonNull( getContext( key, type ) );
-
-    }
-
-    /**
-     * Retrieves the reply manager for this instance.
-     * 
-     * <p>Note that calling {@link ReplyManager#longTerm()} on the returned manager
-     * will cause this method to also return the long-term manager from that point
-     * on.
-     *
-     * @return The reply manager.
-     */
-    @SideEffectFree
-    ReplyManager replies();
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(String) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param content The message content.
-     * @return The sent reply.
-     * @see #replies()
-     * @see ReplyManager#add(String)
-     */
-    default Mono<Reply> reply( final String content ) {
-
-        return replies().add( content );
-
-    }
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(EmbedCreateSpec...) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param embeds The message embeds.
-     * @return The message.
-     * @see #replies()
-     * @see ReplyManager#add(EmbedCreateSpec...)
-     */
-    default Mono<Reply> reply( final EmbedCreateSpec... embeds ) {
-
-        return replies().add( embeds );
-
-    }
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(MessageCreateSpec) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param spec The message specification.
-     * @return The message.
-     * @see #replies()
-     * @see ReplyManager#add(MessageCreateSpec)
-     */
-    default Mono<Reply> reply( final MessageCreateSpec spec ) {
-
-        return replies().add( spec );
-
-    }
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(InteractionApplicationCommandCallbackSpec) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param spec The message specification.
-     * @return The message.
-     * @see #replies()
-     * @see ReplyManager#add(InteractionApplicationCommandCallbackSpec)
-     */
-    default Mono<Reply> reply( final InteractionApplicationCommandCallbackSpec spec ) {
-
-        return replies().add( spec );
-
-    }
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(InteractionFollowupCreateSpec) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param spec The message specification.
-     * @return The message.
-     * @see #replies()
-     * @see ReplyManager#add(InteractionFollowupCreateSpec)
-     */
-    default Mono<Reply> reply( final InteractionFollowupCreateSpec spec ) {
-
-        return replies().add( spec );
-
-    }
-
-    /**
-     * Sends a reply, as if by calling 
-     * {@link #replies()}.{@link ReplyManager#add(CommandReplySpec) add()}.
-     * 
-     * <p>Sending more than one causes the replies to be chained
-     * (each replying to the previous one).
-     *
-     * @param spec The message specification.
-     * @return The message.
-     * @see #replies()
-     * @see ReplyManager#add(CommandReplySpec)
-     */
-    default Mono<Reply> reply( final CommandReplySpec spec ) {
-
-        return replies().add( spec );
-
-    }
-
-    /**
-     * Determines whether the given user belongs to the given group in the context of
-     * this invocation (guild and channel).
-     *
-     * @param user The user to check for.
-     * @param group The group to check for.
-     * @return A Mono that emits {@code true} if the given user belongs to the given
-     *         group under this invocation context, or {@code false} otherwise.
-     */
-    @SideEffectFree
-    default Mono<Boolean> belongs( final User user, final Group group ) {
-
-        return group.belongs( user, this )
-                .defaultIfEmpty( false ); // Just to be safe
-
-    }
-
-    /**
-     * Determines whether the given user belongs to the given group in the context of
-     * this invocation (guild and channel).
-     *
-     * @param user The ID of the user to check for.
-     * @param group The group to check for.
-     * @return A Mono that emits {@code true} if the given user belongs to the given
-     *         group under this invocation context, or {@code false} otherwise.
-     */
-    @SideEffectFree
-    default Mono<Boolean> belongs( final Snowflake user, final Group group ) {
-
-        return getClient().getUserById( user ).flatMap( u -> belongs( u, group ) );
-
-    }
-
-    /**
-     * @return A Mono that is empty if the caller has access equivalent to the given
-     *         group under the current execution context, or otherwise issues a 
-     *         failure result.
-     */
-    @Override
-    default Mono<CommandResult> validate( final Group group ) {
-        
-        return AccessValidator.super.validate( group )
-                .map( b -> new UserNotAllowed( group ) );
 
     }
     

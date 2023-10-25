@@ -23,7 +23,7 @@ public class ResultException extends CommandException {
     private static final long serialVersionUID = 8910758904031220818L;
 
     /** The failure. */
-    private final CommandResult result;
+    private final transient CommandResult result;
 
     /**
      * Creates a new instance.

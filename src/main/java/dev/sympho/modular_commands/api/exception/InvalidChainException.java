@@ -15,10 +15,10 @@ public class InvalidChainException extends CommandException {
     private static final long serialVersionUID = 6191638556464908251L;
 
     /** The command that was being executed. */
-    private final Invocation command;
+    private final transient Invocation command;
 
     /** The ancestor that is incompatible. */
-    private final Invocation parent;
+    private final transient Invocation parent;
 
     /**
      * Creates a new instance.
