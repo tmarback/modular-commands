@@ -12,7 +12,6 @@ import org.apache.commons.io.input.AutoCloseInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.bot_utils.access.Groups;
 import dev.sympho.modular_commands.api.command.Command;
 import dev.sympho.modular_commands.api.command.Invocation;
@@ -541,11 +540,14 @@ public class TestBot {
             .withGateway( client -> {
 
                 final List<CommandExecutor> executors = List.of(
-                    new MessageCommandExecutor( 
-                            client, registry, AccessManager.basic(), 
-                            meters, observations, 
-                            prefix, aliases 
-                    )
+                        MessageCommandExecutor.builder()
+                                .client( client )
+                                .registry( registry )
+                                .meters( meters ) 
+                                .observations( observations ) 
+                                .prefixProvider( prefix )
+                                .aliases( aliases )
+                                .build()
                 );
 
                 executors.forEach( CommandExecutor::start );

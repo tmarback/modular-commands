@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.immutables.builder.Builder;
 
 import dev.sympho.bot_utils.access.AccessManager;
 import dev.sympho.bot_utils.event.reply.MessageReplyManager;
@@ -38,8 +39,17 @@ import reactor.core.publisher.Mono;
  * @version 1.0
  * @since 1.0
  */
-public class MessageCommandExecutor extends BaseCommandExecutor<MessageCreateEvent, 
-        MessageContextImpl, MessageHandlers, Iterator> {
+// @Value.Style( 
+//         visibility = Value.Style.ImplementationVisibility.PACKAGE, 
+//         overshadowImplementation = true 
+// )
+public class MessageCommandExecutor 
+        extends BaseCommandExecutor<
+                MessageCreateEvent, 
+                MessageContextImpl, 
+                MessageHandlers, 
+                Iterator
+        > {
 
     /** Splitter to use for separating arguments in received messages. */
     private final StringSplitter.Async splitter = new StringSplitter.Shell();
@@ -56,21 +66,40 @@ public class MessageCommandExecutor extends BaseCommandExecutor<MessageCreateEve
      * @param client The client to receive events from.
      * @param registry The registry to use to look up commands.
      * @param accessManager The access manager to use for access checks.
+     *                      Defaults to {@link AccessManager#basic()}.
      * @param meters The meter registry to use.
+     *               Defaults to a no-op registry.
      * @param observations The observation registry to use.
+     *                     Defaults to a no-op registry.
      * @param prefixProvider The provider to get prefixes from.
      * @param aliases Provides the aliases that should be applied.
+     *                Defaults to {@link AliasProvider#none()}.
      */
-    public MessageCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final AccessManager accessManager, 
-            final MeterRegistry meters, final ObservationRegistry observations,
-            final PrefixProvider prefixProvider, final AliasProvider aliases ) {
+    @Builder.Constructor
+    @SuppressWarnings( "optional:optional.parameter" ) // Necessary for generation
+    public MessageCommandExecutor( 
+            final GatewayDiscordClient client, final Registry registry,
+            final Optional<AccessManager> accessManager, 
+            final Optional<MeterRegistry> meters, 
+            final Optional<ObservationRegistry> observations,
+            final PrefixProvider prefixProvider, 
+            final Optional<AliasProvider> aliases 
+    ) {
 
         super( client, registry, accessManager, meters, observations );
 
         this.prefixProvider = prefixProvider;
-        this.aliases = aliases;
+        this.aliases = aliases.orElseGet( () -> AliasProvider.none() );
 
+    }
+
+    /**
+     * Creates a new builder.
+     *
+     * @return The created builder.
+     */
+    public static MessageCommandExecutorBuilder builder() {
+        return new MessageCommandExecutorBuilder();
     }
 
     @Override

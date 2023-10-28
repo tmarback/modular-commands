@@ -33,6 +33,7 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.MessageChannel;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.composite.CompositeMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import reactor.core.observability.micrometer.Micrometer;
 import reactor.core.publisher.Flux;
@@ -52,9 +53,12 @@ import reactor.util.retry.Retry;
  * @version 1.0
  * @since 1.0
  */
-public abstract class BaseCommandExecutor<E extends Event, 
-        CTX extends InstrumentedContext & LazyContext, H extends Handlers, 
-        I extends SmartIterator<String>> extends CommandExecutor {
+public abstract class BaseCommandExecutor<
+                E extends Event, 
+                CTX extends InstrumentedContext & LazyContext, 
+                H extends Handlers, 
+                I extends SmartIterator<String>
+        > extends CommandExecutor {
 
     /** The metric prefix for the overall pipeline. */
     private static final String METRIC_NAME_PIPELINE = Metrics.name( "pipeline" );
@@ -109,18 +113,24 @@ public abstract class BaseCommandExecutor<E extends Event,
      * @param client The client to receive events from.
      * @param registry The registry to use to look up commands.
      * @param accessManager The access manager to use for access checks.
+     *                      Defaults to {@link AccessManager#basic()}.
      * @param meters The meter registry to use.
+     *               Defaults to a no-op registry.
      * @param observations The observation registry to use.
+     *                     Defaults to a no-op registry.
      */
+    @SuppressWarnings( "optional:optional.parameter" ) // Necessary for generation
     protected BaseCommandExecutor( final GatewayDiscordClient client, final Registry registry,
-            final AccessManager accessManager, 
-            final MeterRegistry meters, final ObservationRegistry observations ) {
+            final Optional<AccessManager> accessManager, 
+            final Optional<MeterRegistry> meters, 
+            final Optional<ObservationRegistry> observations
+    ) {
 
         this.client = client;
         this.registry = registry;
-        this.accessManager = accessManager;
-        this.meters = meters;
-        this.observations = observations;
+        this.accessManager = accessManager.orElseGet( () -> AccessManager.basic() );
+        this.meters = meters.orElseGet( () -> new CompositeMeterRegistry() );
+        this.observations = observations.orElse( ObservationRegistry.NOOP );
 
     }
 
