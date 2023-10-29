@@ -101,7 +101,7 @@
         <dependency>
             <groupId>dev.sympho</groupId>
             <artifactId>bot-utils</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.1</version>
         </dependency>
 
         <dependency>
