@@ -14,8 +14,8 @@
 <a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> com.google.common.primitives.Booleans;
 <a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> com.google.errorprone.annotations.CanIgnoreReturnValue;
 <a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> com.google.errorprone.annotations.Var;
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.permission.Group;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> dev.sympho.bot_utils.access.Group;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.List;
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.util.Objects;
@@ -46,13 +46,13 @@
 <a class="jxr_linenumber" name="L38" href="#L38">38</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String id;
 <a class="jxr_linenumber" name="L39" href="#L39">39</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Command.Scope scope;
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> callable;
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Invocation parent;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent;
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[-_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String name;
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ImmutableSet&lt;String&gt; aliases;
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[ -_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String displayName;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> java.lang.@MatchesRegex(<span class="jxr_string">"(?Us)^.{1,100}+$"</span>) String description;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> ImmutableList&lt;Parameter&lt;?&gt;&gt; parameters;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> Group requiredGroup;
 <a class="jxr_linenumber" name="L48" href="#L48">48</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> skipGroupCheckOnInteraction;
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> requireParentGroups;
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> nsfw;
@@ -124,13 +124,13 @@
 <a class="jxr_linenumber" name="L116" href="#L116">116</a>       String id,
 <a class="jxr_linenumber" name="L117" href="#L117">117</a>       Command.Scope scope,
 <a class="jxr_linenumber" name="L118" href="#L118">118</a>       <strong class="jxr_keyword">boolean</strong> callable,
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>       Invocation parent,
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>       <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent,
 <a class="jxr_linenumber" name="L120" href="#L120">120</a>       java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[-_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String name,
 <a class="jxr_linenumber" name="L121" href="#L121">121</a>       ImmutableSet&lt;String&gt; aliases,
 <a class="jxr_linenumber" name="L122" href="#L122">122</a>       java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[ -_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String displayName,
 <a class="jxr_linenumber" name="L123" href="#L123">123</a>       java.lang.@MatchesRegex(<span class="jxr_string">"(?Us)^.{1,100}+$"</span>) String description,
 <a class="jxr_linenumber" name="L124" href="#L124">124</a>       ImmutableList&lt;Parameter&lt;?&gt;&gt; parameters,
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>       <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup,
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>       Group requiredGroup,
 <a class="jxr_linenumber" name="L126" href="#L126">126</a>       <strong class="jxr_keyword">boolean</strong> skipGroupCheckOnInteraction,
 <a class="jxr_linenumber" name="L127" href="#L127">127</a>       <strong class="jxr_keyword">boolean</strong> requireParentGroups,
 <a class="jxr_linenumber" name="L128" href="#L128">128</a>       <strong class="jxr_keyword">boolean</strong> nsfw,
@@ -205,9 +205,9 @@
 <a class="jxr_linenumber" name="L197" href="#L197">197</a>     }
 <a class="jxr_linenumber" name="L198" href="#L198">198</a> 
 <a class="jxr_linenumber" name="L199" href="#L199">199</a>     <strong class="jxr_keyword">private</strong> byte parentBuildStage = STAGE_UNINITIALIZED;
-<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">private</strong> Invocation parent;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <strong class="jxr_keyword">private</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent;
 <a class="jxr_linenumber" name="L201" href="#L201">201</a> 
-<a class="jxr_linenumber" name="L202" href="#L202">202</a>     Invocation parent() {
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent() {
 <a class="jxr_linenumber" name="L203" href="#L203">203</a>       <strong class="jxr_keyword">if</strong> (parentBuildStage == STAGE_INITIALIZING) <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(formatInitCycleMessage());
 <a class="jxr_linenumber" name="L204" href="#L204">204</a>       <strong class="jxr_keyword">if</strong> (parentBuildStage == STAGE_UNINITIALIZED) {
 <a class="jxr_linenumber" name="L205" href="#L205">205</a>         parentBuildStage = STAGE_INITIALIZING;
@@ -217,7 +217,7 @@
 <a class="jxr_linenumber" name="L209" href="#L209">209</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.parent;
 <a class="jxr_linenumber" name="L210" href="#L210">210</a>     }
 <a class="jxr_linenumber" name="L211" href="#L211">211</a> 
-<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">void</strong> parent(Invocation parent) {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">void</strong> parent(<a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent) {
 <a class="jxr_linenumber" name="L213" href="#L213">213</a>       <strong class="jxr_keyword">this</strong>.parent = parent;
 <a class="jxr_linenumber" name="L214" href="#L214">214</a>       parentBuildStage = STAGE_INITIALIZED;
 <a class="jxr_linenumber" name="L215" href="#L215">215</a>     }
@@ -241,9 +241,9 @@
 <a class="jxr_linenumber" name="L233" href="#L233">233</a>     }
 <a class="jxr_linenumber" name="L234" href="#L234">234</a> 
 <a class="jxr_linenumber" name="L235" href="#L235">235</a>     <strong class="jxr_keyword">private</strong> byte requiredGroupBuildStage = STAGE_UNINITIALIZED;
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>     <strong class="jxr_keyword">private</strong> <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup;
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>     <strong class="jxr_keyword">private</strong> Group requiredGroup;
 <a class="jxr_linenumber" name="L237" href="#L237">237</a> 
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>     <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup() {
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     Group requiredGroup() {
 <a class="jxr_linenumber" name="L239" href="#L239">239</a>       <strong class="jxr_keyword">if</strong> (requiredGroupBuildStage == STAGE_INITIALIZING) <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(formatInitCycleMessage());
 <a class="jxr_linenumber" name="L240" href="#L240">240</a>       <strong class="jxr_keyword">if</strong> (requiredGroupBuildStage == STAGE_UNINITIALIZED) {
 <a class="jxr_linenumber" name="L241" href="#L241">241</a>         requiredGroupBuildStage = STAGE_INITIALIZING;
@@ -253,7 +253,7 @@
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.requiredGroup;
 <a class="jxr_linenumber" name="L246" href="#L246">246</a>     }
 <a class="jxr_linenumber" name="L247" href="#L247">247</a> 
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">void</strong> requiredGroup(<a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup) {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">void</strong> requiredGroup(Group requiredGroup) {
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>       <strong class="jxr_keyword">this</strong>.requiredGroup = requiredGroup;
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>       requiredGroupBuildStage = STAGE_INITIALIZED;
 <a class="jxr_linenumber" name="L251" href="#L251">251</a>     }
@@ -410,7 +410,7 @@
 <a class="jxr_linenumber" name="L402" href="#L402">402</a>     <strong class="jxr_keyword">return</strong> Command.<strong class="jxr_keyword">super</strong>.callable();
 <a class="jxr_linenumber" name="L403" href="#L403">403</a>   }
 <a class="jxr_linenumber" name="L404" href="#L404">404</a> 
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>   <strong class="jxr_keyword">private</strong> Invocation parentInitialize() {
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>   <strong class="jxr_keyword">private</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parentInitialize() {
 <a class="jxr_linenumber" name="L406" href="#L406">406</a>     <strong class="jxr_keyword">return</strong> Command.<strong class="jxr_keyword">super</strong>.parent();
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>   }
 <a class="jxr_linenumber" name="L408" href="#L408">408</a> 
@@ -418,7 +418,7 @@
 <a class="jxr_linenumber" name="L410" href="#L410">410</a>     <strong class="jxr_keyword">return</strong> Command.<strong class="jxr_keyword">super</strong>.aliases();
 <a class="jxr_linenumber" name="L411" href="#L411">411</a>   }
 <a class="jxr_linenumber" name="L412" href="#L412">412</a> 
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>   <strong class="jxr_keyword">private</strong> <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroupInitialize() {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>   <strong class="jxr_keyword">private</strong> Group requiredGroupInitialize() {
 <a class="jxr_linenumber" name="L414" href="#L414">414</a>     <strong class="jxr_keyword">return</strong> Command.<strong class="jxr_keyword">super</strong>.requiredGroup();
 <a class="jxr_linenumber" name="L415" href="#L415">415</a>   }
 <a class="jxr_linenumber" name="L416" href="#L416">416</a> 
@@ -484,7 +484,7 @@
 <a class="jxr_linenumber" name="L476" href="#L476">476</a> <em class="jxr_javadoccomment">   * @return The value of the {@code parent} attribute</em>
 <a class="jxr_linenumber" name="L477" href="#L477">477</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L478" href="#L478">478</a>   @Override
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>   <strong class="jxr_keyword">public</strong> Invocation parent() {
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>   <strong class="jxr_keyword">public</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent() {
 <a class="jxr_linenumber" name="L480" href="#L480">480</a>     InitShim shim = <strong class="jxr_keyword">this</strong>.initShim;
 <a class="jxr_linenumber" name="L481" href="#L481">481</a>     <strong class="jxr_keyword">return</strong> shim != <strong class="jxr_keyword">null</strong>
 <a class="jxr_linenumber" name="L482" href="#L482">482</a>         ? shim.parent()
@@ -538,7 +538,7 @@
 <a class="jxr_linenumber" name="L530" href="#L530">530</a> <em class="jxr_javadoccomment">   * @return The value of the {@code requiredGroup} attribute</em>
 <a class="jxr_linenumber" name="L531" href="#L531">531</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L532" href="#L532">532</a>   @Override
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>   <strong class="jxr_keyword">public</strong> <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup() {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>   <strong class="jxr_keyword">public</strong> Group requiredGroup() {
 <a class="jxr_linenumber" name="L534" href="#L534">534</a>     InitShim shim = <strong class="jxr_keyword">this</strong>.initShim;
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>     <strong class="jxr_keyword">return</strong> shim != <strong class="jxr_keyword">null</strong>
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>         ? shim.requiredGroup()
@@ -725,9 +725,9 @@
 <a class="jxr_linenumber" name="L717" href="#L717">717</a> <em class="jxr_javadoccomment">   * @param value A new value for parent</em>
 <a class="jxr_linenumber" name="L718" href="#L718">718</a> <em class="jxr_javadoccomment">   * @return A modified copy of the {@code this} object</em>
 <a class="jxr_linenumber" name="L719" href="#L719">719</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L720" href="#L720">720</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ImmutableCommand&lt;H&gt; withParent(Invocation value) {
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ImmutableCommand&lt;H&gt; withParent(<a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> value) {
 <a class="jxr_linenumber" name="L721" href="#L721">721</a>     <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.parent == value) <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>;
-<a class="jxr_linenumber" name="L722" href="#L722">722</a>     Invocation newValue = Objects.requireNonNull(value, <span class="jxr_string">"parent"</span>);
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>     <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> newValue = Objects.requireNonNull(value, <span class="jxr_string">"parent"</span>);
 <a class="jxr_linenumber" name="L723" href="#L723">723</a>     <strong class="jxr_keyword">return</strong> validate(<strong class="jxr_keyword">new</strong> ImmutableCommand&lt;&gt;(
 <a class="jxr_linenumber" name="L724" href="#L724">724</a>         <strong class="jxr_keyword">this</strong>.id,
 <a class="jxr_linenumber" name="L725" href="#L725">725</a>         <strong class="jxr_keyword">this</strong>.scope,
@@ -962,9 +962,9 @@
 <a class="jxr_linenumber" name="L954" href="#L954">954</a> <em class="jxr_javadoccomment">   * @param value A new value for requiredGroup</em>
 <a class="jxr_linenumber" name="L955" href="#L955">955</a> <em class="jxr_javadoccomment">   * @return A modified copy of the {@code this} object</em>
 <a class="jxr_linenumber" name="L956" href="#L956">956</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L957" href="#L957">957</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ImmutableCommand&lt;H&gt; withRequiredGroup(<a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> value) {
+<a class="jxr_linenumber" name="L957" href="#L957">957</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> ImmutableCommand&lt;H&gt; withRequiredGroup(Group value) {
 <a class="jxr_linenumber" name="L958" href="#L958">958</a>     <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.requiredGroup == value) <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>;
-<a class="jxr_linenumber" name="L959" href="#L959">959</a>     <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> newValue = Objects.requireNonNull(value, <span class="jxr_string">"requiredGroup"</span>);
+<a class="jxr_linenumber" name="L959" href="#L959">959</a>     Group newValue = Objects.requireNonNull(value, <span class="jxr_string">"requiredGroup"</span>);
 <a class="jxr_linenumber" name="L960" href="#L960">960</a>     <strong class="jxr_keyword">return</strong> validate(<strong class="jxr_keyword">new</strong> ImmutableCommand&lt;&gt;(
 <a class="jxr_linenumber" name="L961" href="#L961">961</a>         <strong class="jxr_keyword">this</strong>.id,
 <a class="jxr_linenumber" name="L962" href="#L962">962</a>         <strong class="jxr_keyword">this</strong>.scope,
@@ -1361,13 +1361,13 @@
 <a class="jxr_linenumber" name="L1353" href="#L1353">1353</a>     <strong class="jxr_keyword">private</strong> @Nullable String id;
 <a class="jxr_linenumber" name="L1354" href="#L1354">1354</a>     <strong class="jxr_keyword">private</strong> @Nullable Command.Scope scope;
 <a class="jxr_linenumber" name="L1355" href="#L1355">1355</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> callable;
-<a class="jxr_linenumber" name="L1356" href="#L1356">1356</a>     <strong class="jxr_keyword">private</strong> @Nullable Invocation parent;
+<a class="jxr_linenumber" name="L1356" href="#L1356">1356</a>     <strong class="jxr_keyword">private</strong> @Nullable <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent;
 <a class="jxr_linenumber" name="L1357" href="#L1357">1357</a>     <strong class="jxr_keyword">private</strong> @Nullable java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[-_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String name;
 <a class="jxr_linenumber" name="L1358" href="#L1358">1358</a>     <strong class="jxr_keyword">private</strong> ImmutableSet.Builder&lt;String&gt; aliases = ImmutableSet.builder();
 <a class="jxr_linenumber" name="L1359" href="#L1359">1359</a>     <strong class="jxr_keyword">private</strong> @Nullable java.lang.@MatchesRegex(<span class="jxr_string">"(?U)^[ -_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$"</span>) String displayName;
 <a class="jxr_linenumber" name="L1360" href="#L1360">1360</a>     <strong class="jxr_keyword">private</strong> @Nullable java.lang.@MatchesRegex(<span class="jxr_string">"(?Us)^.{1,100}+$"</span>) String description;
 <a class="jxr_linenumber" name="L1361" href="#L1361">1361</a>     <strong class="jxr_keyword">private</strong> ImmutableList.Builder&lt;Parameter&lt;?&gt;&gt; parameters = ImmutableList.builder();
-<a class="jxr_linenumber" name="L1362" href="#L1362">1362</a>     <strong class="jxr_keyword">private</strong> @Nullable <a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup;
+<a class="jxr_linenumber" name="L1362" href="#L1362">1362</a>     <strong class="jxr_keyword">private</strong> @Nullable Group requiredGroup;
 <a class="jxr_linenumber" name="L1363" href="#L1363">1363</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> skipGroupCheckOnInteraction;
 <a class="jxr_linenumber" name="L1364" href="#L1364">1364</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> requireParentGroups;
 <a class="jxr_linenumber" name="L1365" href="#L1365">1365</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> nsfw;
@@ -1390,7 +1390,7 @@
 <a class="jxr_linenumber" name="L1382" href="#L1382">1382</a> <em class="jxr_javadoccomment">     *    .displayName(@org.checkerframework.common.value.qual.MatchesRegex("(?U)^[ -_&#92;&#92;p{L}&#92;&#92;p{N}&#92;&#92;p{sc=Deva}&#92;&#92;p{sc=Thai}]{1,32}+$") String) // required {@link Command#displayName() displayName}</em>
 <a class="jxr_linenumber" name="L1383" href="#L1383">1383</a> <em class="jxr_javadoccomment">     *    .description(@org.checkerframework.common.value.qual.MatchesRegex("(?Us)^.{1,100}+$") String) // required {@link Command#description() description}</em>
 <a class="jxr_linenumber" name="L1384" href="#L1384">1384</a> <em class="jxr_javadoccomment">     *    .addParameters|addAllParameters(dev.sympho.modular_commands.api.command.parameter.Parameter&amp;amp;lt;?&amp;amp;gt;) // {@link Command#parameters() parameters} elements</em>
-<a class="jxr_linenumber" name="L1385" href="#L1385">1385</a> <em class="jxr_javadoccomment">     *    .requiredGroup(dev.sympho.modular_commands.api.permission.Group) // optional {@link Command#requiredGroup() requiredGroup}</em>
+<a class="jxr_linenumber" name="L1385" href="#L1385">1385</a> <em class="jxr_javadoccomment">     *    .requiredGroup(dev.sympho.bot_utils.access.Group) // optional {@link Command#requiredGroup() requiredGroup}</em>
 <a class="jxr_linenumber" name="L1386" href="#L1386">1386</a> <em class="jxr_javadoccomment">     *    .skipGroupCheckOnInteraction(boolean) // optional {@link Command#skipGroupCheckOnInteraction() skipGroupCheckOnInteraction}</em>
 <a class="jxr_linenumber" name="L1387" href="#L1387">1387</a> <em class="jxr_javadoccomment">     *    .requireParentGroups(boolean) // optional {@link Command#requireParentGroups() requireParentGroups}</em>
 <a class="jxr_linenumber" name="L1388" href="#L1388">1388</a> <em class="jxr_javadoccomment">     *    .nsfw(boolean) // optional {@link Command#nsfw() nsfw}</em>
@@ -1484,7 +1484,7 @@
 <a class="jxr_linenumber" name="L1476" href="#L1476">1476</a> <em class="jxr_javadoccomment">     * @return {@code this} builder for use in a chained invocation</em>
 <a class="jxr_linenumber" name="L1477" href="#L1477">1477</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1478" href="#L1478">1478</a>     @CanIgnoreReturnValue 
-<a class="jxr_linenumber" name="L1479" href="#L1479">1479</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> Command.Builder&lt;H&gt; parent(Invocation parent) {
+<a class="jxr_linenumber" name="L1479" href="#L1479">1479</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> Command.Builder&lt;H&gt; parent(<a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent) {
 <a class="jxr_linenumber" name="L1480" href="#L1480">1480</a>       <strong class="jxr_keyword">this</strong>.parent = Objects.requireNonNull(parent, <span class="jxr_string">"parent"</span>);
 <a class="jxr_linenumber" name="L1481" href="#L1481">1481</a>       <strong class="jxr_keyword">return</strong> (Command.Builder&lt;H&gt;) <strong class="jxr_keyword">this</strong>;
 <a class="jxr_linenumber" name="L1482" href="#L1482">1482</a>     }
@@ -1626,7 +1626,7 @@
 <a class="jxr_linenumber" name="L1618" href="#L1618">1618</a> <em class="jxr_javadoccomment">     * @return {@code this} builder for use in a chained invocation</em>
 <a class="jxr_linenumber" name="L1619" href="#L1619">1619</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L1620" href="#L1620">1620</a>     @CanIgnoreReturnValue 
-<a class="jxr_linenumber" name="L1621" href="#L1621">1621</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> Command.Builder&lt;H&gt; requiredGroup(<a name="Group" href="../../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> requiredGroup) {
+<a class="jxr_linenumber" name="L1621" href="#L1621">1621</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> Command.Builder&lt;H&gt; requiredGroup(Group requiredGroup) {
 <a class="jxr_linenumber" name="L1622" href="#L1622">1622</a>       <strong class="jxr_keyword">this</strong>.requiredGroup = Objects.requireNonNull(requiredGroup, <span class="jxr_string">"requiredGroup"</span>);
 <a class="jxr_linenumber" name="L1623" href="#L1623">1623</a>       <strong class="jxr_keyword">return</strong> (Command.Builder&lt;H&gt;) <strong class="jxr_keyword">this</strong>;
 <a class="jxr_linenumber" name="L1624" href="#L1624">1624</a>     }

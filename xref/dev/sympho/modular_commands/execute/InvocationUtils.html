@@ -23,12 +23,12 @@
 <a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.Pure;
 <a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.SideEffectFree;
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Invocation;
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.Handlers;
-<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
-<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.exception.InvalidChainException;
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.permission.Group;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> dev.sympho.bot_utils.access.Group;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Invocation;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.Handlers;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.exception.InvalidChainException;
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.registry.Registry;
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.utils.SmartIterator;
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> reactor.util.function.Tuple2;
@@ -68,7 +68,7 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>              <strong class="jxr_keyword">final</strong> Class&lt;H&gt; commandType ) {
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>  
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">final</strong> List&lt;Command&lt;? <strong class="jxr_keyword">extends</strong> H&gt;&gt; chain = <strong class="jxr_keyword">new</strong> LinkedList&lt;&gt;();
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>          Invocation current = Invocation.of();
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <a name="Invocation" href="../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> current = Invocation.of();
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">while</strong> ( args.hasNext() ) {
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>  
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>              <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> arg = args.peek().toLowerCase( Locale.ROOT ); <em class="jxr_comment">// Ignore case</em>

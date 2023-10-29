@@ -48,7 +48,7 @@
 <a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">public</strong> Mono&lt;E&gt; parse( <strong class="jxr_keyword">final</strong> <a name="CommandContext" href="../../../../../../dev/sympho/modular_commands/api/command/context/CommandContext.html#CommandContext">CommandContext</a> context, <strong class="jxr_keyword">final</strong> String raw ) 
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>              <strong class="jxr_keyword">throws</strong> <a name="InvalidArgumentException" href="../../../../../../dev/sympho/modular_commands/api/command/parameter/parse/InvalidArgumentException.html#InvalidArgumentException">InvalidArgumentException</a> {
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">return</strong> refParser.parse( context, raw ).flatMap( ref -&gt; ref.get( context.getClient() ) );
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">return</strong> refParser.parse( context, raw ).flatMap( ref -&gt; ref.get( context.client() ) );
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      

@@ -408,10 +408,10 @@
 <a class="jxr_linenumber" name="L400" href="#L400">400</a>     ) {
 <a class="jxr_linenumber" name="L401" href="#L401">401</a> 
 <a class="jxr_linenumber" name="L402" href="#L402">402</a>         <strong class="jxr_keyword">return</strong> memberParser( ctx -&gt; {
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>             <strong class="jxr_keyword">if</strong> ( ctx.getGuildId() == <strong class="jxr_keyword">null</strong> ) {
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>             <strong class="jxr_keyword">if</strong> ( ctx.guildId() == <strong class="jxr_keyword">null</strong> ) {
 <a class="jxr_linenumber" name="L404" href="#L404">404</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a name="InvalidArgumentException" href="../../../../../dev/sympho/modular_commands/api/command/parameter/parse/InvalidArgumentException.html#InvalidArgumentException">InvalidArgumentException</a>( <span class="jxr_string">"Not in a guild"</span> );
 <a class="jxr_linenumber" name="L405" href="#L405">405</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 <strong class="jxr_keyword">return</strong> ctx.getGuildId();
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 <strong class="jxr_keyword">return</strong> ctx.guildId();
 <a class="jxr_linenumber" name="L407" href="#L407">407</a>             }
 <a class="jxr_linenumber" name="L408" href="#L408">408</a>         }, parser );
 <a class="jxr_linenumber" name="L409" href="#L409">409</a> 

@@ -53,7 +53,7 @@
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">public</strong> Mono&lt;E&gt; parse( <strong class="jxr_keyword">final</strong> <a name="CommandContext" href="../../../../../../dev/sympho/modular_commands/api/command/context/CommandContext.html#CommandContext">CommandContext</a> context, <strong class="jxr_keyword">final</strong> URL url ) 
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>              <strong class="jxr_keyword">throws</strong> <a name="InvalidArgumentException" href="../../../../../../dev/sympho/modular_commands/api/command/parameter/parse/InvalidArgumentException.html#InvalidArgumentException">InvalidArgumentException</a> {
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">return</strong> refParser.parse( url ).get( context.getClient() );
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">return</strong> refParser.parse( url ).get( context.client() );
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>      }
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      

@@ -19,13 +19,13 @@
 <a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.common.value.qual.MatchesRegex;
 <a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.checkerframework.dataflow.qual.SideEffectFree;
 <a class="jxr_linenumber" name="L13" href="#L13">13</a>  
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Invocation;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.Handlers;
-<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.InvocationHandler;
-<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.ResultHandler;
-<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
-<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.permission.Group;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> dev.sympho.bot_utils.access.Group;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Command;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.Invocation;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.Handlers;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.InvocationHandler;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.ResultHandler;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.parameter.Parameter;
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * Utility functions for Commands.</em>
@@ -72,7 +72,7 @@
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>  <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      @SideEffectFree
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>      @SuppressWarnings( <span class="jxr_string">"methodref.param"</span> )
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> validateParent( <strong class="jxr_keyword">final</strong> Invocation parent ) 
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> validateParent( <strong class="jxr_keyword">final</strong> <a name="Invocation" href="../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> parent ) 
 <a class="jxr_linenumber" name="L68" href="#L68">68</a>              <strong class="jxr_keyword">throws</strong> IllegalArgumentException, NullPointerException {
 <a class="jxr_linenumber" name="L69" href="#L69">69</a>  
 <a class="jxr_linenumber" name="L70" href="#L70">70</a>          Objects.requireNonNull( parent, <span class="jxr_string">"Parent cannot be null."</span> );
@@ -226,7 +226,7 @@
 <a class="jxr_linenumber" name="L218" href="#L218">218</a> <em class="jxr_javadoccomment">     * @throws NullPointerException if a {@code null} value was found where not allowed. </em>
 <a class="jxr_linenumber" name="L219" href="#L219">219</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L220" href="#L220">220</a>     @SideEffectFree
-<a class="jxr_linenumber" name="L221" href="#L221">221</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> validateGroup( <strong class="jxr_keyword">final</strong> <a name="Group" href="../../../../dev/sympho/modular_commands/api/permission/Group.html#Group">Group</a> group ) <strong class="jxr_keyword">throws</strong> NullPointerException {
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> validateGroup( <strong class="jxr_keyword">final</strong> Group group ) <strong class="jxr_keyword">throws</strong> NullPointerException {
 <a class="jxr_linenumber" name="L222" href="#L222">222</a> 
 <a class="jxr_linenumber" name="L223" href="#L223">223</a>         Objects.requireNonNull( group, <span class="jxr_string">"Required group cannot be null."</span> );
 <a class="jxr_linenumber" name="L224" href="#L224">224</a> 

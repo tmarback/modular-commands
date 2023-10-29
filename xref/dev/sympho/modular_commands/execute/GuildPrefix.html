@@ -28,7 +28,7 @@
 <a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * @version 1.0</em>
 <a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * @since 1.0</em>
 <a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> record GuildPrefix( Map&lt;Snowflake, String&gt; prefixes, String defaultPrefix )
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> record <a name="GuildPrefix" href="../../../../dev/sympho/modular_commands/execute/GuildPrefix.html#GuildPrefix">GuildPrefix</a>( Map&lt;Snowflake, String&gt; prefixes, String defaultPrefix )
 <a class="jxr_linenumber" name="L24" href="#L24">24</a>          <strong class="jxr_keyword">implements</strong> <a name="PrefixProvider" href="../../../../dev/sympho/modular_commands/execute/PrefixProvider.html#PrefixProvider">PrefixProvider</a> {
 <a class="jxr_linenumber" name="L25" href="#L25">25</a>  
 <a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_javadoccomment">/**</em>
@@ -37,7 +37,7 @@
 <a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * @param prefixes The initial prefixes per guild, keyed by the guild ID.</em>
 <a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * @param defaultPrefix The default prefix.</em>
 <a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">public</strong> GuildPrefix( <strong class="jxr_keyword">final</strong> Map&lt;Snowflake, String&gt; prefixes, <strong class="jxr_keyword">final</strong> String defaultPrefix ) {
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">public</strong> <a name="GuildPrefix" href="../../../../dev/sympho/modular_commands/execute/GuildPrefix.html#GuildPrefix">GuildPrefix</a>( <strong class="jxr_keyword">final</strong> Map&lt;Snowflake, String&gt; prefixes, <strong class="jxr_keyword">final</strong> String defaultPrefix ) {
 <a class="jxr_linenumber" name="L33" href="#L33">33</a>  
 <a class="jxr_linenumber" name="L34" href="#L34">34</a>          <strong class="jxr_keyword">this</strong>.prefixes = <strong class="jxr_keyword">new</strong> ConcurrentHashMap&lt;&gt;( prefixes );
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>          <strong class="jxr_keyword">this</strong>.defaultPrefix = defaultPrefix;
@@ -49,7 +49,7 @@
 <a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">     *</em>
 <a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * @param defaultPrefix The default prefix.</em>
 <a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     */</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">public</strong> GuildPrefix( <strong class="jxr_keyword">final</strong> String defaultPrefix ) {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">public</strong> <a name="GuildPrefix" href="../../../../dev/sympho/modular_commands/execute/GuildPrefix.html#GuildPrefix">GuildPrefix</a>( <strong class="jxr_keyword">final</strong> String defaultPrefix ) {
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">this</strong>( Collections.emptyMap(), defaultPrefix );
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  

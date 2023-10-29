@@ -10,18 +10,18 @@
 <a class="jxr_linenumber" name="L2" href="#L2">2</a>   
 <a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.Objects;
 <a class="jxr_linenumber" name="L4" href="#L4">4</a>   
-<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.context.CommandContext;
-<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.context.MessageCommandContext;
-<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.ResultHandler;
-<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandError;
-<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandFailure;
-<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandFailureMessage;
-<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandResult;
-<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccess;
-<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccessAck;
-<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccessMessage;
-<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.UserNotAllowed;
-<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.permission.NamedGroup;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> dev.sympho.bot_utils.access.NamedGroup;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.context.CommandContext;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.context.MessageCommandContext;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.handler.ResultHandler;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandError;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandFailure;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandFailureMessage;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandResult;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccess;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccessAck;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.CommandSuccessMessage;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> dev.sympho.modular_commands.api.command.result.UserNotAllowed;
 <a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> discord4j.core.spec.EmbedCreateSpec;
 <a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> discord4j.<strong class="jxr_keyword">rest</strong>.util.Color;
 <a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> reactor.core.publisher.Mono;
@@ -116,7 +116,7 @@
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>             <strong class="jxr_keyword">return</strong> context.reply( embed ).thenReturn( <strong class="jxr_keyword">true</strong> );
 <a class="jxr_linenumber" name="L109" href="#L109">109</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> ( result instanceof <a name="CommandSuccessAck" href="../../../../dev/sympho/modular_commands/api/command/result/CommandSuccessAck.html#CommandSuccessAck">CommandSuccessAck</a> res ) {
 <a class="jxr_linenumber" name="L110" href="#L110">110</a>             <strong class="jxr_keyword">if</strong> ( context instanceof <a name="MessageCommandContext" href="../../../../dev/sympho/modular_commands/api/command/context/MessageCommandContext.html#MessageCommandContext">MessageCommandContext</a> ctx ) {
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>                 <strong class="jxr_keyword">return</strong> ctx.getMessage()
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                 <strong class="jxr_keyword">return</strong> ctx.message()
 <a class="jxr_linenumber" name="L112" href="#L112">112</a>                         .addReaction( res.react() )
 <a class="jxr_linenumber" name="L113" href="#L113">113</a>                         .thenReturn( <strong class="jxr_keyword">true</strong> );
 <a class="jxr_linenumber" name="L114" href="#L114">114</a>             } <strong class="jxr_keyword">else</strong> {
@@ -142,9 +142,9 @@
 <a class="jxr_linenumber" name="L134" href="#L134">134</a>             <strong class="jxr_keyword">final</strong> <a name="CommandFailure" href="../../../../dev/sympho/modular_commands/api/command/result/CommandFailure.html#CommandFailure">CommandFailure</a> result ) {
 <a class="jxr_linenumber" name="L135" href="#L135">135</a> 
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>         <strong class="jxr_keyword">final</strong> String message;
-<a class="jxr_linenumber" name="L137" href="#L137">137</a>         <strong class="jxr_keyword">if</strong> ( result instanceof UserNotAllowed res ) {
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         <strong class="jxr_keyword">if</strong> ( result instanceof <a name="UserNotAllowed" href="../../../../dev/sympho/modular_commands/api/command/result/UserNotAllowed.html#UserNotAllowed">UserNotAllowed</a> res ) {
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> required = res.required();
-<a class="jxr_linenumber" name="L139" href="#L139">139</a>             <strong class="jxr_keyword">if</strong> ( required instanceof <a name="NamedGroup" href="../../../../dev/sympho/modular_commands/api/permission/NamedGroup.html#NamedGroup">NamedGroup</a> req ) {
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>             <strong class="jxr_keyword">if</strong> ( required instanceof NamedGroup req ) {
 <a class="jxr_linenumber" name="L140" href="#L140">140</a>                 message = <span class="jxr_string">"Only users in the %s group can use this command."</span>
 <a class="jxr_linenumber" name="L141" href="#L141">141</a>                         .formatted( req.name() );
 <a class="jxr_linenumber" name="L142" href="#L142">142</a>             } <strong class="jxr_keyword">else</strong> {

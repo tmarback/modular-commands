@@ -57,7 +57,7 @@
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>  
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>      @Override
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">public</strong> &lt;H <strong class="jxr_keyword">extends</strong> Handlers&gt; @Nullable Command&lt;? <strong class="jxr_keyword">extends</strong> H&gt; findCommand( 
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <strong class="jxr_keyword">final</strong> Invocation invocation, <strong class="jxr_keyword">final</strong> Class&lt;H&gt; type ) {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <strong class="jxr_keyword">final</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> invocation, <strong class="jxr_keyword">final</strong> Class&lt;H&gt; type ) {
 <a class="jxr_linenumber" name="L53" href="#L53">53</a>  
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>          Command&lt;?&gt; found = invocations.get( invocation );
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">if</strong> ( found == <strong class="jxr_keyword">null</strong> ) {
@@ -100,7 +100,7 @@
 <a class="jxr_linenumber" name="L92" href="#L92">92</a>  
 <a class="jxr_linenumber" name="L93" href="#L93">93</a>          LOGGER.info( <span class="jxr_string">"Registering command {}"</span>, id );
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>  
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">final</strong> Invocation invocation = command.invocation();
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">final</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> invocation = command.invocation();
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>          <strong class="jxr_keyword">final</strong> Set&lt;Invocation&gt; aliases = command.handlers() instanceof <a name="MessageHandlers" href="../../../../../dev/sympho/modular_commands/api/command/handler/MessageHandlers.html#MessageHandlers">MessageHandlers</a>
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>                  ? command.aliasInvocations() : Collections.emptySet();
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>  
@@ -111,7 +111,7 @@
 <a class="jxr_linenumber" name="L103" href="#L103">103</a> 
 <a class="jxr_linenumber" name="L104" href="#L104">104</a>         commands.put( id, command );
 <a class="jxr_linenumber" name="L105" href="#L105">105</a>         invocations.put( invocation, command );
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">for</strong> ( <strong class="jxr_keyword">final</strong> Invocation alias : aliases ) {
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <strong class="jxr_keyword">for</strong> ( <strong class="jxr_keyword">final</strong> <a name="Invocation" href="../../../../../dev/sympho/modular_commands/api/command/Invocation.html#Invocation">Invocation</a> alias : aliases ) {
 <a class="jxr_linenumber" name="L107" href="#L107">107</a>             aliasInvocations.put( alias, command );
 <a class="jxr_linenumber" name="L108" href="#L108">108</a>         }
 <a class="jxr_linenumber" name="L109" href="#L109">109</a> 

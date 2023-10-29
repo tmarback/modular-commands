@@ -102,7 +102,7 @@
 <a class="jxr_linenumber" name="L94" href="#L94">94</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Snowflake defaultGuild( <strong class="jxr_keyword">final</strong> <a name="CommandContext" href="../../../../../../dev/sympho/modular_commands/api/command/context/CommandContext.html#CommandContext">CommandContext</a> context ) 
 <a class="jxr_linenumber" name="L95" href="#L95">95</a>                  <strong class="jxr_keyword">throws</strong> <a name="InvalidArgumentException" href="../../../../../../dev/sympho/modular_commands/api/command/parameter/parse/InvalidArgumentException.html#InvalidArgumentException">InvalidArgumentException</a> {
 <a class="jxr_linenumber" name="L96" href="#L96">96</a>  
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>              <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> guild = context.getGuildId();
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>              <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">var</strong> guild = context.guildId();
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>              <strong class="jxr_keyword">if</strong> ( guild == <strong class="jxr_keyword">null</strong> ) {
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a name="InvalidArgumentException" href="../../../../../../dev/sympho/modular_commands/api/command/parameter/parse/InvalidArgumentException.html#InvalidArgumentException">InvalidArgumentException</a>( 
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>                         <span class="jxr_string">"Currently in a private channel, please use a URL"</span> 
@@ -198,7 +198,7 @@
 <a class="jxr_linenumber" name="L190" href="#L190">190</a> <em class="jxr_javadoccomment">         * @implSpec Other values default to where the command was invoked in.</em>
 <a class="jxr_linenumber" name="L191" href="#L191">191</a> <em class="jxr_javadoccomment">         */</em>
 <a class="jxr_linenumber" name="L192" href="#L192">192</a>         <strong class="jxr_keyword">public</strong> MessageRef( <strong class="jxr_keyword">final</strong> <a name="CommandContext" href="../../../../../../dev/sympho/modular_commands/api/command/context/CommandContext.html#CommandContext">CommandContext</a> context, <strong class="jxr_keyword">final</strong> Snowflake id ) {
-<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">this</strong>( id, context.getChannelId() );
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">this</strong>( id, context.channelId() );
 <a class="jxr_linenumber" name="L194" href="#L194">194</a>         }
 <a class="jxr_linenumber" name="L195" href="#L195">195</a> 
 <a class="jxr_linenumber" name="L196" href="#L196">196</a>         @Override
