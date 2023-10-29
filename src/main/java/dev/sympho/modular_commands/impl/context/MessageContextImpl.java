@@ -28,6 +28,7 @@ import dev.sympho.modular_commands.api.command.parameter.parse.SnowflakeParser;
 import dev.sympho.modular_commands.api.command.parameter.parse.StringParser;
 import dev.sympho.modular_commands.api.command.result.CommandFailureArgumentExtra;
 import dev.sympho.modular_commands.api.exception.ResultException;
+import dev.sympho.modular_commands.execute.LazyContext;
 import dev.sympho.modular_commands.execute.Metrics;
 import dev.sympho.modular_commands.utils.StringSplitter.Async.Iterator;
 import dev.sympho.modular_commands.utils.parse.RawParser;
@@ -51,6 +52,12 @@ public final class MessageContextImpl extends ContextImpl<String, MessageCreateE
 
     /** The received inline arguments. */
     private final Iterator arguments;
+
+    /** The raw argument string. */
+    private final String argString;
+
+    /** The arguments received as text, in the order received. */
+    private @MonotonicNonNull List<String> inputArgsList;
 
     /** The arguments received as text. */
     private @MonotonicNonNull Map<String, String> inputArgs;
@@ -80,6 +87,7 @@ public final class MessageContextImpl extends ContextImpl<String, MessageCreateE
         super( event, invocation, command, accessManager, replyManager );
 
         this.arguments = args;
+        this.argString = args.remainder(); // Save the arg string
 
     }
 
@@ -173,7 +181,12 @@ public final class MessageContextImpl extends ContextImpl<String, MessageCreateE
 
             return adjustArgs( inputParams, arguments )
                     .collectList()
+                    .map( Collections::unmodifiableList )
+                    .doOnNext( args -> {
+                        this.inputArgsList = args;
+                    } )
                     .map( args -> assign( inputParams, args, Function.identity() ) )
+                    .map( Collections::unmodifiableMap )
                     .doOnNext( args -> { 
                         this.inputArgs = args; 
                     } )
@@ -294,6 +307,33 @@ public final class MessageContextImpl extends ContextImpl<String, MessageCreateE
 
         final var attachment = getAttachmentArgs().get( name );
         return attachment == null ? Mono.empty() : Mono.just( attachment );
+
+    }
+
+    @Override
+    public String argString() {
+
+        return argString;
+
+    }
+
+    @Override
+    public List<String> rawArgs() {
+
+        if ( inputArgsList == null ) {
+            throw LazyContext.notLoadedError();
+        }
+        return inputArgsList;
+
+    }
+
+    @Override
+    public Map<String, String> rawArgMap() {
+
+        if ( inputArgs == null ) {
+            throw LazyContext.notLoadedError();
+        }
+        return inputArgs;
 
     }
 

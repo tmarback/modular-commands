@@ -1,5 +1,7 @@
 package dev.sympho.modular_commands.execute;
 
+import org.checkerframework.dataflow.qual.SideEffectFree;
+
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.result.CommandResult;
 import io.micrometer.observation.ObservationRegistry;
@@ -17,6 +19,30 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 public interface LazyContext extends CommandContext {
+
+    /**
+     * Creates an error that indicates that the context was not initialized yet.
+     *
+     * @return The created error.
+     */
+    @SideEffectFree
+    static IllegalStateException notInitializedError() {
+
+        return new IllegalStateException( "Context not initialized yet" );
+
+    }
+
+    /**
+     * Creates an error that indicates that the context was not loaded yet.
+     *
+     * @return The created error.
+     */
+    @SideEffectFree
+    static IllegalStateException notLoadedError() {
+
+        return new IllegalStateException( "Context not loaded yet" );
+
+    }
 
     /**
      * Partially initializes internal state, making the context minimally ready for
