@@ -46,6 +46,11 @@
         <property name="files" value="test.*"/>
         <property name="checks" value="MagicNumber"/>
     </module>
+    <!-- Method comments aren't necessary in test classes -->
+    <module name="SuppressionSingleFilter">
+        <property name="files" value="test.*"/>
+        <property name="checks" value="JavadocMethod"/>
+    </module>
     <!-- required till https://bugs.openjdk.java.net/browse/JDK-8160601 -->
     <module name="SuppressionSingleFilter">
         <property name="checks" value="MissingDeprecatedCheck"/>

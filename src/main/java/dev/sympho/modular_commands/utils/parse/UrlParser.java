@@ -4,11 +4,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.util.NullnessUtil;
+import org.checkerframework.checker.regex.qual.Regex;
 import org.checkerframework.dataflow.qual.Pure;
 import org.checkerframework.dataflow.qual.SideEffectFree;
 
@@ -25,6 +29,9 @@ import reactor.core.publisher.Mono;
  * @since 1.0
  */
 public interface UrlParser<T extends @NonNull Object> extends ParserFunction<String, T> {
+
+    /** Pattern that matches a masked link. */
+    @Regex( 1 ) Pattern MASKED_URL_PATTERN = Pattern.compile( "\\[.*\\]\\(([^\\[\\]]+?)\\)" );
 
     /**
      * Creates a parser that delegates to other parsers, chosen by the given mapping function
@@ -96,6 +103,40 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
         return choice( UrlParserUtils.toHostMapper( parsers ) );
 
     }
+    
+    /**
+     * Clears special URL formatting from the given string, if any exists.
+     * 
+     * <p>The following formatting types are supported:
+     * 
+     * <ul>
+     *   <li>Supressed links (links surrounded by {@code <>})</li>
+     *   <li>Masked links (links that display as clickable text)</li>
+     * </ul>
+     * 
+     * <p>Note that layered formats are supported if supported by Discord; for example, 
+     * {@code [Discord](<https://discord.com>)} is a link that is both supressed and masked.
+     *
+     * @param raw The string to strip.
+     * @return The stripped string.
+     */
+    @SideEffectFree
+    static String stripFormatting( String raw ) {
+
+        // Check for masked links
+        final var match = MASKED_URL_PATTERN.matcher( raw.trim() );
+        if ( match.matches() ) {
+            raw = NullnessUtil.castNonNull( match.group( 1 ) );
+        }
+
+        // Check for supressed links
+        if ( raw.startsWith( "<" ) && raw.endsWith( ">" ) ) {
+            raw = raw.substring( 1, raw.length() - 1 );
+        }
+        
+        return raw;
+
+    }
 
     /**
      * Parses the given string into a URL.
@@ -114,6 +155,60 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
         } catch ( final MalformedURLException e ) {
             throw new InvalidArgumentException( "Not a valid URL: " + raw, e );
         }
+
+    }
+
+    /**
+     * Attempts to parse a string as a URL.
+     * 
+     * <p>Some effort is made to detect URLs surrounded by special markup; see 
+     * {@link #stripFormatting(String)}.
+     *
+     * @param raw The string to parse.
+     * @param allowedProtocols The acceptable protocols.
+     * @return The parsed URL if one could be parsed, or {@code null} if the given string is
+     *         not a URL or has a protocol that is not contained in {@code allowedProtocols}.
+     * @throws InvalidArgumentException if the given string has a URL format (and an allowed
+     *                                  protocol) but is invalid in some way.
+     */
+    @SideEffectFree
+    static @Nullable URL parseUrl( final String raw, final Collection<String> allowedProtocols )
+            throws InvalidArgumentException {
+
+        final var clean = stripFormatting( raw );
+
+        final var sep = clean.indexOf( "://" );
+        if ( sep <= 0 ) {
+            return null; // Not a URL
+        }
+
+        final var protocol = clean.substring( 0, sep );
+        if ( !allowedProtocols.contains( protocol ) ) {
+            return null; // Invalid protocol
+        }
+
+        return getUrl( clean );
+
+    }
+
+    /**
+     * Attempts to parse a string as a URL.
+     * 
+     * <p>Some effort is made to detect URLs surrounded by special markup; see 
+     * {@link #stripFormatting(String)}.
+     *
+     * @param raw The string to parse.
+     * @param allowedProtocol The acceptable protocol.
+     * @return The parsed URL if one could be parsed, or {@code null} if the given string is
+     *         not a URL or does not have the {@code allowedProtocol}.
+     * @throws InvalidArgumentException if the given string has a URL format (and the allowed
+     *                                  protocol) but is invalid in some way.
+     */
+    @SideEffectFree
+    static @Nullable URL parseUrl( final String raw, final String allowedProtocol )
+            throws InvalidArgumentException {
+
+        return parseUrl( raw, List.of( allowedProtocol ) );
 
     }
 
@@ -150,7 +245,7 @@ public interface UrlParser<T extends @NonNull Object> extends ParserFunction<Str
     default Mono<T> parse( final CommandContext context, final String raw ) 
             throws InvalidArgumentException {
 
-        return parse( context, getUrl( raw ) );
+        return parse( context, getUrl( stripFormatting( raw ) ) );
 
     }
 

@@ -9,6 +9,8 @@ import org.checkerframework.dataflow.qual.SideEffectFree;
 import dev.sympho.modular_commands.api.command.context.CommandContext;
 import dev.sympho.modular_commands.api.command.parameter.parse.InvalidArgumentException;
 import dev.sympho.modular_commands.api.command.parameter.parse.ParserFunction;
+import dev.sympho.modular_commands.utils.parse.UrlParser;
+import dev.sympho.modular_commands.utils.parse.UrlParserUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Entity;
 import reactor.core.publisher.Mono;
@@ -70,8 +72,11 @@ public abstract class EntityRefParser<R extends EntityRef<? extends @NonNull Ent
     public R parseRef( final CommandContext context, final String raw ) 
             throws InvalidArgumentException {
 
-        if ( urlParser != null && raw.startsWith( "https://" ) ) {
-            return urlParser.parse( raw );
+        if ( urlParser != null ) {
+            final var url = UrlParser.parseUrl( raw, UrlParserUtils.PROTOCOL_HTTPS );
+            if ( url != null ) {
+                return urlParser.parse( url );
+            }
         }
 
         if ( mentionParser != null ) {
